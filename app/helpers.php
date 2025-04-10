@@ -1,0 +1,71 @@
+<?php
+
+use App\Models\Product;
+use App\Models\Unit;
+
+function getTotalStock($productId, $openingStockValue = null, $subOpeningStockValue = null)
+{
+    $mainUnitId = Product::find($productId)->unit_id;
+    $mainUnit = Unit::find($mainUnitId);
+
+    $relatedToUnit = $mainUnit->related_to_unit;
+    if ($relatedToUnit != '') {
+        $relatedByValue = $mainUnit->related_by_value;
+    } else {
+        $relatedByValue = 1;
+    }
+
+    $totalMainUnit = ($openingStockValue ?: 0) * $relatedByValue;
+
+    return $totalMainUnit + ($subOpeningStockValue ?: 0);
+}
+
+function getTotalStockInText($productId, $totalStockAmount)
+{
+    $mainUnitId = Product::find($productId)->unit_id;
+    $mainUnit = Unit::find($mainUnitId);
+
+    $relatedToUnit = $mainUnit->related_to_unit;
+    if ($relatedToUnit == '') {
+        return ($totalStockAmount ?: 0).' '.$mainUnit->unit_name;
+    } else {
+        $subUnit = Unit::find($relatedToUnit);
+
+        $relatedByValue = ($mainUnit->related_by_value ?: 0);
+
+        $getMainStock = (int) (($totalStockAmount ?: 0) / $relatedByValue);
+        $getSubStock = ($totalStockAmount ?: 0) - ($relatedByValue * $getMainStock);
+
+        return $getMainStock.' '.$mainUnit->unit_name.'  '.$getSubStock.' '.$subUnit->unit_name;
+    }
+}
+
+function singleUnitSalePrice($productId)
+{
+    $product = Product::find($productId);
+    $salePrice = $product->sale_price;
+
+    if ($product->sub_unit == '') {
+        return $salePrice;
+    } else {
+        $unit = Unit::find($product->unit_id);
+        $singleUnitSalePrice = $salePrice / $unit->related_by_value;
+
+        return $singleUnitSalePrice;
+    }
+}
+
+function singleUnitPurchasePrice($productId)
+{
+    $product = Product::find($productId);
+    $purchasePrice = $product->purchase_cost;
+
+    if ($product->sub_unit == '') {
+        return $purchasePrice;
+    } else {
+        $unit = Unit::find($product->unit_id);
+        $singleUnitPurchasePrice = $purchasePrice / $unit->related_by_value;
+
+        return $singleUnitPurchasePrice;
+    }
+}
