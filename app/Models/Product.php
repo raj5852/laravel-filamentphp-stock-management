@@ -103,16 +103,21 @@ class Product extends Model
 
     public function unit()
     {
-        return $this->belongsTo(Unit::class);
+        return $this->belongsTo(Unit::class)->withDefault([]);
     }
 
     public function subunit()
     {
-        return $this->belongsTo(Unit::class, 'sub_unit');
+        return $this->belongsTo(Unit::class, 'sub_unit')->withDefault([]);
     }
 
-    function damages()
+    public function damages()
     {
         return $this->hasMany(Damage::class);
+    }
+
+    public function purchaseitems()
+    {
+        return $this->hasMany(PurchaseItem::class, 'product_id');
     }
 }

@@ -36,7 +36,6 @@ class Damage extends Model
             $product->productdetails()->increment('available_stock', $damage->total_qty);
             $product->productdetails()->decrement('damaged', $damage->total_qty);
 
-
             $product->productdetails()->update([
                 'available_stock_in_text' => getTotalStockInText($product->id, ($totalStock + $damage->total_qty)),
                 'damaged_in_text' => getTotalStockInText($product->id, ($totalDamageStock - $damage->total_qty)),

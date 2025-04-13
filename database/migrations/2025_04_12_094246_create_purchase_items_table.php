@@ -1,0 +1,42 @@
+<?php
+
+use App\Models\Product;
+use App\Models\Purchase;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('purchase_items', function (Blueprint $table) {
+            $table->id();
+            $table->foreignIdFor(Purchase::class);
+            $table->foreignIdFor(Product::class);
+            $table->integer('rate')->nullable();
+            $table->integer('total_rate')->nullable();
+
+            $table->integer('main_unit_qty')->nullable();
+            $table->integer('sub_unit_qty')->nullable();
+            $table->integer('total_qty')->nullable();
+            $table->string('total_in_text')->nullable();
+
+            $table->foreignId('tenant_id')->nullable();
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('purchase_items');
+    }
+};

@@ -6,6 +6,7 @@ use App\Filament\Resources\SupplierResource\Pages;
 use App\Models\Supplier;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
@@ -85,19 +86,28 @@ class SupplierResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->query(Supplier::query()->withSum('purchases', 'payable')->withSum('purchases', 'paid')->withSum('purchases', 'due'))
             ->columns([
                 Tables\Columns\TextColumn::make('supplier_name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('email')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('phone')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('opening_receivable')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('opening_payable')
-                    ->numeric()
-                    ->sortable(),
+                    ->label('Name'),
+                Tables\Columns\TextColumn::make('email'),
+                Tables\Columns\TextColumn::make('phone'),
+                Tables\Columns\TextColumn::make('address'),
+                Tables\Columns\TextColumn::make('purchases_sum_payable')
+                    ->label('Payable')
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state ?: 0, 2, '.', '').' TK';
+                    }),
+                Tables\Columns\TextColumn::make('purchases_sum_paid')
+                    ->label('Paid')
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state ?: 0, 2, '.', '').' TK';
+                    }),
+                Tables\Columns\TextColumn::make('purchases_sum_due')
+                    ->label('Due')
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state ?: 0, 2, '.', '').' TK';
+                    }),
 
             ])
             ->filters([
@@ -106,7 +116,19 @@ class SupplierResource extends Resource
             ->actions([
                 ActionGroup::make([
                     Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\DeleteAction::make()
+                        ->before(function ($record, $action) {
+
+                            $purchase = $record->purchases()->count();
+
+                            if ($purchase > 0) {
+                                Notification::make()
+                                    ->title("You can't delete it.")
+                                    ->danger()
+                                    ->send();
+                                $action->cancel();
+                            }
+                        }),
                 ])
                     ->dropdown(true)
                     ->label('Actions')

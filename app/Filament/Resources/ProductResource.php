@@ -330,17 +330,19 @@ class ProductResource extends Resource
                 ActionGroup::make([
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make()
-                    ->before(function ($record,$action) {
-                        $damage = $record->damages()->count();
-                        if($damage > 0){
-                            Notification::make()
-                                ->title("You can't delete it because it has damage")
-                                ->danger()
-                                ->send();
-                            $action->cancel();
-                        }
-                    })
-                    ,
+                        ->before(function ($record, $action) {
+
+                            $damage = $record->damages()->count();
+                            $purchase = $record->purchaseitems()->count();
+
+                            if ($damage > 0 || $purchase > 0) {
+                                Notification::make()
+                                    ->title("You can't delete it.")
+                                    ->danger()
+                                    ->send();
+                                $action->cancel();
+                            }
+                        }),
                 ])
                     ->dropdown(true)
                     ->label('Actions')

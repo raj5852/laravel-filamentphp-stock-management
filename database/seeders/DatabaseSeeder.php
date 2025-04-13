@@ -17,26 +17,31 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        //user
+        // user
         DB::table('users')->insert([
             'name' => fake()->name(),
             'email' => 'admin@admin.com',
             'email_verified_at' => now(),
             'password' => bcrypt('password'),
             'remember_token' => Str::random(10),
-            'tenant_id'=>1
+            'tenant_id' => 1,
         ]);
 
         // unit
         DB::table('units')->insert([
-            'unit_name'=>'PC',
-            'tenant_id'=>1
+            'unit_name' => 'PC',
+            'tenant_id' => 1,
         ]);
 
         // category
         DB::table('categories')->insert([
-            'name'=>'Product',
-            'tenant_id'=>1
+            'name' => 'Product',
+            'tenant_id' => 1,
+        ]);
+
+        // setting
+        DB::table('settings')->insert([
+            'tenant_id' => 1,
         ]);
 
     }

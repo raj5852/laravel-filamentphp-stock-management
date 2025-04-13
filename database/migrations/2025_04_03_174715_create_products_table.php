@@ -29,7 +29,6 @@ return new class extends Migration
             $table->text('product_details')->nullable();
             $table->string('product_image')->nullable();
 
-
             $table->foreignId('tenant_id')->nullable();
             $table->foreignId('created_by')->nullable();
             $table->foreignId('updated_by')->nullable();

@@ -23,7 +23,6 @@ class DamageResource extends Resource
 
     protected static ?string $navigationGroup = 'Sale & Purchase';
 
-
     public static function canCreate(): bool
     {
         return false;
@@ -155,11 +154,10 @@ class DamageResource extends Resource
                         $getDamage = $product->productdetails->damaged;
                         $product->productdetails()->increment('damaged', $getQty);
 
-
                         $product->productdetails()->update([
                             'available_stock' => $productQty - $getQty,
                             'available_stock_in_text' => getTotalStockInText($product->id, $productQty - $getQty),
-                            'damaged_in_text'=> getTotalStockInText($product->id, $getDamage + $getQty),
+                            'damaged_in_text' => getTotalStockInText($product->id, $getDamage + $getQty),
                         ]);
 
                     }),

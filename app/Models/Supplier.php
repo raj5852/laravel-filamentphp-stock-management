@@ -28,4 +28,9 @@ class Supplier extends Model
             $model->updated_by = $user->id;
         });
     }
+
+    public function purchases()
+    {
+        return $this->hasMany(Purchase::class);
+    }
 }
