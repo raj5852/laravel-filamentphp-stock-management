@@ -1,16 +1,15 @@
 <?php
 
 use App\Models\Purchase;
-use App\Models\PurchaseItem;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
 
-    // return Purchase::query()->with(['supplier:id,supplier_name,address', 'purchaseitems' => function ($query) {
-    //     $query->with('product:id,product_name,product_code');
-    // }])->find(1);
+    return Purchase::query()
+        ->with(['histories', 'supplier:id,supplier_name,phone', 'purchaseitems' => function ($query) {
+            $query->select('id', 'product_id', 'purchase_id', 'total_in_text', 'rate', 'total_rate')
+                ->with('product:id,product_name,product_code');
+        }])
+        ->find(10);
 
-    return PurchaseItem::all();
-
-    // return number_format(10000000, 2, '.', '');
 });

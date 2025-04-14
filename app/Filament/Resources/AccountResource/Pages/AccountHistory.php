@@ -34,7 +34,7 @@ class AccountHistory extends Page implements HasTable
 
             ->query(fn () => $this->record->histories()->latest())
             ->columns([
-                TextColumn::make('date')
+                TextColumn::make('created_at')
                     ->date(),
                 TextColumn::make('amount')
                     ->formatStateUsing(fn ($state) => number_format((float) $state, 2, '.', '')),
@@ -43,6 +43,7 @@ class AccountHistory extends Page implements HasTable
                             ? $record->type->getLabelText()
                             : HistoryTypeEnum::from((int) $record->type)->getLabelText()
                     ),
+                TextColumn::make('note'),
 
             ])
             ->heading(new HtmlString('Account Name: '.$this->record->name))

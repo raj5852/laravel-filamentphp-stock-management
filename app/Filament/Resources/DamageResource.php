@@ -6,6 +6,7 @@ use App\Filament\Resources\DamageResource\Pages;
 use App\Models\Damage;
 use App\Models\Product;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -13,6 +14,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 use Illuminate\Validation\Rule;
 
 class DamageResource extends Resource
@@ -50,9 +52,17 @@ class DamageResource extends Resource
                                 $set('main_unit_name', $product?->unit?->unit_name);
                                 $set('sub_unit_name', $product?->subunit?->unit_name ?: null);
 
+                                $set('available_stock_in_text', $product?->productdetails?->available_stock_in_text);
                             })
                             ->required(),
 
+                        Placeholder::make('product_name')
+                            ->label('Available Stock')
+                            ->content(function ($get) {
+                                if($get('available_stock_in_text') != ''){
+                                    return  new HtmlString('<h1 style="color:green; font-weight: bold; font-size: 20px">'.$get('available_stock_in_text').'<h1>');
+                                }
+                            })->hidden(fn ($get) => $get('available_stock_in_text') == ''),
                         TextInput::make('quantity_in_main_unit')
                             ->label(function ($get) {
                                 if ($get('main_unit_name') == '') {

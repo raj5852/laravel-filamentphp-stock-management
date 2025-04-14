@@ -33,4 +33,14 @@ class History extends Model
     public $casts = [
         'type' => HistoryTypeEnum::class,
     ];
+
+    public function account()
+    {
+        return $this->belongsTo(Account::class);
+    }
+
+    public function purchase()
+    {
+        return $this->belongsTo(Purchase::class);
+    }
 }

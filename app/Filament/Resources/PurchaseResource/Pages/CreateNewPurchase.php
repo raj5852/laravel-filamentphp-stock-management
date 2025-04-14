@@ -22,6 +22,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -282,73 +283,84 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                     return;
                 }
 
-                $totalPurchase = Purchase::count() + 1;
+                try {
+                    DB::beginTransaction();
 
-                $payable = number_format($this->getGrandTotalProperty(), 2, '.', '');
-                $paid = $data['pay_amount'] ?: 0;
-                $due = number_format($this->totalDue($data['pay_amount']), 2, '.', '');
+                    $totalPurchase = Purchase::count() + 1;
 
-                $purchase = Purchase::create([
-                    'billno' => $totalPurchase,
-                    'supplier_id' => $this->supplier_id,
-                    'purchase_date' => $this->purchase_date,
-                    'payable' => $payable,
-                    'paid' => $paid,
-                    'due' => $due,
-                    'note' => $data['note'],
+                    $payable = number_format($this->getGrandTotalProperty(), 2, '.', '');
+                    $paid = $data['pay_amount'] ?: 0;
+                    $due = number_format($this->totalDue($data['pay_amount']), 2, '.', '');
 
-                ]);
+                    $purchase = Purchase::create([
+                        'billno' => $totalPurchase,
+                        'supplier_id' => $this->supplier_id,
+                        'purchase_date' => $this->purchase_date,
+                        'payable' => $payable,
+                        'paid' => $paid,
+                        'due' => $due,
+                        'note' => $data['note'],
 
-                foreach ($this->products as $product) {
-                    $main_unit_qty = $product['main_unit_qty'] ?: 0;
-                    $sub_unit_qty = $product['sub_unit_qty'] ?: 0;
+                    ]);
 
-                    $mainunitprice = ($product['rate'] ?: 0) * ($product['main_unit_qty'] ?: 0);
-                    if ($product['subunit'] != '') {
-                        $SingleSubunitPrice = ($product['rate'] ?: 0) / $product['related_by_value'];
-                        $subunitPrice = $SingleSubunitPrice * ($product['sub_unit_qty'] ?: 0);
-                    } else {
-                        $subunitPrice = 0;
+                    foreach ($this->products as $product) {
+                        $main_unit_qty = $product['main_unit_qty'] ?: 0;
+                        $sub_unit_qty = $product['sub_unit_qty'] ?: 0;
+
+                        $mainunitprice = ($product['rate'] ?: 0) * ($product['main_unit_qty'] ?: 0);
+                        if ($product['subunit'] != '') {
+                            $SingleSubunitPrice = ($product['rate'] ?: 0) / $product['related_by_value'];
+                            $subunitPrice = $SingleSubunitPrice * ($product['sub_unit_qty'] ?: 0);
+                        } else {
+                            $subunitPrice = 0;
+                        }
+
+                        $total_subunitprice = number_format($mainunitprice + $subunitPrice, 2, '.', '');
+
+                        $totalQty = getTotalStock($product['id'], $main_unit_qty, $sub_unit_qty);
+                        $total_qty_in_text = getTotalStockInText($product['id'], $totalQty);
+
+                        $getproduct = Product::find($product['id']);
+                        $available_stock = $getproduct->productdetails->available_stock ?: 0;
+                        $purchased = $getproduct->productdetails->purchased;
+
+                        $getproduct->productdetails()->update([
+                            'available_stock' => $available_stock + $totalQty,
+                            'available_stock_in_text' => getTotalStockInText($product['id'], ($available_stock + $totalQty)),
+                            'purchased' => $purchased + $totalQty,
+                            'purchased_in_text' => getTotalStockInText($product['id'], ($purchased + $totalQty)),
+                        ]);
+
+                        $purchase->purchaseitems()->create([
+                            'product_id' => $product['id'],
+                            'rate' => $product['rate'],
+                            'total_rate' => $total_subunitprice,
+                            'main_unit_qty' => $product['main_unit_qty'],
+                            'sub_unit_qty' => $product['sub_unit_qty'],
+                            'total_qty' => $totalQty,
+                            'total_in_text' => $total_qty_in_text,
+                        ]);
                     }
 
-                    $total_subunitprice = number_format($mainunitprice + $subunitPrice, 2, '.', '');
+                    if ($data['pay_amount'] != '') {
+                        $account = Account::find($data['account_id']);
+                        $account->decrement('current_balance', $data['pay_amount']);
+                        $account->histories()->create([
+                            'date' => $this->purchase_date,
+                            'amount' => $data['pay_amount'],
+                            'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
+                            'note' => '',
+                            'purchase_id' => $purchase->id,
+                        ]);
+                    }
 
-                    $totalQty = getTotalStock($product['id'], $main_unit_qty, $sub_unit_qty);
-                    $total_qty_in_text = getTotalStockInText($product['id'], $totalQty);
+                    DB::commit();
+                } catch (\Exception $e) {
+                    DB::rollBack();
 
-                    $getproduct = Product::find($product['id']);
-                    $available_stock = $getproduct->productdetails->available_stock ?: 0;
-                    $purchased = $getproduct->productdetails->purchased;
+                    // Handle exception
 
-                    $getproduct->productdetails()->update([
-                        'available_stock' => $available_stock + $totalQty,
-                        'available_stock_in_text' => getTotalStockInText($product['id'], ($available_stock + $totalQty)),
-                        'purchased' => $purchased + $totalQty,
-                        'purchased_in_text' => getTotalStockInText($product['id'], ($purchased + $totalQty)),
-                    ]);
-
-                    $purchase->purchaseitems()->create([
-                        'product_id' => $product['id'],
-                        'rate' => $product['rate'],
-                        'total_rate' => $total_subunitprice,
-                        'main_unit_qty' => $product['main_unit_qty'],
-                        'sub_unit_qty' => $product['sub_unit_qty'],
-                        'total_qty' => $totalQty,
-                        'total_in_text' => $total_qty_in_text,
-                    ]);
                 }
-
-                if ($data['pay_amount'] != '') {
-                    $account = Account::find($data['account_id']);
-                    $account->decrement('current_balance', $data['pay_amount']);
-                    $account->histories()->create([
-                        'date' => now(),
-                        'amount' => $data['pay_amount'],
-                        'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
-                        'note' => '',
-                    ]);
-                }
-
 
                 return redirect()->route('filament.admin.resources.purchases.purchase-invoice', ['record' => $purchase->id]);
 

@@ -138,11 +138,14 @@ class PurchaseResource extends Resource
             ->actions([
                 // Tables\Actions\EditAction::make(),
                 ActionGroup::make([
-                    // Tables\Actions\ViewAction::make(),
                     Action::make('Invoice')
-                        ->label('Invoice') // Label for the action button
+                        ->label('Invoice')
                         ->icon('heroicon-s-printer')
                         ->url(fn (Purchase $record) => route('filament.admin.resources.purchases.purchase-invoice', ['record' => $record->id])),
+                    Action::make('Show')
+                        ->label('Show')
+                        ->icon('heroicon-s-computer-desktop')
+                        ->url(fn (Purchase $record) => route('filament.admin.resources.purchases.purchase-show', ['record' => $record->id])),
 
                 ])->dropdown(true)
                     ->label('Actions')
@@ -173,6 +176,7 @@ class PurchaseResource extends Resource
             'index' => Pages\ListPurchases::route('/'),
             'add-purchase' => Pages\CreateNewPurchase::route('/add-purchase'),
             'purchase-invoice' => Pages\PurchaseInvoice::route('/invoice/{record}'),
+            'purchase-show' => Pages\PurchaseShow::route('/purchase-show/{record}'),
         ];
     }
 }

@@ -1,7 +1,7 @@
 <div class="grid grid-cols-3 gap-4 p-4">
     <!-- Product Image -->
     <div class="col-span-1 flex items-center justify-center">
-        <img src="{{ Storage::url($product->product_image) ?? '/images/notfound.jpg' }}" alt="Product Image"
+        <img src="{{ $product->product_image ? Storage::url($product->product_image) : '/images/notfound.jpg' }}" alt="Product Image"
             class="w-32 h-32 object-cover">
     </div>
 
