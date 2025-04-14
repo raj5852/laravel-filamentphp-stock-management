@@ -59,8 +59,8 @@ class DamageResource extends Resource
                         Placeholder::make('product_name')
                             ->label('Available Stock')
                             ->content(function ($get) {
-                                if($get('available_stock_in_text') != ''){
-                                    return  new HtmlString('<h1 style="color:green; font-weight: bold; font-size: 20px">'.$get('available_stock_in_text').'<h1>');
+                                if ($get('available_stock_in_text') != '') {
+                                    return new HtmlString('<h1 style="color:green; font-weight: bold; font-size: 20px">'.$get('available_stock_in_text').'<h1>');
                                 }
                             })->hidden(fn ($get) => $get('available_stock_in_text') == ''),
                         TextInput::make('quantity_in_main_unit')

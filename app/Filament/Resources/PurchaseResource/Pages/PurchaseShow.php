@@ -70,7 +70,9 @@ class PurchaseShow extends Page implements HasActions, HasForms
 
                 });
 
-                Notification::make('History Deleted')->success()->send();
+                Notification::make()
+                    ->title('Deleted Successfully')
+                    ->success()->send();
 
             });
     }
@@ -150,7 +152,9 @@ class PurchaseShow extends Page implements HasActions, HasForms
                     Account::find($data['account'])->decrement('current_balance', $data['amount']);
                 });
 
-                Notification::make('Payment Added')->success()->send();
+                Notification::make()->success()
+                    ->title('Payment Added Successfully')
+                    ->send();
 
             });
     }

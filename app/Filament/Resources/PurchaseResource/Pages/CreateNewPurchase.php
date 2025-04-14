@@ -339,6 +339,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                             'sub_unit_qty' => $product['sub_unit_qty'],
                             'total_qty' => $totalQty,
                             'total_in_text' => $total_qty_in_text,
+                            'available_qty' => $totalQty,
                         ]);
                     }
 

@@ -25,6 +25,9 @@ return new class extends Migration
             $table->integer('total_qty')->nullable();
             $table->string('total_in_text')->nullable();
 
+            $table->integer('available_qty')->default(0)->nullable();
+            $table->integer('finished_available_qty')->default(0)->nullable()->comment('0=not finished, 1=finished');
+
             $table->foreignId('tenant_id')->nullable();
             $table->foreignId('created_by')->nullable();
             $table->foreignId('updated_by')->nullable();
