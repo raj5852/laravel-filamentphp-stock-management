@@ -5,6 +5,7 @@ namespace App\Filament\Resources\PurchaseResource\Pages;
 use App\Filament\Resources\PurchaseResource;
 use App\HistoryTypeEnum;
 use App\Models\Account;
+use App\Models\Damage;
 use App\Models\History;
 use App\Models\Purchase;
 use App\Models\Setting;
@@ -50,6 +51,9 @@ class PurchaseShow extends Page implements HasActions, HasForms
                             ->with('product:id,product_name,product_code');
                     }])
                 ->find($this->record->id),
+
+            'damages' => Damage::query()->with('product')->whereJsonContains('purchase_ids', ['purchase_id' => $this->record->id])
+                ->get(),
 
         ];
     }
@@ -110,7 +114,7 @@ class PurchaseShow extends Page implements HasActions, HasForms
                     ->rules([
                         'required',
                         'min:0',
-                        'max_digits:10',
+                        'max:9999999999',
                         'numeric',
                     ])
                     ->default(fn (array $arguments) => $arguments['amount'] ?? 0)

@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->text('address')->nullable();
             $table->string('phone');
-            $table->integer('opening_receivable')->nullable()->default(0);
-            $table->integer('opening_payable')->nullable()->default(0);
+            $table->float('opening_receivable')->nullable()->default(0);
+            $table->float('opening_payable')->nullable()->default(0);
 
             $table->foreignId('tenant_id')->nullable();
             $table->foreignId('created_by')->nullable();

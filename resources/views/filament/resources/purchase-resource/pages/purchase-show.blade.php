@@ -1,4 +1,5 @@
 <x-filament-panels::page>
+    {{-- @dd($damages) --}}
     <div style="min-width: 70% !important" class=" mx-auto">
         <div id="invoice-container" class="p-8 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-lg">
             <div id="invoice-container2" class="mb-6">
@@ -186,9 +187,22 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @foreach ($damages as $damage)
                                 <tr>
+                                    <td class="border border-gray-300 dark:border-gray-700 px-2 py-1"> {{ Carbon\Carbon::parse($damage->damage)->format('d M, Y') }} </td>
+                                    <td class="border border-gray-300 dark:border-gray-700 px-2 py-1"> <a href="{{ route('filament.admin.resources.damages.index', ['tableFilters[id][id]=' => $damage->id]) }}" style="color: #33cabb">Damage#{{ $damage->id }} </a> </td>
+                                    <td class="border border-gray-300 dark:border-gray-700 px-2 py-1"> {{ $damage->product?->product_name }} </td>
+
+                                    <td class="border border-gray-300 dark:border-gray-700 px-2 py-1">
+                                        @php
+                                            $purchase = collect($damage->purchase_ids)->firstWhere('purchase_id', $this->record->id);
+                                        @endphp
+                                        {{ $purchase ? $purchase['qty_in_text'] : 'N/A' }}
+                                    </td>
 
                                 </tr>
+
+                                @endforeach
 
 
                             </tbody>
@@ -200,7 +214,7 @@
 
 
 
-            {{-- <div class="flex justify-between print-hidden">
+            <div class="flex justify-between print-hidden">
                 <button onclick="printInvoice()"
                     class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700">
                     <div style="display: flex">
@@ -224,7 +238,7 @@
                         </div>
                     </a>
                 </div>
-            </div> --}}
+            </div>
         </div>
     </div>
 

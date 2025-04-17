@@ -47,7 +47,7 @@ class CustomerResource extends Resource
                     ->rules([
                         'string',
                         'min:0',
-                        'max:65535',
+                        'max:5000',
                     ]),
                 Forms\Components\TextInput::make('phone')
                     ->placeholder('Enter Customer Phone')
@@ -65,7 +65,7 @@ class CustomerResource extends Resource
                     ->rules([
                         'numeric',
                         'min:0',
-                        'max_digits:12',
+                        'max:9999999999',
                     ])
                     ->numeric(),
                 Forms\Components\TextInput::make('opening_payable')
@@ -74,7 +74,7 @@ class CustomerResource extends Resource
                     ->rules([
                         'numeric',
                         'min:0',
-                        'max_digits:12',
+                        'max:9999999999',
                     ])
                     ->minValue(0),
 

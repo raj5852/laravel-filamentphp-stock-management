@@ -24,11 +24,10 @@ class Account extends Model
 
         static::created(function ($model) {
 
-            $model->increment('current_balance', $model->opening_balance);
+            $model->increment('current_balance', $model->opening_balance ?: 0);
             $model->histories()->create([
                 'date' => now(),
-                // 'owner_id' => '',
-                'amount' => $model->opening_balance,
+                'amount' => $model->opening_balance ?: 0,
                 'type' => HistoryTypeEnum::OPENING_BALANCE->value,
                 'note' => '',
             ]);

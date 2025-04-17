@@ -67,7 +67,7 @@ class UnitResource extends Resource
                     ->rules([
                         'min:0',
                         'numeric',
-                        'max_digits:12',
+                        'max:9999999999',
                     ])
                     ->live(),
 

@@ -17,16 +17,15 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Purchase::class);
             $table->foreignIdFor(Product::class);
-            $table->integer('rate')->nullable();
-            $table->integer('total_rate')->nullable();
+            $table->float('rate')->nullable();
+            $table->float('total_rate')->nullable();
 
             $table->integer('main_unit_qty')->nullable();
             $table->integer('sub_unit_qty')->nullable();
             $table->integer('total_qty')->nullable();
-            $table->string('total_in_text')->nullable();
+            $table->text('total_in_text')->nullable();
 
-            $table->integer('available_qty')->default(0)->nullable();
-            $table->integer('finished_available_qty')->default(0)->nullable()->comment('0=not finished, 1=finished');
+            $table->float('available_qty')->default(0)->nullable();
 
             $table->foreignId('tenant_id')->nullable();
             $table->foreignId('created_by')->nullable();

@@ -11,11 +11,13 @@ use Filament\Pages\Page;
 
 class Setting extends Page implements HasForms
 {
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationIcon = 'heroicon-o-cog-8-tooth';
 
     protected static string $view = 'filament.pages.setting';
 
     protected static ?string $title = 'Settings';
+    protected static ?string $navigationGroup = 'Setting & Customize';
+
 
     public $company_name;
 
@@ -44,12 +46,22 @@ class Setting extends Page implements HasForms
                     ->label('Company Name')
                     ->required()
                     ->placeholder('Company Name')
-                    ->maxLength(255),
+                    ->rules([
+                        'string',
+                        'min:0',
+                        'max:255',
+                        'required',
+                    ]),
 
                 TextInput::make('email_address')
                     ->label('Email Address')
                     ->email()
                     ->required()
+                    ->rules([
+                        'required',
+                        'email',
+                        'max:255',
+                    ])
                     ->placeholder('Email Address')
                     ->maxLength(255),
 
@@ -57,11 +69,23 @@ class Setting extends Page implements HasForms
                     ->label('Phone')
                     ->required()
                     ->placeholder('Phone')
+                    ->rules([
+                        'string',
+                        'min:0',
+                        'max:255',
+                        'required',
+                    ])
                     ->maxLength(255),
 
                 TextInput::make('address')
                     ->label('Address')
                     ->placeholder('Address')
+                    ->rules([
+                        'string',
+                        'min:0',
+                        'max:255',
+                        'required',
+                    ])
                     ->required(),
             ])->columns(2),
 

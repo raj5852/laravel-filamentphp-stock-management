@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('accounts', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('opening_balance')->nullable()->default(0);
+            $table->float('opening_balance')->nullable()->default(0);
             $table->float('current_balance')->default(0);
 
             $table->foreignId('tenant_id')->nullable();

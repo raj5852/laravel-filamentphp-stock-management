@@ -49,7 +49,7 @@ class BrandResource extends Resource
                     ->rules([
                         'string',
                         'min:0',
-                        'max:65535',
+                        'max:5000',
 
                     ])
                     ->columnSpanFull(),

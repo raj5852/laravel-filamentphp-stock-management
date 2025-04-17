@@ -9,8 +9,6 @@ use Illuminate\Database\Eloquent\Model;
 #[ScopedBy(TenantScope::class)]
 class PurchaseItem extends Model
 {
-    //
-
     protected $guarded = [];
 
     protected static function boot()

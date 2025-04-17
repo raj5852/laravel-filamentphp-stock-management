@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('unit_name');
             $table->foreignId('related_to_unit')->nullable();
             $table->string('operator')->nullable();
-            $table->integer('related_by_value')->nullable();
+            $table->float('related_by_value')->nullable();
 
             $table->foreignId('tenant_id')->nullable();
             $table->foreignId('created_by')->nullable();

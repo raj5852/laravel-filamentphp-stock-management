@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\DamageResource\Pages;
 use App\Models\Damage;
 use App\Models\Product;
+use App\Services\ExpensePurchase;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
@@ -13,7 +14,10 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
 use Illuminate\Validation\Rule;
 
@@ -82,9 +86,9 @@ class DamageResource extends Resource
                             ->hidden(fn ($get) => $get('main_unit_name') == '')
                             ->live()
                             ->rules([
-                                'numeric',
+                                'integer',
                                 'min:0',
-                                'max_digits:12',
+                                'max_digits:10',
                             ])
                             ->numeric(),
 
@@ -107,9 +111,9 @@ class DamageResource extends Resource
                             ->hidden(fn ($get) => $get('sub_unit_name') == '')
                             ->live()
                             ->rules([
-                                'numeric',
+                                'integer',
                                 'min:0',
-                                'max_digits:12',
+                                'max_digits:10',
                             ])
                             ->numeric(),
 
@@ -145,34 +149,48 @@ class DamageResource extends Resource
                                 ->send();
                             $action->halt();
                         }
+                        try {
+                            DB::beginTransaction();
 
-                        Damage::create([
-                            'product_id' => $data['product_id'],
-                            'quantity_in_main_unit' => $data['quantity_in_main_unit'] ?? null,
-                            'quantity_in_sub_unit' => $data['quantity_in_sub_unit'] ?? null,
-                            'date' => $data['date'],
-                            'note' => $data['note'],
-                            'total_qty' => $getQty,
-                            'total_in_text' => $total_in_text,
-                        ]);
+                            $purchaseIds = ExpensePurchase::addPurchaseExpense($data['product_id'], $getQty);
+                            Damage::create([
+                                'product_id' => $data['product_id'],
+                                'quantity_in_main_unit' => $data['quantity_in_main_unit'] ?? null,
+                                'quantity_in_sub_unit' => $data['quantity_in_sub_unit'] ?? null,
+                                'date' => $data['date'],
+                                'note' => $data['note'],
+                                'total_qty' => $getQty,
+                                'total_in_text' => $total_in_text,
+                                'purchase_ids' => $purchaseIds,
+                            ]);
 
-                        Notification::make()
-                            ->title('Damage Added Successfully')
-                            ->success()
-                            ->send();
+                            Notification::make()
+                                ->title('Damage Added Successfully')
+                                ->success()
+                                ->send();
 
-                        $getDamage = $product->productdetails->damaged;
-                        $product->productdetails()->increment('damaged', $getQty);
+                            $getDamage = $product->productdetails->damaged;
+                            $product->productdetails()->increment('damaged', $getQty);
 
-                        $product->productdetails()->update([
-                            'available_stock' => $productQty - $getQty,
-                            'available_stock_in_text' => getTotalStockInText($product->id, $productQty - $getQty),
-                            'damaged_in_text' => getTotalStockInText($product->id, $getDamage + $getQty),
-                        ]);
+                            $product->productdetails()->update([
+                                'available_stock' => $productQty - $getQty,
+                                'available_stock_in_text' => getTotalStockInText($product->id, $productQty - $getQty),
+                                'damaged_in_text' => getTotalStockInText($product->id, $getDamage + $getQty),
+                            ]);
+
+                            DB::commit();
+                        } catch (\Exception $e) {
+                            DB::rollBack();
+
+                            // Handle exception
+
+                        }
 
                     }),
             ])
             ->columns([
+                Tables\Columns\TextColumn::make('id')->label('#'),
+
                 Tables\Columns\TextColumn::make('product.product_name')
                     ->numeric()
                     ->sortable(),
@@ -182,13 +200,39 @@ class DamageResource extends Resource
                 Tables\Columns\TextColumn::make('note'),
             ])
             ->filters([
-                //
-            ])
+                Filter::make('product_id')
+                    ->label('')
+                    ->form([
+                        Select::make('product_id')
+                            ->label('Product')
+                            ->options(Product::query()->pluck('product_name', 'id'))
+                            ->placeholder('Select Product')
+                            ->searchable(),
+                    ])
+                    ->query(function ($query, array $data) {
+                        return $query->when($data['product_id'], fn ($query, $term) => $query->where('product_id', $term));
+                    }),
+
+                Filter::make('id')
+                    ->label('')
+                    ->form([
+                        TextInput::make('id')
+                            ->label('Id')
+                            ->autocomplete(false)
+                            ->placeholder('Id'),
+                    ])
+                    ->query(function ($query, array $data) {
+                        return $query->when($data['id'], fn ($query, $term) => $query->where('id', $term)
+                        );
+                    }),
+            ], layout: FiltersLayout::AboveContent)
             ->actions([
                 Tables\Actions\DeleteAction::make()
                     ->button()
                     ->outlined(),
             ])
+            ->filtersFormColumns(4)
+            ->hiddenFilterIndicators()
             ->bulkActions([
                 // Tables\Actions\BulkActionGroup::make([
                 //     Tables\Actions\DeleteBulkAction::make(),

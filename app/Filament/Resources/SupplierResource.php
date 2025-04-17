@@ -49,7 +49,7 @@ class SupplierResource extends Resource
                     ->rules([
                         'string',
                         'min:0',
-                        'max:65535',
+                        'max:5000',
                     ]),
                 Forms\Components\TextInput::make('phone')
                     ->placeholder('Enter Supplier Phone')
@@ -67,7 +67,7 @@ class SupplierResource extends Resource
                     ->rules([
                         'numeric',
                         'min:0',
-                        'max_digits:12',
+                        'max:9999999999'
                     ])
                     ->numeric()
                     ->minValue(0),
@@ -76,7 +76,7 @@ class SupplierResource extends Resource
                     ->rules([
                         'numeric',
                         'min:0',
-                        'max_digits:12',
+                        'max:9999999999'
                     ])
                     ->numeric()
                     ->minValue(0),

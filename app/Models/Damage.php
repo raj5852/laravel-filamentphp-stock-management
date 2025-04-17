@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Models\Scopes\TenantScope;
+use App\Services\ExpensePurchase;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 #[ScopedBy(TenantScope::class)]
 class Damage extends Model
@@ -12,6 +14,13 @@ class Damage extends Model
     //
 
     protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'purchase_ids' => 'array',
+        ];
+    }
 
     protected static function boot()
     {
@@ -29,18 +38,30 @@ class Damage extends Model
         });
 
         static::deleting(function ($damage) {
-            $product = Product::find($damage->product_id);
-            $totalStock = $product->productdetails->available_stock;
-            $totalDamageStock = $product->productdetails->damaged;
+            try {
+                DB::beginTransaction();
 
-            $product->productdetails()->increment('available_stock', $damage->total_qty);
-            $product->productdetails()->decrement('damaged', $damage->total_qty);
+                $product = Product::find($damage->product_id);
+                $totalStock = $product->productdetails->available_stock;
+                $totalDamageStock = $product->productdetails->damaged;
 
-            $product->productdetails()->update([
-                'available_stock_in_text' => getTotalStockInText($product->id, ($totalStock + $damage->total_qty)),
-                'damaged_in_text' => getTotalStockInText($product->id, ($totalDamageStock - $damage->total_qty)),
-            ]);
+                $product->productdetails()->increment('available_stock', $damage->total_qty);
+                $product->productdetails()->decrement('damaged', $damage->total_qty);
 
+                $product->productdetails()->update([
+                    'available_stock_in_text' => getTotalStockInText($product->id, ($totalStock + $damage->total_qty)),
+                    'damaged_in_text' => getTotalStockInText($product->id, ($totalDamageStock - $damage->total_qty)),
+                ]);
+
+                ExpensePurchase::deletePurchaseExpense($damage->purchase_ids);
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                // Handle exception
+
+            }
         });
 
     }

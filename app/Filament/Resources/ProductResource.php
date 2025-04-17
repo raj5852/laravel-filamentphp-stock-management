@@ -53,7 +53,7 @@ class ProductResource extends Resource
                             ->autocomplete(false)
                             ->rules([
                                 'string',
-                                'max:256',
+                                'max:50',
                             ])
                             ->readOnly(fn (string $context) => $context === 'edit')
                             ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('tenant_id', auth()->user()->tenant_id)),
@@ -200,8 +200,9 @@ class ProductResource extends Resource
                                     return $subunit?->unit_name ?? '';
                                 })
                                 ->rules([
+                                    'integer',
                                     'min:0',
-                                    'max_digits:30',
+                                    'max_digits:10',
                                 ])
                                 ->numeric(),
 
@@ -220,7 +221,8 @@ class ProductResource extends Resource
                                 ->minValue(0)
                                 ->rules([
                                     'min:0',
-                                    'max_digits:30',
+                                    'max_digits:10',
+                                    'integer'
 
                                 ])
                                 ->numeric(),
@@ -239,7 +241,7 @@ class ProductResource extends Resource
                                 'required',
                                 'numeric',
                                 'min:0',
-                                'max_digits:12',
+                                'max:9999999999',
                             ])
                             ->minValue(0)
                             ->required()
@@ -253,13 +255,13 @@ class ProductResource extends Resource
                                 'required',
                                 'numeric',
                                 'min:0',
-                                'max_digits:12',
+                                'max:9999999999',
                             ])
                             ->numeric(),
                         Forms\Components\Textarea::make('product_details')
                             ->rules([
                                 'string',
-                                'max:65535',
+                                'max:5000',
                             ])
                             ->placeholder('Product Details'),
 

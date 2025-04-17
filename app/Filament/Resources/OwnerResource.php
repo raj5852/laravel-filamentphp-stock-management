@@ -44,7 +44,7 @@ class OwnerResource extends Resource
                     ->placeholder('Address')
                     ->autocomplete(false)
                     ->rules([
-                        'max:65535',
+                        'max:5000',
                         'min:0',
                         'string',
 
@@ -66,15 +66,15 @@ class OwnerResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('invested')
                     ->getStateUsing(function ($record) {
-                        return number_format($record->invested, 2, '.', '');
+                        return number_format($record->invested, 2);
                     }),
                 Tables\Columns\TextColumn::make('withdrawn')
                     ->getStateUsing(function ($record) {
-                        return number_format($record->withdrawn, 2, '.', '');
+                        return number_format($record->withdrawn, 2);
                     }),
                 Tables\Columns\TextColumn::make('balance')
                     ->getStateUsing(function ($record) {
-                        return number_format($record->balance, 2, '.', '');
+                        return number_format($record->balance, 2);
                     }),
 
             ])

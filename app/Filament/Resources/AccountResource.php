@@ -36,15 +36,12 @@ class AccountResource extends Resource
 
                 Forms\Components\TextInput::make('opening_balance')
                     ->placeholder('Opening Balance')
-                    ->required()
-                    ->default(0)
-                    ->maxLength(10)
                     ->rules([
-                        'required',
-                        'min:0',
-                        'max_digits:10',
                         'numeric',
+                        'min:0',
+                        'max:9999999999',
                     ])
+                    ->autocomplete(false)
                     ->numeric(),
 
             ]);
@@ -54,17 +51,21 @@ class AccountResource extends Resource
     {
         $userId = auth()->user()->id;
         $ownerOptions = Owner::query()->pluck('name', 'id');
-        // $accounts = ;
 
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('opening_balance')
-                    ->numeric()
-                    ->sortable(),
+                    ->getStateUsing(function ($record) {
+                        return number_format($record->opening_balance, 2);
+                    })
+                    ->numeric(),
                 Tables\Columns\TextColumn::make('current_balance')
                     ->numeric()
+                    ->getStateUsing(function ($record) {
+                        return number_format($record->current_balance, 2);
+                    })
                     ->sortable(),
             ])
             ->filters([
@@ -89,24 +90,25 @@ class AccountResource extends Resource
                                 'required',
                                 'numeric',
                                 'min:0',
-                                'max_digits:10',
+                                'max:9999999999',
                             ])
                             ->prefix('৳'),
                         Forms\Components\Textarea::make('note')
                             ->rules([
                                 'string',
-                                'max:65535',
+                                'max:5000',
                             ])
                             ->label('Note'),
                         Forms\Components\Select::make('owner')
                             ->required()
                             ->rules([
+                                'required',
                                 Rule::exists('owners', 'id')->where('tenant_id', $userId),
                             ])
                             ->options($ownerOptions),
 
                     ])
-                    ->modalCancelActionLabel('Close')
+                    ->modalCancelAction(false)
                     ->action(function (Account $record, array $data) {
 
                         DB::transaction(function () use ($record, $data) {
@@ -152,25 +154,26 @@ class AccountResource extends Resource
                                 'required',
                                 'numeric',
                                 'min:0',
-                                'max_digits:10',
+                                'max:9999999999',
                             ])
                             ->prefix('৳'),
                         Forms\Components\Textarea::make('note')
                             ->rules([
                                 'string',
                                 'min:0',
-                                'max:65535',
+                                'max:5000',
                             ])
                             ->label('Note'),
                         Forms\Components\Select::make('owner')
                             ->required()
                             ->rules([
+                                'required',
                                 Rule::exists('owners', 'id')->where('tenant_id', $userId),
                             ])
                             ->options($ownerOptions),
 
                     ])
-                    ->modalCancelActionLabel('Close')
+                    ->modalCancelAction(false)
                     ->action(function (Account $record, array $data) {
 
                         DB::transaction(function () use ($record, $data) {
@@ -206,39 +209,44 @@ class AccountResource extends Resource
                     ->outlined()
                     ->color('warning')
                     ->modalHeading('Transfer Balance')
-                    ->form([
+                    ->form(function (Account $account) use ($userId) {
+                        return [
 
-                        Forms\Components\Select::make('to_account')
-                            ->required()
-                            ->rules([
-                                Rule::exists('accounts', 'id')->where('tenant_id', $userId),
-                            ])
-                            ->options(function (Account $account) {
-                                return Account::where('id', '!=', $account->id)->pluck('name', 'id');
-                            }),
+                            Forms\Components\Select::make('to_account')
+                                ->required()
+                                ->rules([
+                                    'required',
+                                    Rule::exists('accounts', 'id')->where('tenant_id', $userId)
+                                        ->whereNot('id', $account->id),
+                                ])
+                                ->options(Account::query()->where('tenant_id', $userId)->whereNot('id',$account->id)->pluck('name', 'id')),
 
-                        Forms\Components\TextInput::make('amount')
-                            ->label('Amount')
-                            ->numeric()
-                            ->required()
-                            ->minValue(0)
-                            ->rules([
-                                'required',
-                                'numeric',
-                                'min:0',
-                                'max_digits:10',
-                            ])
-                            ->prefix('৳'),
+                            Forms\Components\TextInput::make('amount')
+                                ->label('Amount')
+                                ->numeric()
+                                ->required()
+                                ->minValue(0)
+                                ->rules([
+                                    'required',
+                                    'numeric',
+                                    'min:0',
+                                    'max:9999999999',
+                                ])
+                                ->prefix('৳'),
 
-                        Forms\Components\Textarea::make('note')
-                            ->rules([
-                                'string',
-                                'max:65535',
+                            Forms\Components\Textarea::make('note')
+                                ->rules([
+                                    'string',
+                                    'max:5000',
 
-                            ])
-                            ->label('Note'),
+                                ])
+                                ->label('Note'),
 
-                    ])
+                        ];
+
+                    }
+                    )
+
                     ->modalCancelActionLabel('Close')
                     ->action(function (Account $record, array $data) {
 

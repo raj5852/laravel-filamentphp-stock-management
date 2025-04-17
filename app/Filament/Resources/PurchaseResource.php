@@ -3,20 +3,28 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PurchaseResource\Pages;
+use App\HistoryTypeEnum;
+use App\Models\Account;
+use App\Models\Damage;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Supplier;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class PurchaseResource extends Resource
 {
@@ -136,7 +144,7 @@ class PurchaseResource extends Resource
 
             ], layout: FiltersLayout::AboveContent)
             ->actions([
-                // Tables\Actions\EditAction::make(),
+
                 ActionGroup::make([
                     Action::make('Invoice')
                         ->label('Invoice')
@@ -147,6 +155,107 @@ class PurchaseResource extends Resource
                         ->icon('heroicon-s-computer-desktop')
                         ->url(fn (Purchase $record) => route('filament.admin.resources.purchases.purchase-show', ['record' => $record->id])),
 
+                    Action::make('add_payment')
+                        ->label('Add Payment')
+                        ->icon('fas-money-bill-wave')
+                        ->form([
+                            DatePicker::make('date')
+                                ->label('Payment Date')
+                                ->native(false)
+                                ->default(now())
+                                ->required(),
+                            Select::make('account')
+                                ->label('Transaction Account')
+                                ->searchable()
+                                ->options(Account::query()->pluck('name', 'id'))
+                                ->rules([
+                                    'required', Rule::exists('accounts', 'id'),
+                                ])
+                                ->required(),
+                            TextInput::make('amount')
+                                ->label('Amount')
+                                ->numeric()
+                                ->rules([
+                                    'required',
+                                    'numeric',
+                                    'min:0',
+                                    'max:9999999999',
+                                ])
+                                ->default(fn (Purchase $record) => $record->due)
+                                ->required(),
+                            Textarea::make('note')
+                                ->label('Note'),
+
+                        ])
+                        ->action(function (array $data, Purchase $record) {
+
+                            DB::transaction(function () use ($record, $data) {
+                                $purchase = Purchase::query()->findOrFail($record->id);
+
+                                $purchase->increment('paid', $data['amount']);
+                                $purchase->decrement('due', $data['amount']);
+
+                                $purchase->histories()->create([
+                                    'amount' => $data['amount'],
+                                    'account_id' => $data['account'],
+                                    'date' => $data['date'],
+                                    'note' => $data['note'],
+                                    'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
+                                ]);
+
+                                Account::find($data['account'])->decrement('current_balance', $data['amount']);
+                            });
+
+                            Notification::make()->success()
+                                ->title('Payment Added Successfully')
+                                ->send();
+
+                        })
+                        ->modalHeading('Add Payment')
+                        ->modalButton('Add Payment')
+                        ->modalCancelAction(false)
+                        ->modalWidth('sm'),
+                    DeleteAction::make()
+                        ->before(function (Purchase $record, $action) {
+                            $damage = Damage::whereJsonContains('purchase_ids', ['purchase_id' => $record->id])->exists();
+
+                            if ($damage) {
+                                Notification::make()->danger()->title('You can\'t delete it.')->send();
+                                $action->cancel();
+                            }
+
+                            foreach ($record->histories as $item) {
+                                $item->account->increment('current_balance', $item->amount);
+                                $item->delete();
+                            }
+
+                            $products = [];
+                            foreach ($record->purchaseitems as $item) {
+                                $product = Product::with('productdetails')->find($item->product_id);
+                                if ($product) {
+                                    $productDetails = $product->productdetails;
+
+                                    // Avoid multiple find queries for the same product
+                                    if (! isset($products[$item->product_id])) {
+                                        $products[$item->product_id] = $product;
+                                    }
+
+                                    // Update product details
+                                    $productDetails->decrement('available_stock', $item->total_qty);
+                                    $productDetails->decrement('purchased', $item->total_qty);
+
+                                    // Use a single update to modify multiple columns
+                                    $productDetails->update([
+                                        'purchased_in_text' => getTotalStockInText($item->product_id, $productDetails->purchased),
+                                        'available_stock_in_text' => getTotalStockInText($item->product_id, $productDetails->available_stock),
+                                    ]);
+                                }
+                                $item->delete();
+                            }
+
+                            $record->delete();
+                            Notification::make()->success()->title('Deleted Successfully')->send();
+                        }),
                 ])->dropdown(true)
                     ->label('Actions')
                     ->button()

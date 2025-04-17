@@ -23,6 +23,8 @@ return new class extends Migration
             $table->integer('total_qty')->nullable()->default(0);
             $table->string('total_in_text')->nullable();
 
+            $table->json('purchase_ids')->nullable();
+
             $table->foreignId('tenant_id')->nullable();
             $table->foreignId('created_by')->nullable();
             $table->foreignId('updated_by')->nullable();

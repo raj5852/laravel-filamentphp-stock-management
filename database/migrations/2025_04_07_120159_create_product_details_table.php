@@ -15,23 +15,23 @@ return new class extends Migration
         Schema::create('product_details', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Product::class)->constrained()->onDelete('cascade');
-            $table->integer('single_unit_sale_price');
-            $table->integer('single_unit_purchase_price');
+            $table->float('single_unit_sale_price');
+            $table->float('single_unit_purchase_price');
 
-            $table->integer('purchased');
-            $table->string('purchased_in_text')->nullable();
+            $table->float('purchased');
+            $table->text('purchased_in_text')->nullable();
 
-            $table->integer('sold');
-            $table->string('sold_in_text');
+            $table->float('sold');
+            $table->text('sold_in_text');
 
-            $table->integer('damaged');
-            $table->string('damaged_in_text');
+            $table->float('damaged');
+            $table->text('damaged_in_text');
 
-            $table->integer('returned');
-            $table->string('returned_in_text');
+            $table->float('returned');
+            $table->text('returned_in_text');
 
-            $table->integer('available_stock');
-            $table->string('available_stock_in_text');
+            $table->float('available_stock');
+            $table->text('available_stock_in_text');
 
             $table->foreignId('tenant_id')->nullable();
             $table->foreignId('created_by')->nullable();

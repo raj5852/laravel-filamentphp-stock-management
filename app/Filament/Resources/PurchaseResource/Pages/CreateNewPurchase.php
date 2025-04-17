@@ -201,24 +201,27 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                 Textarea::make('note')
                     ->label('Note')
                     ->rules([
-                        'nullable', 'max:65535',
+                        'nullable', 'max:5000',
                     ])
                     ->placeholder('Enter Note (Optional)'),
                 Grid::make(2)
                     ->schema([
+
                         Select::make('account_id')
                             ->label('Transaction Account')
-                            ->options($accounts)
+                            ->options($accounts->toArray()) // Convert the Collection to an array
+                            ->default(array_key_first($accounts->toArray())) // Set the default to the first option
                             ->rules([
                                 Rule::exists('accounts', 'id')->where('tenant_id', auth()->user()->tenant_id),
                             ])
                             ->required(),
+
                         TextInput::make('pay_amount')
                             ->debounce()
                             ->label('Pay Amount')
                             ->numeric()
                             ->placeholder('Pay Amount...')
-                            ->rules(['nullable', 'numeric', 'min:0'])
+                            ->rules(['nullable', 'numeric', 'min:0','max:9999999999'])
                             ->afterStateUpdated(function ($set, $get, $state) {
                                 $set('due', $this->totalDue($state));
                             })
@@ -255,9 +258,9 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                 }
 
                 $rules = [
-                    '*.rate' => ['required', 'integer', 'min:0'],
-                    '*.main_unit_qty' => ['nullable', 'integer'],
-                    '*.sub_unit_qty' => ['nullable', 'integer'],
+                    '*.rate' => ['required', 'numeric', 'min:0','max:9999999999'],
+                    '*.main_unit_qty' => ['nullable', 'integer','min:0','max:9999999999'],
+                    '*.sub_unit_qty' => ['nullable', 'integer', 'min:0','max:9999999999'],
                     '*.id' => ['required', Rule::exists('products', 'id')->where('tenant_id', auth()->user()->tenant_id)],
                 ];
 
