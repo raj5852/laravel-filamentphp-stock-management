@@ -22,6 +22,8 @@ class AccountResource extends Resource
 
     protected static ?string $navigationIcon = 'fas-building-columns';
 
+    protected static ?int $navigationSort = 1;
+
     public static function form(Form $form): Form
     {
         return $form
@@ -219,7 +221,7 @@ class AccountResource extends Resource
                                     Rule::exists('accounts', 'id')->where('tenant_id', $userId)
                                         ->whereNot('id', $account->id),
                                 ])
-                                ->options(Account::query()->where('tenant_id', $userId)->whereNot('id',$account->id)->pluck('name', 'id')),
+                                ->options(Account::query()->where('tenant_id', $userId)->whereNot('id', $account->id)->pluck('name', 'id')),
 
                             Forms\Components\TextInput::make('amount')
                                 ->label('Amount')

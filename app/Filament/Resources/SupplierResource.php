@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\SupplierResource\Pages;
 use App\Models\Supplier;
+use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -67,7 +68,7 @@ class SupplierResource extends Resource
                     ->rules([
                         'numeric',
                         'min:0',
-                        'max:9999999999'
+                        'max:9999999999',
                     ])
                     ->numeric()
                     ->minValue(0),
@@ -76,7 +77,7 @@ class SupplierResource extends Resource
                     ->rules([
                         'numeric',
                         'min:0',
-                        'max:9999999999'
+                        'max:9999999999',
                     ])
                     ->numeric()
                     ->minValue(0),
@@ -116,6 +117,16 @@ class SupplierResource extends Resource
             ->actions([
                 ActionGroup::make([
                     Tables\Actions\EditAction::make(),
+
+                    Action::make('report')
+                        ->label('Report')
+                        ->icon('fas-flag')
+                        ->url(fn (Supplier $record): string => route('filament.admin.resources.suppliers.report', $record)),
+                    Action::make('list')
+                        ->label('Purchase List')
+                        ->icon('fas-list')
+                        ->url(fn (Supplier $record): string => route('filament.admin.resources.purchases.index', ['tableFilters[supplier_id][value]' => $record->id])),
+
                     Tables\Actions\DeleteAction::make()
                         ->before(function ($record, $action) {
 
@@ -129,6 +140,7 @@ class SupplierResource extends Resource
                                 $action->cancel();
                             }
                         }),
+
                 ])
                     ->dropdown(true)
                     ->label('Actions')
@@ -155,6 +167,7 @@ class SupplierResource extends Resource
     {
         return [
             'index' => Pages\ListSuppliers::route('/'),
+            'report' => Pages\Report::route('/report/{record}'),
             // 'create' => Pages\CreateSupplier::route('/create'),
             // 'edit' => Pages\EditSupplier::route('/{record}/edit'),
         ];

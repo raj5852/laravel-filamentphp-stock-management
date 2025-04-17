@@ -34,7 +34,6 @@ class PurchaseShow extends Page implements HasActions, HasForms
 
     public function mount(int|string $record): void
     {
-
         $this->record = $this->resolveRecord($record);
     }
 

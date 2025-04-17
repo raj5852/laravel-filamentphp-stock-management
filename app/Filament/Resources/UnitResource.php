@@ -20,7 +20,7 @@ class UnitResource extends Resource
 
     protected static ?string $navigationGroup = 'Product Information';
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'fas-glass-water-droplet';
 
     protected static ?int $navigationSort = 1;
 

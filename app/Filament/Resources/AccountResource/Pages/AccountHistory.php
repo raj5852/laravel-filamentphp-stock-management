@@ -4,6 +4,7 @@ namespace App\Filament\Resources\AccountResource\Pages;
 
 use App\Filament\Resources\AccountResource;
 use App\HistoryTypeEnum;
+use App\Models\History;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
@@ -36,8 +37,22 @@ class AccountHistory extends Page implements HasTable
             ->columns([
                 TextColumn::make('created_at')
                     ->date(),
+
                 TextColumn::make('amount')
-                    ->formatStateUsing(fn ($state) => number_format((float) $state, 2, '.', '')),
+                    ->html()
+                    ->formatStateUsing(function (History $record) {
+
+                        if ($record->type == HistoryTypeEnum::SPENT_OR_WITHDRAW) {
+                            $color = ['red', '-'];
+                        } elseif ($record->type == HistoryTypeEnum::RECEIVED) {
+                            $color = ['green', '+'];
+                        } else {
+                            $color = ['', '+'];
+                        }
+
+                        return new HtmlString('<span style="color:'.$color[0].'">'.$color[1].' '.$record->amount.'</span>');
+                    }),
+
                 TextColumn::make('type')
                     ->getStateUsing(fn ($record) => $record->type instanceof HistoryTypeEnum
                             ? $record->type->getLabelText()

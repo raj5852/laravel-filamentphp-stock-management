@@ -18,6 +18,8 @@ class OwnerResource extends Resource
 
     protected static ?string $navigationIcon = 'fas-users';
 
+    protected static ?int $navigationSort = 2;
+
     public static function form(Form $form): Form
     {
         return $form

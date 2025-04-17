@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\Setting as ModelsSetting;
 use Filament\Forms\Components\Card;
+use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
@@ -16,8 +17,10 @@ class Setting extends Page implements HasForms
     protected static string $view = 'filament.pages.setting';
 
     protected static ?string $title = 'Settings';
+
     protected static ?string $navigationGroup = 'Setting & Customize';
 
+    protected static ?int $navigationSort = 0;
 
     public $company_name;
 
@@ -87,6 +90,9 @@ class Setting extends Page implements HasForms
                         'required',
                     ])
                     ->required(),
+
+                // ColorPicker::make('color'),
+
             ])->columns(2),
 
         ];

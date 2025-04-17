@@ -6,6 +6,7 @@ use App\Filament\Resources\ProductResource\Pages;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Setting;
 use App\Models\Unit;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
@@ -14,6 +15,7 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Support\Colors\Color;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
@@ -28,6 +30,8 @@ class ProductResource extends Resource
     protected static ?string $navigationGroup = 'Product Information';
 
     protected static ?string $navigationIcon = 'fab-product-hunt';
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
@@ -83,6 +87,13 @@ class ProductResource extends Resource
                                     ->placeholder('Category Name')
                                     ->required(),
                             ])
+                            ->createOptionAction(function (Forms\Components\Actions\Action $action) {
+                                $action
+                                    ->button()
+                                    ->outlined()
+                                    ->color(Color::Green)
+                                    ->label('Add Category');
+                            })
                             ->createOptionModalHeading('Create a new Category')
                             ->createOptionUsing(function ($data) {
                                 $category = Category::create([
@@ -121,7 +132,13 @@ class ProductResource extends Resource
                                     $query->where('tenant_id', auth()->user()->tenant_id);
                                 }),
                             ])
-
+                            ->createOptionAction(function (Forms\Components\Actions\Action $action) {
+                                $action
+                                    ->button()
+                                    ->outlined()
+                                    ->color(Color::Green)
+                                    ->label('Add Brand');
+                            })
                             ->createOptionUsing(function ($data) { // This function creates a new brand
                                 $brand = Brand::create([
                                     'brand_name' => $data['brand_name'],
@@ -222,7 +239,7 @@ class ProductResource extends Resource
                                 ->rules([
                                     'min:0',
                                     'max_digits:10',
-                                    'integer'
+                                    'integer',
 
                                 ])
                                 ->numeric(),
@@ -326,7 +343,7 @@ class ProductResource extends Resource
                     ->outlined()
                     ->modalHeading(fn ($record) => $record->product_name) // Dynamic title
                     ->modalContent(fn ($record) => view('filament.modals.product-details', ['product' => $record->load('category', 'brand', 'productdetails')]))
-                    ->modalSubmitAction(false) // Remove submit button
+                    ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close'),
 
                 ActionGroup::make([
@@ -372,6 +389,7 @@ class ProductResource extends Resource
                     ->outlined()
                     ->modalContent(fn ($record) => view('filament.modals.barcode', [
                         'record' => $record,
+                        'company_name'=> Setting::first()->company_name
                     ]))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close')

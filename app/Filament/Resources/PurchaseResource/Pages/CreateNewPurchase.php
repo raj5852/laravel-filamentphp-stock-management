@@ -221,7 +221,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                             ->label('Pay Amount')
                             ->numeric()
                             ->placeholder('Pay Amount...')
-                            ->rules(['nullable', 'numeric', 'min:0','max:9999999999'])
+                            ->rules(['nullable', 'numeric', 'min:0', 'max:9999999999'])
                             ->afterStateUpdated(function ($set, $get, $state) {
                                 $set('due', $this->totalDue($state));
                             })
@@ -258,9 +258,9 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                 }
 
                 $rules = [
-                    '*.rate' => ['required', 'numeric', 'min:0','max:9999999999'],
-                    '*.main_unit_qty' => ['nullable', 'integer','min:0','max:9999999999'],
-                    '*.sub_unit_qty' => ['nullable', 'integer', 'min:0','max:9999999999'],
+                    '*.rate' => ['required', 'numeric', 'min:0', 'max:9999999999'],
+                    '*.main_unit_qty' => ['nullable', 'integer', 'min:0', 'max:9999999999'],
+                    '*.sub_unit_qty' => ['nullable', 'integer', 'min:0', 'max:9999999999'],
                     '*.id' => ['required', Rule::exists('products', 'id')->where('tenant_id', auth()->user()->tenant_id)],
                 ];
 

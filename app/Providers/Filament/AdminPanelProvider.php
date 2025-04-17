@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Middleware\ApplyTenantThemeColors;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -24,11 +25,18 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
+            ->navigationGroups([
+                'Sale & Purchase',
+                'Product Information',
+                'Peoples',
+                'Setting & Customize',
+
+            ])
             ->id('admin')
             ->path('admin')
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Lime,
             ])
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
@@ -54,6 +62,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                ApplyTenantThemeColors::class,
             ])
             ->sidebarCollapsibleOnDesktop()
             ->registration();
