@@ -389,7 +389,7 @@ class ProductResource extends Resource
                     ->outlined()
                     ->modalContent(fn ($record) => view('filament.modals.barcode', [
                         'record' => $record,
-                        'company_name'=> Setting::first()->company_name
+                        'company_name' => Setting::first()->company_name,
                     ]))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close')

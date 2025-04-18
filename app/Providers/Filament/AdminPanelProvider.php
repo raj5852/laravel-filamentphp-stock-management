@@ -25,6 +25,7 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
+
             ->navigationGroups([
                 'Sale & Purchase',
                 'Product Information',
