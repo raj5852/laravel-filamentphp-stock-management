@@ -96,16 +96,19 @@ class SupplierResource extends Resource
                 Tables\Columns\TextColumn::make('address'),
                 Tables\Columns\TextColumn::make('purchases_sum_payable')
                     ->label('Payable')
+                    ->default(0)
                     ->formatStateUsing(function ($state) {
                         return number_format($state ?: 0, 2, '.', '').' TK';
                     }),
                 Tables\Columns\TextColumn::make('purchases_sum_paid')
                     ->label('Paid')
+                    ->default(0)
                     ->formatStateUsing(function ($state) {
                         return number_format($state ?: 0, 2, '.', '').' TK';
                     }),
                 Tables\Columns\TextColumn::make('purchases_sum_due')
                     ->label('Due')
+                    ->default(0)
                     ->formatStateUsing(function ($state) {
                         return number_format($state ?: 0, 2, '.', '').' TK';
                     }),

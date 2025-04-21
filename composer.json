@@ -13,7 +13,6 @@
         "laravel/tinker": "^2.9",
         "milon/barcode": "^12.0",
         "owenvoke/blade-fontawesome": "^2.9",
-        "picqer/php-barcode-generator": "^3.2",
         "simplesoftwareio/simple-qrcode": "^4.2"
     },
     "require-dev": {

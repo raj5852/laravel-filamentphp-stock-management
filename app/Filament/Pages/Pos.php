@@ -11,4 +11,6 @@ class Pos extends Page
     protected static string $view = 'filament.pages.pos';
 
     protected static ?string $title = 'POS';
+
+    protected static ?string $navigationGroup = 'Sale & Purchase';
 }

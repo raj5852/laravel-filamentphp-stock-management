@@ -136,7 +136,8 @@ class AccountResource extends Resource
                             ->send();
 
                     })
-                    ->modalWidth('sm'),
+                    ->modalSubmitActionLabel('Add Balance')
+                    ->modalWidth('md'),
 
                 Action::make('withdraw_balance')
                     ->label('Withdraw Balance')
@@ -201,7 +202,8 @@ class AccountResource extends Resource
                             ->send();
 
                     })
-                    ->modalWidth('sm'),
+                    ->modalSubmitActionLabel('Withdraw Balance')
+                    ->modalWidth('md'),
 
                 Action::make('transfer_balance')
                     ->label('Transfer Balance')
@@ -281,7 +283,9 @@ class AccountResource extends Resource
                             ->send();
 
                     })
-                    ->modalWidth('sm'),
+                    ->modalCancelAction(false)
+                    ->modalSubmitActionLabel('Transfer')
+                    ->modalWidth('md'),
 
                 Action::make('History')
                     ->icon('fas-history')

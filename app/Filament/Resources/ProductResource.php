@@ -92,6 +92,8 @@ class ProductResource extends Resource
                                     ->button()
                                     ->outlined()
                                     ->color(Color::Green)
+                                    ->modalWidth('md')
+                                    ->modalCancelAction(false)
                                     ->label('Add Category');
                             })
                             ->createOptionModalHeading('Create a new Category')
@@ -137,7 +139,9 @@ class ProductResource extends Resource
                                     ->button()
                                     ->outlined()
                                     ->color(Color::Green)
-                                    ->label('Add Brand');
+                                    ->label('Add Brand')
+                                    ->modalCancelAction(false)
+                                    ->modalWidth('md');
                             })
                             ->createOptionUsing(function ($data) { // This function creates a new brand
                                 $brand = Brand::create([
@@ -334,6 +338,7 @@ class ProductResource extends Resource
             ->filters([
                 //
             ])
+            ->recordAction('print_qr')
             ->actions([
 
                 Action::make('view')

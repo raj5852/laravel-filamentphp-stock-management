@@ -22,6 +22,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
+use Filament\Support\Colors\Color;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -54,6 +55,19 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
 
     public $pay_amount = 0;
 
+    public function getActions(): array
+    {
+        return [
+            Action::make('add_supplier')
+                ->label('Add Supplier')
+                ->color(Color::Green)
+                ->form([
+
+                ]),
+
+        ];
+    }
+
     public function getFormSchema(): array
     {
         return [
@@ -66,6 +80,94 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                     ->rules([
                         Rule::exists('suppliers', 'id')->where('tenant_id', auth()->user()->tenant_id),
                     ])
+                    ->createOptionForm([
+                        TextInput::make('supplier_name')
+                            ->placeholder('Enter Supplier Name')
+                            ->autocomplete(false)
+                            ->rules([
+                                'required',
+                                'string',
+                                'min:0',
+                                'max:256',
+                            ])
+                            ->required(),
+                        TextInput::make('email')
+                            ->placeholder('Enter Supplier Email')
+                            ->rules([
+                                'email',
+                                'min:0',
+                                'max:256',
+                            ])
+                            ->autocomplete(false)
+
+                            ->email(),
+                        Textarea::make('address')
+                            ->placeholder('Write Supplier Address')
+                            ->rules([
+                                'string',
+                                'min:0',
+                                'max:5000',
+                            ]),
+                        TextInput::make('phone')
+                            ->placeholder('Enter Supplier Phone')
+                            ->autocomplete(false)
+                            ->tel()
+                            ->rules([
+                                'required',
+                                'string',
+                                'min:0',
+                                'max:256',
+                            ])
+                            ->required(),
+                        TextInput::make('opening_receivable')
+                            ->hidden(fn (string $context) => $context === 'edit')
+                            ->rules([
+                                'numeric',
+                                'min:0',
+                                'max:9999999999',
+                            ])
+                            ->placeholder('Opening Receivable')
+                            ->numeric()
+                            ->minValue(0),
+                        TextInput::make('opening_payable')
+                            ->hidden(fn (string $context) => $context === 'edit')
+                            ->rules([
+                                'numeric',
+                                'min:0',
+                                'max:9999999999',
+                            ])
+                            ->placeholder('Opening Payable')
+                            ->numeric()
+                            ->minValue(0),
+                    ])
+                    ->createOptionAction(function (FormsAction $action) {
+                        $action
+                            ->button()
+                            // ->outlined()
+                            ->icon('')
+                            ->color(Color::Green)
+                            ->modalWidth('md')
+                            ->modalCancelAction(false)
+                            ->label('Add Supplier');
+                    })
+                    ->createOptionModalHeading('Add Supplier')
+                    ->createOptionUsing(function (array $data) {
+                        $supplier = Supplier::create([
+                            'supplier_name' => $data['supplier_name'],
+                            'email' => $data['email'],
+                            'address' => $data['address'],
+                            'phone' => $data['phone'],
+                            'opening_receivable' => $data['opening_receivable'] ?: 0,
+                            'opening_payable' => $data['opening_payable'] ?: 0,
+                        ]);
+
+                        Notification::make()
+                            ->title('Supplier created Successfully')
+                            ->success()
+                            ->send();
+
+                        return $supplier->id;
+                    })
                     ->required(),
 
                 DatePicker::make('purchase_date')
