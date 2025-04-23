@@ -22,7 +22,8 @@ function getTotalStock($productId, $openingStockValue = null, $subOpeningStockVa
 
 function getTotalStockInText($productId, $totalStockAmount)
 {
-    $mainUnitId = Product::find($productId)->unit_id;
+    $product = Product::find($productId);
+    $mainUnitId = $product->unit_id;
     $mainUnit = Unit::find($mainUnitId);
 
     $relatedToUnit = $mainUnit->related_to_unit;
@@ -35,6 +36,10 @@ function getTotalStockInText($productId, $totalStockAmount)
 
         $getMainStock = (int) (($totalStockAmount ?: 0) / $relatedByValue);
         $getSubStock = ($totalStockAmount ?: 0) - ($relatedByValue * $getMainStock);
+
+        if ($product['sub_unit'] == null) {
+            return $getMainStock.' '.$mainUnit->unit_name;
+        }
 
         return $getMainStock.' '.$mainUnit->unit_name.'  '.$getSubStock.' '.$subUnit->unit_name;
     }

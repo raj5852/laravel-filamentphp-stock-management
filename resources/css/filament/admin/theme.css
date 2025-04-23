@@ -1,3 +1,10 @@
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
 
 @config 'tailwind.config.js';
+
+
+@layer utilities {
+    .fi-main {
+        @apply lg:px-0 !important;
+    }
+}

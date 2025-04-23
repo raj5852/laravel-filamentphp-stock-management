@@ -1,10 +1,6 @@
 <?php
 
-use App\HistoryTypeEnum;
-use App\Models\Account;
-use App\Models\Order;
-use App\Models\Owner;
-use App\Models\Purchase;
+use App\Models\Customer;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,16 +12,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('histories', function (Blueprint $table) {
+        Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Account::class);
-            $table->foreignIdFor(Owner::class)->nullable();
-            $table->foreignIdFor(Purchase::class)->nullable();
-            $table->foreignIdFor(Order::class)->nullable();
 
-            $table->date('date');
-            $table->float('amount');
-            $table->enum('type', array_column(HistoryTypeEnum::cases(), 'value'));
+            $table->string('invoiceno')->nullable();
+            $table->foreignIdFor(Customer::class);
+
+            $table->date('order_date');
+            $table->float('receivable');
+            $table->float('paid');
+            $table->float('due');
+
             $table->text('note')->nullable();
 
             $table->foreignId('tenant_id')->nullable();
@@ -40,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('histories');
+        Schema::dropIfExists('orders');
     }
 };
