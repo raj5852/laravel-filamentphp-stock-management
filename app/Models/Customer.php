@@ -28,4 +28,9 @@ class Customer extends Model
             $model->updated_by = $user->id;
         });
     }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
 }

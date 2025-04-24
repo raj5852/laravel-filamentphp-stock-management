@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\ExpensePurchase;
 use Filament\Actions\Action as LivewireAction;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -64,6 +65,14 @@ class Pos extends Component implements HasActions, HasForms, HasTable
     public function addProduct($productId)
     {
         $product = Product::findOrfail($productId)->load(['unit', 'subunit', 'productdetails:id,available_stock,product_id']);
+
+        if($product->productdetails->available_stock <= 0){
+            Notification::make()
+                ->title('This product is Stock out. Please Purchases the Product.')
+                ->danger()
+                ->send();
+                return ;
+        }
         if ($product) {
             $this->products[] = [
                 'id' => $product->id,
@@ -122,6 +131,9 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
     public function getSubQty($related_by_value, $totalStockAmount)
     {
+        if($related_by_value == 0){
+            return 0;
+        }
         $getMainStock = (int) (($totalStockAmount ?: 0) / $related_by_value);
 
         return ($totalStockAmount ?: 0) - ($related_by_value * $getMainStock);
@@ -388,6 +400,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                     ->label('')
                     ->icon('')
                     ->action(function ($record) {
+
                         if (! $record) {
                             Notification::make()
                                 ->title('Item not found!')
@@ -580,16 +593,19 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                         $totalQty = getTotalStock($product['id'], $main_unit_qty, $sub_unit_qty);
                         $total_qty_in_text = getTotalStockInText($product['id'], $totalQty);
 
-                        $getproduct = Product::find($product['id']);
+                        $getproduct = Product::find($product['id'])->load('productdetails');
                         $available_stock = $getproduct->productdetails->available_stock ?: 0;
                         $sold = $getproduct->productdetails->sold;
 
+                        $purchaseCost = $totalQty * $getproduct->productdetails->single_unit_purchase_price;
                         $getproduct->productdetails()->update([
                             'available_stock' => $available_stock - $totalQty,
                             'available_stock_in_text' => getTotalStockInText($product['id'], ($available_stock - $totalQty)),
                             'sold' => $sold + $totalQty,
                             'sold_in_text' => getTotalStockInText($product['id'], ($sold + $totalQty)),
                         ]);
+
+                        $purchaseIds = ExpensePurchase::addPurchaseExpense($product['id'], $totalQty);
 
                         $order->orderitems()->create([
                             'product_id' => $product['id'],
@@ -600,6 +616,8 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                             'total_qty' => $totalQty,
                             'total_in_text' => $total_qty_in_text,
                             'available_qty' => $totalQty,
+                            'purchase_cost' => $purchaseCost,
+                            'purchase_ids' => $purchaseIds,
                         ]);
                     }
 

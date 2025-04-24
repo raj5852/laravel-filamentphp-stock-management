@@ -26,6 +26,9 @@ return new class extends Migration
             $table->text('total_in_text')->nullable();
 
             $table->float('available_qty')->default(0)->nullable();
+            $table->float('purchase_cost')->nullable();
+
+            $table->json('purchase_ids')->nullable();
 
             $table->foreignId('tenant_id')->nullable();
             $table->foreignId('created_by')->nullable();

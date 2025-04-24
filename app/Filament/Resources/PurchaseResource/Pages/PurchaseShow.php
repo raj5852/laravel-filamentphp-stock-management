@@ -7,6 +7,7 @@ use App\HistoryTypeEnum;
 use App\Models\Account;
 use App\Models\Damage;
 use App\Models\History;
+use App\Models\OrderItem;
 use App\Models\Purchase;
 use App\Models\Setting;
 use Filament\Actions\Action;
@@ -52,6 +53,10 @@ class PurchaseShow extends Page implements HasActions, HasForms
                 ->find($this->record->id),
 
             'damages' => Damage::query()->with('product')->whereJsonContains('purchase_ids', ['purchase_id' => $this->record->id])
+                ->get(),
+            'sales' => OrderItem::query()
+                ->with('order:id,order_date,invoiceno', 'product:id,product_name')
+                ->whereJsonContains('purchase_ids', ['purchase_id' => $this->record->id])
                 ->get(),
 
         ];

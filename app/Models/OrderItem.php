@@ -10,8 +10,14 @@ use Illuminate\Database\Eloquent\Model;
 class OrderItem extends Model
 {
     //
-
     protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'purchase_ids' => 'array',
+        ];
+    }
 
     protected static function boot()
     {
@@ -27,5 +33,15 @@ class OrderItem extends Model
             $user = auth()->user();
             $model->updated_by = $user->id;
         });
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
     }
 }

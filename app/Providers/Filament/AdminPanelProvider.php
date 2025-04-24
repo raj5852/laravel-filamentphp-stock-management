@@ -18,6 +18,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Njxqlus\FilamentProgressbar\FilamentProgressbarPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -33,6 +34,7 @@ class AdminPanelProvider extends PanelProvider
                 'Setting & Customize',
 
             ])
+            ->plugin(FilamentProgressbarPlugin::make()->color('#29b'))
             ->id('admin')
             ->path('admin')
             ->login()

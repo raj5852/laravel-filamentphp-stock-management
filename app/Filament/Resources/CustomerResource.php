@@ -84,7 +84,11 @@ class CustomerResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(Customer::query()->latest())
+            ->query(Customer::query()
+                ->withSum('orders', 'receivable')
+                ->withSum('orders', 'paid')
+                ->withSum('orders', 'due')
+                ->latest())
             ->columns([
                 Tables\Columns\TextColumn::make('customer_name')
                     ->searchable(),
@@ -96,12 +100,23 @@ class CustomerResource extends Resource
                     ->label('Address')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('receivable')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('Paid')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('Sale Due')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('orders_sum_receivable')
+                    ->default(0)
+                    ->label('Receivable')
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state ?: 0, 2).' TK';
+                    }),
+                Tables\Columns\TextColumn::make('orders_sum_paid')
+                    ->default(0)
+                    ->label('Paid')
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state ?: 0, 2).' TK';
+                    }),
+                Tables\Columns\TextColumn::make('orders_sum_due')->label('Sale Due')
+                    ->default(0)
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state ?: 0, 2).' TK';
+                    }),
                 Tables\Columns\TextColumn::make('Wallet Balance')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('Total Due')
