@@ -66,12 +66,13 @@ class Pos extends Component implements HasActions, HasForms, HasTable
     {
         $product = Product::findOrfail($productId)->load(['unit', 'subunit', 'productdetails:id,available_stock,product_id']);
 
-        if($product->productdetails->available_stock <= 0){
+        if ($product->productdetails->available_stock <= 0) {
             Notification::make()
                 ->title('This product is Stock out. Please Purchases the Product.')
                 ->danger()
                 ->send();
-                return ;
+
+            return;
         }
         if ($product) {
             $this->products[] = [
@@ -131,7 +132,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
     public function getSubQty($related_by_value, $totalStockAmount)
     {
-        if($related_by_value == 0){
+        if ($related_by_value == 0) {
             return 0;
         }
         $getMainStock = (int) (($totalStockAmount ?: 0) / $related_by_value);
