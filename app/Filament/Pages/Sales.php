@@ -14,9 +14,10 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -24,10 +25,8 @@ use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Filament\Tables\Actions\Action;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Filament\Notifications\Notification;
 
 class Sales extends Page implements HasForms, HasTable
 {
@@ -137,9 +136,10 @@ class Sales extends Page implements HasForms, HasTable
                     }),
 
                 SelectFilter::make('customer_id')
-                    ->label('Supplier')
-                    ->placeholder('Select Supplier')
+                    ->label('Customer')
+                    ->placeholder('Select Customer')
                     ->options(Customer::query()->pluck('customer_name', 'id'))
+                    ->default(request('customer_id'))
                     ->searchable(),
 
                 Filter::make('product_id')
@@ -164,68 +164,110 @@ class Sales extends Page implements HasForms, HasTable
 
             ->actions([
                 ActionGroup::make([
-                    // EditAction::make(),
+
                     Action::make('add_payment')
-                    ->label('Add Payment')
-                    ->icon('fas-money-bill-wave')
-                    ->form([
-                        DatePicker::make('date')
-                            ->label('Payment Date')
-                            ->native(false)
-                            ->default(now())
-                            ->required(),
-                        Select::make('account')
-                            ->label('Transaction Account')
-                            ->searchable()
-                            ->options(Account::query()->pluck('name', 'id'))
-                            ->rules([
-                                'required', Rule::exists('accounts', 'id'),
-                            ])
-                            ->required(),
-                        TextInput::make('amount')
-                            ->label('Amount')
-                            ->numeric()
-                            ->rules([
-                                'required',
-                                'numeric',
-                                'min:0',
-                                'max:9999999999',
-                            ])
-                            ->default(fn (Order $record) => $record->due)
-                            ->required(),
-                        Textarea::make('note')
-                            ->label('Note'),
+                        ->label('Add Payment')
+                        ->icon('fas-money-bill-wave')
+                        ->form([
+                            DatePicker::make('date')
+                                ->label('Payment Date')
+                                ->native(false)
+                                ->default(now())
+                                ->required(),
+                            Select::make('account')
+                                ->label('Transaction Account')
+                                ->searchable()
+                                ->options(Account::query()->pluck('name', 'id'))
+                                ->rules([
+                                    'required', Rule::exists('accounts', 'id'),
+                                ])
+                                ->required(),
+                            TextInput::make('amount')
+                                ->label('Amount')
+                                ->numeric()
+                                ->rules([
+                                    'required',
+                                    'numeric',
+                                    'min:0',
+                                    'max:9999999999',
+                                ])
+                                ->default(fn (Order $record) => $record->due)
+                                ->required(),
+                            Textarea::make('note')
+                                ->label('Note'),
 
-                    ])
-                    ->action(function (array $data, Order $record) {
-                        // dd($record);
-                        DB::transaction(function () use ($record, $data) {
-                            $order = Order::query()->findOrFail($record->id);
+                        ])
+                        ->action(function (array $data, Order $record) {
+                            // dd($record);
+                            DB::transaction(function () use ($record, $data) {
+                                $order = Order::query()->findOrFail($record->id);
 
-                            $order->increment('paid', $data['amount']);
-                            $order->decrement('due', $data['amount']);
+                                $order->increment('paid', $data['amount']);
+                                $order->decrement('due', $data['amount']);
 
-                            $order->histories()->create([
-                                'amount' => $data['amount'],
-                                'account_id' => $data['account'],
-                                'date' => $data['date'],
-                                'note' => $data['note'],
-                                'type' => HistoryTypeEnum::RECEIVED->value,
-                            ]);
+                                $order->histories()->create([
+                                    'amount' => $data['amount'],
+                                    'account_id' => $data['account'],
+                                    'date' => $data['date'],
+                                    'note' => $data['note'],
+                                    'type' => HistoryTypeEnum::RECEIVED->value,
+                                ]);
 
-                            Account::find($data['account'])->increment('current_balance', $data['amount']);
-                        });
+                                Account::find($data['account'])->increment('current_balance', $data['amount']);
+                            });
 
-                        Notification::make()->success()
-                            ->title('Payment Added Successfully')
-                            ->send();
+                            Notification::make()->success()
+                                ->title('Payment Added Successfully')
+                                ->send();
 
-                    })
-                    ->modalHeading('Add Payment')
-                    ->modalButton('Add Payment')
-                    ->modalCancelAction(false)
-                    ->modalWidth('sm'),
+                        })
+                        ->modalHeading('Add Payment')
+                        ->modalButton('Add Payment')
+                        ->modalCancelAction(false)
+                        ->modalWidth('sm'),
+                    Action::make('delete')
+                        ->label('Delete')
+                        ->color('danger')
+                        ->icon('heroicon-s-trash')
+                        ->requiresConfirmation()
+                        ->action(function (Order $record) {
 
+                            $order = $record->load('histories', 'orderitems');
+
+                            $histories = $order->histories;
+
+                            foreach ($histories as $history) {
+                                Account::query()->where('id', $history->account_id)->decrement('current_balance', $history->amount);
+                                $history->delete();
+                            }
+
+                            $orderitems = $order->orderitems;
+
+                            foreach ($orderitems as $orderitem) {
+
+                                $product = Product::find($orderitem->product_id);
+                                $product->productdetails()->increment('available_stock', $orderitem->total_qty);
+                                $product->productdetails()->decrement('sold', $orderitem->total_qty);
+
+                                $productDetails = $product->productdetails;
+                                // Use a single update to modify multiple columns
+                                $productDetails->update([
+                                    'sold_in_text' => getTotalStockInText($orderitem->product_id, $productDetails->sold),
+                                    'available_stock_in_text' => getTotalStockInText($orderitem->product_id, $productDetails->available_stock),
+                                ]);
+
+                                $orderitem->delete();
+                            }
+
+                            $order->delete();
+
+                            Notification::make()->success()
+                                ->title('Order Deleted Successfully')
+                                ->send();
+
+                            // return redirect()->route('filament.pages.sales');
+
+                        }),
                 ])->dropdown(true)
                     ->label('Actions')
                     ->button()

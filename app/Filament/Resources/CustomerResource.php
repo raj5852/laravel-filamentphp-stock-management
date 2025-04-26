@@ -4,8 +4,10 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\CustomerResource\Pages;
 use App\Models\Customer;
+use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
@@ -128,7 +130,28 @@ class CustomerResource extends Resource
             ->actions([
                 ActionGroup::make([
                     Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make(),
+
+                    Action::make('sale_list')
+                        ->icon('fas-list')
+                        ->label('Sale List')
+                        ->url(fn ($record) => route('filament.admin.pages.sales', 'customer_id='.$record->id)),
+
+                    Action::make('report')
+                        ->label('Report')
+                        ->icon('fas-flag')
+                        ->url(fn (Customer $record): string => route('filament.admin.resources.customers.report', $record)),
+
+                    Tables\Actions\DeleteAction::make()
+                        ->before(function ($record, $action) {
+                            $orders = $record->orders()->exists();
+                            if ($orders) {
+                                Notification::make()
+                                    ->title("You can't delete it.")
+                                    ->danger()
+                                    ->send();
+                                $action->cancel();
+                            }
+                        }),
                 ])
                     ->dropdown(true)
                     ->label('Actions')
@@ -156,6 +179,7 @@ class CustomerResource extends Resource
     {
         return [
             'index' => Pages\ListCustomers::route('/'),
+            'report' => Pages\Report::route('/report/{record}'),
             // 'create' => Pages\CreateCustomer::route('/create'),
             // 'edit' => Pages\EditCustomer::route('/{record}/edit'),
         ];

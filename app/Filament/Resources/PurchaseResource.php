@@ -6,6 +6,7 @@ use App\Filament\Resources\PurchaseResource\Pages;
 use App\HistoryTypeEnum;
 use App\Models\Account;
 use App\Models\Damage;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Supplier;
@@ -219,7 +220,11 @@ class PurchaseResource extends Resource
                         ->before(function (Purchase $record, $action) {
                             $damage = Damage::whereJsonContains('purchase_ids', ['purchase_id' => $record->id])->exists();
 
-                            if ($damage) {
+                            $sales = OrderItem::query()
+                                ->whereJsonContains('purchase_ids', ['purchase_id' => $record->id])
+                                ->exists();
+
+                            if ($damage || $sales) {
                                 Notification::make()->danger()->title('You can\'t delete it.')->send();
                                 $action->cancel();
                             }

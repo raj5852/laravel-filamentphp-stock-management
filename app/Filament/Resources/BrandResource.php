@@ -78,7 +78,7 @@ class BrandResource extends Resource
                 Tables\Actions\DeleteAction::make()
                     ->before(function ($record, $action) {
 
-                        if ($record->products()->count() > 0) {
+                        if ($record->products()->exists()) {
                             Notification::make()
                                 ->title("You can't delete it because it has products")
                                 ->danger()

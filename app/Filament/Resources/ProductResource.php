@@ -356,10 +356,10 @@ class ProductResource extends Resource
                     Tables\Actions\DeleteAction::make()
                         ->before(function ($record, $action) {
 
-                            $damage = $record->damages()->count();
-                            $purchase = $record->purchaseitems()->count();
-
-                            if ($damage > 0 || $purchase > 0) {
+                            $damage = $record->damages()->exists();
+                            $purchase = $record->purchaseitems()->exists();
+                            $orderitems = $record->orderitems()->exists();
+                            if ($damage || $purchase || $orderitems) {
                                 Notification::make()
                                     ->title("You can't delete it.")
                                     ->danger()

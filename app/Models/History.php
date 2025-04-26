@@ -43,4 +43,9 @@ class History extends Model
     {
         return $this->belongsTo(Purchase::class);
     }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
 }
