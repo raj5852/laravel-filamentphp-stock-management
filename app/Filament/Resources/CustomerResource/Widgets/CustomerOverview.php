@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Resources\SupplierResource\Widgets;
+namespace App\Filament\Resources\CustomerResource\Widgets;
 
 use App\Models\Customer;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
-class CustomerStats extends BaseWidget
+class CustomerOverview extends BaseWidget
 {
     public int $customerId;
 

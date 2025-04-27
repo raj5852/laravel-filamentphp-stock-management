@@ -2,8 +2,8 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Widgets\SalesOverview;
 use App\HistoryTypeEnum;
+use App\Livewire\SalesOverview as LivewireSalesOverview;
 use App\Models\Account;
 use App\Models\Customer;
 use App\Models\Order;
@@ -42,7 +42,7 @@ class Sales extends Page implements HasForms, HasTable
     protected function getHeaderWidgets(): array
     {
         return [
-            SalesOverview::class,
+            LivewireSalesOverview::class
         ];
     }
 

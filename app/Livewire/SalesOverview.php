@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Livewire;
 
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -21,8 +21,7 @@ class SalesOverview extends BaseWidget
 
         $purchaseCost = OrderItem::query()->whereHas('order', function ($query) {
             $query->where('order_date', today());
-        })
-            ->sum('purchase_cost');
+        })->sum('purchase_cost');
 
         $total_receivable = Order::query()
             ->sum('receivable');

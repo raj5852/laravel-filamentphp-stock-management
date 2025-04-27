@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\CustomerResource\Pages;
 
 use App\Filament\Resources\CustomerResource;
-use App\Filament\Resources\SupplierResource\Widgets\CustomerStats;
+use App\Filament\Resources\CustomerResource\Widgets\CustomerOverview;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
 
@@ -26,7 +26,7 @@ class report extends Page
     protected function getHeaderWidgets(): array
     {
         return [
-            CustomerStats::make(['customerId' => $this->record->id]),
+            CustomerOverview::make(['customerId' => $this->record->id]),
         ];
     }
 }
