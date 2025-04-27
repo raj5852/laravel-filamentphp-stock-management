@@ -1,5 +1,6 @@
 <?php
 
+use App\UserTypeEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -19,7 +20,8 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->integer('tenant_id')->nullable();
-            $table->integer('is_admin')->default(0);
+            $table->integer('type')->default(UserTypeEnum::USER->value)->comment('1=user,2=superadmin,0=roleuser');
+            $table->date('expires_at')->nullable();
             $table->timestamps();
         });
 

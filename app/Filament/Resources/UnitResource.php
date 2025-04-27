@@ -136,8 +136,8 @@ class UnitResource extends Resource
                     ->outlined()
                     ->before(function ($record, $action) {
                         $mainUnit = Unit::where('related_to_unit', $record->id)->exists();
-
-                        if (($record->products()->count() > 0) || $mainUnit) {
+                        $default = $record->is_default == 1;
+                        if (($record->products()->count() > 0) || $mainUnit || $default) {
                             Notification::make()
                                 ->title("You can't delete it ")
                                 ->danger()

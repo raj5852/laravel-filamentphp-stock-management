@@ -557,6 +557,16 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
                     return;
                 }
+                $due = number_format($this->totalDue($data['pay_amount']), 2, '.', '');
+
+                if ($customer->is_default == 1 && $due != 0) {
+                    Notification::make()
+                        ->danger()
+                        ->title('Walk-in Customer is do not support due. Please make Payment or Change Customer')
+                        ->send();
+
+                    return;
+                }
 
                 try {
                     DB::beginTransaction();
@@ -565,7 +575,6 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
                     $receable = number_format($this->getGrandTotalProperty(), 2, '.', '');
                     $paid = $data['pay_amount'] ?: 0;
-                    $due = number_format($this->totalDue($data['pay_amount']), 2, '.', '');
 
                     $order = Order::create([
                         'invoiceno' => $totalOrder,

@@ -144,7 +144,8 @@ class CustomerResource extends Resource
                     Tables\Actions\DeleteAction::make()
                         ->before(function ($record, $action) {
                             $orders = $record->orders()->exists();
-                            if ($orders) {
+                            $default = $record->is_default == 1;
+                            if ($orders || $default) {
                                 Notification::make()
                                     ->title("You can't delete it.")
                                     ->danger()

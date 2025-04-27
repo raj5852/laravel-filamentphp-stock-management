@@ -1,0 +1,114 @@
+<?php
+
+namespace App\Filament\Superadmin\Resources;
+
+use App\Filament\Superadmin\Resources\UserResource\Pages;
+use App\Models\User;
+use App\UserTypeEnum;
+use Filament\Forms;
+use Filament\Forms\Components\Card;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+
+class UserResource extends Resource
+{
+    protected static ?string $model = User::class;
+
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Card::make([
+                    Forms\Components\TextInput::make('name')
+                        ->required()
+                        ->placeholder('Name')
+                        ->maxLength(255),
+
+                    Forms\Components\TextInput::make('email')
+                        ->email()
+                        ->required()
+                        ->placeholder('Email')
+                        ->maxLength(255),
+                    Forms\Components\DateTimePicker::make('email_verified_at')
+                        ->default(now())
+                        ->hidden(),
+                    Forms\Components\TextInput::make('password')
+                        ->password()
+                        ->placeholder('Password')
+                        ->hidden(fn (string $context) => $context === 'edit')
+                        ->maxLength(255),
+
+                    TextInput::make('expires_at')
+                        ->numeric()
+                        ->label('Add Month')
+                        ->hidden(fn (string $context) => $context === 'edit')
+                        ->minValue(1),
+
+                    DatePicker::make('expires_at')
+                        ->hidden(fn (string $context) => $context === 'create')
+                        ->required()
+                        ->native(false),
+
+                ])->columns(2),
+
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->query(User::query()->latest()->where('type', UserTypeEnum::USER))
+            ->heading('All Users')
+            ->columns([
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('email')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('expires_at')
+                    ->date()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                //
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+            ])
+            ->bulkActions([
+                // Tables\Actions\BulkActionGroup::make([
+                //     Tables\Actions\DeleteBulkAction::make(),
+                // ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListUsers::route('/'),
+            // 'create' => Pages\CreateUser::route('/create'),
+            // 'edit' => Pages\EditUser::route('/{record}/edit'),
+        ];
+    }
+}
