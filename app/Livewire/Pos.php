@@ -584,6 +584,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                         'paid' => $paid,
                         'due' => $due,
                         'note' => $data['note'],
+                        'total_amount' => $receable + customerDue($this->customer_id),
                     ]);
 
                     foreach ($this->products as $product) {
@@ -640,6 +641,8 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                             'type' => HistoryTypeEnum::RECEIVED->value,
                             'note' => '',
                             'order_id' => $order->id,
+                            'total_amount' => customerDue($this->customer_id),
+                            'customer_id' => $this->customer_id,
                         ]);
                     }
 

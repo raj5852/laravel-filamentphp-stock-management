@@ -405,7 +405,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                         'paid' => $paid,
                         'due' => $due,
                         'note' => $data['note'],
-
+                        'total_amount' => $payable + supplierDue($this->supplier_id),
                     ]);
 
                     foreach ($this->products as $product) {
@@ -457,8 +457,12 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                             'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
                             'note' => '',
                             'purchase_id' => $purchase->id,
+                            'supplier_id' => $this->supplier_id,
+                            'total_amount' => supplierDue($this->supplier_id),
                         ]);
                     }
+
+                    $this->products = [];
 
                     DB::commit();
                 } catch (\Exception $e) {
@@ -467,6 +471,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                     // Handle exception
 
                 }
+                $this->products = [];
 
                 return redirect()->route('filament.admin.resources.purchases.purchase-invoice', ['record' => $purchase->id]);
 

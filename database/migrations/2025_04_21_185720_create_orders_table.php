@@ -25,6 +25,8 @@ return new class extends Migration
 
             $table->text('note')->nullable();
 
+            $table->float('total_amount')->nullable()->default(0);
+
             $table->foreignId('tenant_id')->nullable();
             $table->foreignId('created_by')->nullable();
             $table->foreignId('updated_by')->nullable();

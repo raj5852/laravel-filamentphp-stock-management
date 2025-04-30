@@ -42,7 +42,7 @@ class Sales extends Page implements HasForms, HasTable
     protected function getHeaderWidgets(): array
     {
         return [
-            LivewireSalesOverview::class
+            LivewireSalesOverview::class,
         ];
     }
 

@@ -140,6 +140,10 @@ class CustomerResource extends Resource
                         ->label('Report')
                         ->icon('fas-flag')
                         ->url(fn (Customer $record): string => route('filament.admin.resources.customers.report', $record)),
+                    Action::make('ledger')
+                        ->label('Ledger')
+                        ->icon('fas-book')
+                        ->url(fn (Customer $record): string => route('filament.admin.pages.customer-ledger', ['customer_id' => $record->id])),
 
                     Tables\Actions\DeleteAction::make()
                         ->before(function ($record, $action) {

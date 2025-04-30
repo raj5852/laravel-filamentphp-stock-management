@@ -125,6 +125,12 @@ class SupplierResource extends Resource
                         ->label('Report')
                         ->icon('fas-flag')
                         ->url(fn (Supplier $record): string => route('filament.admin.resources.suppliers.report', $record)),
+
+                    Action::make('ledger')
+                        ->label('Ledger')
+                        ->icon('fas-book')
+                        ->url(fn (Supplier $record): string => route('filament.admin.pages.supplier-ledger', ['supplier_id' => $record->id])),
+
                     Action::make('list')
                         ->label('Purchase List')
                         ->icon('fas-list')

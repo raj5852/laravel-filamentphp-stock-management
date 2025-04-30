@@ -155,13 +155,15 @@ class PurchaseShow extends Page implements HasActions, HasForms
                         'date' => $data['date'],
                         'note' => $data['note'],
                         'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
+                        'supplier_id' => $purchase->supplier_id,
+                        'total_amount' => supplierDue($purchase->supplier_id),
                     ]);
 
                     Account::find($data['account'])->decrement('current_balance', $data['amount']);
                 });
 
                 Notification::make()->success()
-                    ->title('Payment Added Successfully')
+                    ->title('Payment Added Successfully1')
                     ->send();
 
             });

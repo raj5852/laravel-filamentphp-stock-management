@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Widgets\AdvancedStatsOverviewWidget;
 use App\Http\Middleware\ApplyTenantThemeColors;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -30,6 +31,7 @@ class AdminPanelProvider extends PanelProvider
                 'Sale & Purchase',
                 'Product Information',
                 'Peoples',
+                'Reports',
                 'Setting & Customize',
             ])
             ->plugin(FilamentProgressbarPlugin::make()->color('#29b'))
@@ -49,6 +51,8 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 // Widgets\AccountWidget::class,
                 // Widgets\FilamentInfoWidget::class,
+                AdvancedStatsOverviewWidget::class,
+                // AdvancedStatsOverviewWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

@@ -75,9 +75,9 @@ class PurchaseResource extends Resource
                     ->html(),
 
                 Tables\Columns\TextColumn::make('payable')
-                    ->formatStateUsing(fn ($state) => number_format((float) $state, 2, '.', '')),
-                Tables\Columns\TextColumn::make('paid')->formatStateUsing(fn ($state) => number_format((float) $state, 2, '.', '')),
-                Tables\Columns\TextColumn::make('due')->formatStateUsing(fn ($state) => number_format((float) $state, 2, '.', '')),
+                    ->formatStateUsing(fn ($state) => number_format($state, 2, '.', '').' Tk'),
+                Tables\Columns\TextColumn::make('paid')->formatStateUsing(fn ($state) => number_format((float) $state, 2, '.', '').' Tk'),
+                Tables\Columns\TextColumn::make('due')->formatStateUsing(fn ($state) => number_format((float) $state, 2, '.', '').' Tk'),
 
             ])
             ->filters([
@@ -202,6 +202,8 @@ class PurchaseResource extends Resource
                                     'date' => $data['date'],
                                     'note' => $data['note'],
                                     'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
+                                    'supplier_id' => $record->supplier_id,
+                                    'total_amount' => supplierDue($record->supplier_id),
                                 ]);
 
                                 Account::find($data['account'])->decrement('current_balance', $data['amount']);

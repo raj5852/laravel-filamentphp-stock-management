@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\Customer;
 use App\Models\Product;
+use App\Models\Supplier;
 use App\Models\Unit;
 
 function getTotalStock($productId, $openingStockValue = null, $subOpeningStockValue = null)
@@ -73,4 +75,18 @@ function singleUnitPurchasePrice($productId)
 
         return $singleUnitPurchasePrice;
     }
+}
+
+function supplierDue($id)
+{
+    $supplier = Supplier::query()->withSum('purchases', 'due')->find($id);
+
+    return $supplier->purchases_sum_due ?? 0;
+}
+
+function customerDue($id)
+{
+    $customer = Customer::query()->withSum('orders', 'due')->find($id);
+
+    return $customer->orders_sum_due ?? 0;
 }
