@@ -631,6 +631,10 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                             'purchase_ids' => $purchaseIds,
                         ]);
                     }
+                    $orderDetails = $order->orderitems;
+                    $order->update([
+                        'profit' => ($orderDetails->sum('total_rate') ?: 0) - ($orderDetails->sum('purchase_cost') ?: 0),
+                    ]);
 
                     if ($data['pay_amount'] != '') {
                         $account = Account::find($data['account_id']);

@@ -5,6 +5,7 @@ namespace App\Providers;
 use Filament\Actions\CreateAction;
 use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
         FilamentAsset::register([
             Js::make('example-local-script', asset('js/custom-filament.js')),
         ]);
+
+        // URL::forceHttps();
 
     }
 }

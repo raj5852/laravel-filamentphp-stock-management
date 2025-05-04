@@ -12,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 
 class CustomerResource extends Resource
 {
@@ -90,79 +91,107 @@ class CustomerResource extends Resource
                 ->withSum('orders', 'receivable')
                 ->withSum('orders', 'paid')
                 ->withSum('orders', 'due')
-                ->latest())
-            ->columns([
-                Tables\Columns\TextColumn::make('customer_name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('email')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('phone')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('address')
-                    ->label('Address')
-                    ->searchable(),
+                ->latest()
 
-                Tables\Columns\TextColumn::make('orders_sum_receivable')
-                    ->default(0)
-                    ->label('Receivable')
-                    ->formatStateUsing(function ($state) {
-                        return number_format($state ?: 0, 2).' TK';
-                    }),
-                Tables\Columns\TextColumn::make('orders_sum_paid')
-                    ->default(0)
-                    ->label('Paid')
-                    ->formatStateUsing(function ($state) {
-                        return number_format($state ?: 0, 2).' TK';
-                    }),
-                Tables\Columns\TextColumn::make('orders_sum_due')->label('Sale Due')
-                    ->default(0)
-                    ->formatStateUsing(function ($state) {
-                        return number_format($state ?: 0, 2).' TK';
-                    }),
-                Tables\Columns\TextColumn::make('Wallet Balance')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('Total Due')
-                    ->searchable(),
+            )
+            ->columns([
+            Tables\Columns\TextColumn::make('customer_name')
+                ->searchable(),
+            Tables\Columns\TextColumn::make('email')
+                ->searchable(),
+            Tables\Columns\TextColumn::make('phone')
+                ->searchable(),
+            Tables\Columns\TextColumn::make('address')
+                ->label('Address')
+                ->searchable(),
+
+            Tables\Columns\TextColumn::make('orders_sum_receivable')
+                ->default(0)
+                ->label('Receivable')
+                ->formatStateUsing(function ($state) {
+                    return number_format($state ?: 0, 2).' TK';
+                }),
+            Tables\Columns\TextColumn::make('orders_sum_paid')
+                ->default(0)
+                ->label('Paid')
+                ->formatStateUsing(function ($state) {
+                    return number_format($state ?: 0, 2).' TK';
+                }),
+            Tables\Columns\TextColumn::make('orders_sum_due')->label('Sale Due')
+                ->default(0)
+                ->formatStateUsing(function ($state) {
+                    return number_format($state ?: 0, 2).' TK';
+                }),
+            Tables\Columns\TextColumn::make('opening_receivable')
+                ->label('Wallet Balance')
+                ->formatStateUsing(function (Customer $record) {
+
+                    $message = '';
+
+                    if ($record->opening_receivable > 0) {
+                        $message = '<span>**কাস্টমারের কাছে আপনার </span> <br> <span>পাওনা রয়েছে</span>';
+                    } elseif ($record->opening_payable > 0) {
+                        $message = "<span style='color:red'>**কাস্টমারের টাকা আপনার  </span> <br> <span style='color:red'>কাছে জমা আছে</span>";
+                    }
+
+                    return new HtmlString('<span class="text-success"> <b>'.number_format(abs($record->wallet), 1).' TK </b> </span> <br>'.$message);
+
+                })
+                ->searchable(),
+            Tables\Columns\TextColumn::make('totaldue')
+                ->label('Total Due')
+                ->formatStateUsing(function (Customer $record) {
+                    $balance = 0;
+
+                    if($record->wallet <= 0){
+                        $balance = abs($record->wallet);
+                    }else{
+                        $balance = 0;
+
+                    }
+                    return number_format(abs($balance) + $record->orders_sum_due ?:0, 2).' TK';
+
+                }),
             ])
             ->filters([
                 //
             ])
             ->actions([
                 ActionGroup::make([
-                    Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make(),
 
-                    Action::make('sale_list')
-                        ->icon('fas-list')
-                        ->label('Sale List')
-                        ->url(fn ($record) => route('filament.admin.pages.sales', 'customer_id='.$record->id)),
+                Action::make('sale_list')
+                    ->icon('fas-list')
+                    ->label('Sale List')
+                    ->url(fn ($record) => route('filament.admin.pages.sales', 'customer_id='.$record->id)),
 
-                    Action::make('report')
-                        ->label('Report')
-                        ->icon('fas-flag')
-                        ->url(fn (Customer $record): string => route('filament.admin.resources.customers.report', $record)),
-                    Action::make('ledger')
-                        ->label('Ledger')
-                        ->icon('fas-book')
-                        ->url(fn (Customer $record): string => route('filament.admin.pages.customer-ledger', ['customer_id' => $record->id])),
+                Action::make('report')
+                    ->label('Report')
+                    ->icon('fas-flag')
+                    ->url(fn (Customer $record): string => route('filament.admin.resources.customers.report', $record)),
+                Action::make('ledger')
+                    ->label('Ledger')
+                    ->icon('fas-book')
+                    ->url(fn (Customer $record): string => route('filament.admin.pages.customer-ledger', ['customer_id' => $record->id])),
 
-                    Tables\Actions\DeleteAction::make()
-                        ->before(function ($record, $action) {
-                            $orders = $record->orders()->exists();
-                            $default = $record->is_default == 1;
-                            if ($orders || $default) {
-                                Notification::make()
-                                    ->title("You can't delete it.")
-                                    ->danger()
-                                    ->send();
-                                $action->cancel();
-                            }
-                        }),
+                Tables\Actions\DeleteAction::make()
+                    ->before(function ($record, $action) {
+                        $orders = $record->orders()->exists();
+                        $default = $record->is_default == 1;
+                        if ($orders || $default) {
+                            Notification::make()
+                                ->title("You can't delete it.")
+                                ->danger()
+                                ->send();
+                            $action->cancel();
+                        }
+                    }),
                 ])
-                    ->dropdown(true)
-                    ->label('Actions')
-                    ->button()
-                    ->size('sm')
-                    ->icon('fas-gears'),
+                ->dropdown(true)
+                ->label('Actions')
+                ->button()
+                ->size('sm')
+                ->icon('fas-gears'),
 
             ])
             ->bulkActions([

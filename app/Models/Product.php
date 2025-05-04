@@ -26,17 +26,17 @@ class Product extends Model
             if ($model->product_code == '') {
                 $model->product_code = '000000'.$model->id;
             }
-            $model->save();
 
             $qty = getTotalStock($model->id, $model->first_opening_stock, $model->second_opening_stock);
             $qty_in_text = getTotalStockInText($model->id, $qty);
 
             $empty_qty = 0;
             $empty_qty_in_text = getTotalStockInText($model->id, $empty_qty);
+            $single_unit_purchase_price = singleUnitPurchasePrice($model->id);
 
             $model->productdetails()->create([
                 'single_unit_sale_price' => singleUnitSalePrice($model->id),
-                'single_unit_purchase_price' => singleUnitPurchasePrice($model->id),
+                'single_unit_purchase_price' => $single_unit_purchase_price,
 
                 'purchased' => $qty,
                 'purchased_in_text' => $qty_in_text,
@@ -54,6 +54,8 @@ class Product extends Model
                 'available_stock_in_text' => $qty_in_text,
             ]);
 
+            $model->total_purchase_cost = $single_unit_purchase_price * $qty;
+            $model->save();
         });
 
         static::updating(function ($model) {

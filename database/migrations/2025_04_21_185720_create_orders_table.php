@@ -24,6 +24,7 @@ return new class extends Migration
             $table->float('due');
 
             $table->text('note')->nullable();
+            $table->float('profit')->nullable()->default(0);
 
             $table->float('total_amount')->nullable()->default(0);
 

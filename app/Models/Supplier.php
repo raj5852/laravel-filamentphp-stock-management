@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Scopes\TenantScope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 #[ScopedBy(TenantScope::class)]
 class Supplier extends Model
@@ -23,6 +24,21 @@ class Supplier extends Model
             $model->created_by = $user->id;
         });
 
+        static::created(function ($model) {
+            if ($model->opening_receivable == '') {
+                $model->opening_receivable = 0;
+            }
+            if ($model->opening_payable == '') {
+                $model->opening_payable = 0;
+            }
+
+            $model->save();
+            $model->wallet = $model->opening_receivable - $model->opening_payable;
+
+            $model->save();
+
+        });
+
         static::updating(function ($model) {
             $user = auth()->user();
             $model->updated_by = $user->id;
@@ -32,5 +48,12 @@ class Supplier extends Model
     public function purchases()
     {
         return $this->hasMany(Purchase::class);
+    }
+
+    protected function totaldue(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => 0,
+        );
     }
 }

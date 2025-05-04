@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('phone');
             $table->float('opening_receivable')->nullable()->default(0);
             $table->float('opening_payable')->nullable()->default(0);
+            $table->float('wallet')->nullable()->default(0);
 
             $table->foreignId('tenant_id')->nullable();
             $table->foreignId('created_by')->nullable();

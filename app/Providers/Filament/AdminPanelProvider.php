@@ -51,7 +51,6 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 // Widgets\AccountWidget::class,
                 // Widgets\FilamentInfoWidget::class,
-                AdvancedStatsOverviewWidget::class,
                 // AdvancedStatsOverviewWidget::class,
             ])
             ->middleware([
