@@ -88,7 +88,7 @@ class SupplierResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(Supplier::query()->withSum('purchases', 'payable')->withSum('purchases', 'paid')->withSum('purchases', 'due'))
+            ->query(Supplier::query()->latest()->withSum('purchases', 'payable')->withSum('purchases', 'paid')->withSum('purchases', 'due'))
             ->columns([
                 Tables\Columns\TextColumn::make('supplier_name')
                     ->label('Name'),
@@ -118,10 +118,10 @@ class SupplierResource extends Resource
                     ->formatStateUsing(function (Supplier $record) {
                         $message = '';
 
-                        if ($record->opening_receivable > 0) {
+                        if ($record->wallet > 0) {
                             $message = '<span style="color:red">**সাপ্লাইয়ারের কাছে আপনার </span> <br> <span style="color:red">টাকা জমা আছে</span>';
-                        } elseif ($record->opening_payable > 0) {
-                            $message = "<span >**সাপ্লাইয়ার আপনাকে  </span> <br> <span >দিয়েছে</span>";
+                        } elseif ($record->wallet < 0) {
+                            $message = '<span >**সাপ্লাইয়ার আপনাকে  </span> <br> <span >দিয়েছে</span>';
                         }
 
                         return new HtmlString('<span class="text-success"> <b>'.number_format(abs($record->wallet), 1).' TK </b> </span> <br>'.$message);
@@ -130,19 +130,20 @@ class SupplierResource extends Resource
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('totaldue')
-                ->label('Total Due')
-                ->formatStateUsing(function (Supplier $record) {
-                    $balance = 0;
-
-                    if($record->wallet <= 0){
-                        $balance = abs($record->wallet);
-                    }else{
+                    ->label('Total Due')
+                    ->formatStateUsing(function (Supplier $record) {
                         $balance = 0;
 
-                    }
-                    return number_format(abs($balance) + $record->purchases_sum_due ?:0, 2).' TK';
+                        if ($record->wallet <= 0) {
+                            $balance = abs($record->wallet);
+                        } else {
+                            $balance = 0;
 
-                }),
+                        }
+
+                        return number_format(abs($balance) + $record->purchases_sum_due ?: 0, 2).' TK';
+
+                    }),
             ])
             ->filters([
                 //

@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Filament\Resources;
 
+use App\Filament\Resources\SalesResource\Pages;
 use App\HistoryTypeEnum;
-use App\Livewire\SalesOverview as LivewireSalesOverview;
 use App\Models\Account;
 use App\Models\Customer;
 use App\Models\Order;
@@ -12,15 +12,12 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Form;
 use Filament\Notifications\Notification;
-use Filament\Pages\Page;
+use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -28,25 +25,31 @@ use Filament\Tables\Table;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
-class Sales extends Page implements HasForms, HasTable
+class SalesResource extends Resource
 {
-    use InteractsWithForms;
-    use InteractsWithTable;
+    protected static ?string $model = Order::class;
 
     protected static ?string $navigationIcon = 'fas-bag-shopping';
 
-    protected static string $view = 'filament.pages.sales';
-
     protected static ?string $navigationGroup = 'Sale & Purchase';
 
-    protected function getHeaderWidgets(): array
+    protected static ?string $pluralModelLabel = 'Sales';
+
+    public static function form(Form $form): Form
     {
-        return [
-            LivewireSalesOverview::class,
-        ];
+        return $form
+
+            ->schema([
+
+            ]);
     }
 
-    public function table(Table $table): Table
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function table(Table $table): Table
     {
         return $table
             ->query(Order::query()
@@ -94,7 +97,6 @@ class Sales extends Page implements HasForms, HasTable
                 TextColumn::make('Status')->default(function (Order $record) {
                     return $record['receivable'] == $record['paid'] ? 'Paid' : 'Unpaid';
                 }),
-
             ])
             ->filters([
                 Filter::make('invoiceno')
@@ -161,9 +163,13 @@ class Sales extends Page implements HasForms, HasTable
             ], layout: FiltersLayout::AboveContent)
             ->filtersFormColumns(4)
             ->hiddenFilterIndicators()
-
             ->actions([
                 ActionGroup::make([
+
+                    Action::make('Invoice')
+                    ->label('Invoice')
+                    ->icon('heroicon-s-printer')
+                    ->url(fn (Order $record) => route('filament.admin.resources.sales.pos-receipt', ['record' => $record->id])),
 
                     Action::make('add_payment')
                         ->label('Add Payment')
@@ -275,8 +281,25 @@ class Sales extends Page implements HasForms, HasTable
                     ->icon('fas-gears'),
             ])
             ->bulkActions([
-                // ...
+
             ])
             ->paginated([10, 25, 50, 100]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListSales::route('/'),
+            // 'create' => Pages\CreateSales::route('/create'),
+            // 'edit' => Pages\EditSales::route('/{record}/edit'),
+            'pos-receipt' => Pages\PosReceipt::route('/pos-receipt/{record}'),
+        ];
     }
 }

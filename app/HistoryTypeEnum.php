@@ -16,4 +16,9 @@ enum HistoryTypeEnum: int
             self::SPENT_OR_WITHDRAW => 'Spent / Withdraw',
         };
     }
+
+    public static function toArray(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
 }

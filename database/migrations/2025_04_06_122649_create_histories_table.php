@@ -29,8 +29,9 @@ return new class extends Migration
 
             $table->date('date');
             $table->float('amount');
-            $table->enum('type', array_column(HistoryTypeEnum::cases(), 'value'));
+            $table->enum('type', HistoryTypeEnum::toArray());
             $table->text('note')->nullable();
+            // $table->enum('wallet_payment');
 
             $table->float('total_amount')->nullable()->default(0);
 
