@@ -1,37 +1,34 @@
 <?php
 
-namespace App\Filament\Resources\PurchaseResource\Pages;
+namespace App\Filament\Resources\SalesResource\Pages;
 
-use App\Filament\Resources\PurchaseResource;
+use App\Filament\Resources\SalesResource;
 use App\HistoryTypeEnum;
 use App\Models\Account;
-use App\Models\Damage;
+use App\Models\Customer;
 use App\Models\History;
-use App\Models\OrderItem;
-use App\Models\Purchase;
+use App\Models\Order;
 use App\Models\Setting;
 use Filament\Actions\Action;
-use Filament\Actions\Concerns\InteractsWithActions;
-use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
-class PurchaseShow extends Page implements HasActions, HasForms
+class SalesShow extends Page
 {
-    // use InteractsWithActions;
     use InteractsWithRecord;
 
-    protected static string $resource = PurchaseResource::class;
+    protected static string $resource = SalesResource::class;
 
-    protected static string $view = 'filament.resources.purchase-resource.pages.purchase-show';
+    protected static string $view = 'filament.resources.sales-resource.pages.sales-show';
+
+    protected static ?string $title = '';
 
     public function mount(int|string $record): void
     {
@@ -42,47 +39,9 @@ class PurchaseShow extends Page implements HasActions, HasForms
     {
         return [
             'setting' => Setting::query()->first(),
-            'purchase' => Purchase::query()
-                ->with([
-                    'histories',
-                    'supplier:id,supplier_name,phone',
-                    'purchaseitems' => function ($query) {
-                        $query->select('id', 'product_id', 'purchase_id', 'total_in_text', 'rate', 'total_rate')
-                            ->with('product:id,product_name,product_code');
-                    }])
-                ->find($this->record->id),
-
-            'damages' => Damage::query()->with('product')->whereJsonContains('purchase_ids', ['purchase_id' => $this->record->id])
-                ->get(),
-            'sales' => OrderItem::query()
-                ->with('order:id,order_date,invoiceno', 'product:id,product_name')
-                ->whereJsonContains('purchase_ids', ['purchase_id' => $this->record->id])
-                ->get(),
-
+            'customer' => Customer::query()->withSum('orders', 'due')->find($this->record->customer_id),
+            'order' => Order::query()->with('orderitems', 'histories')->find($this->record->id),
         ];
-    }
-
-    public function deleteAction(): Action
-    {
-        return Action::make('delete')
-            ->requiresConfirmation()
-            ->action(function (array $arguments) {
-
-                DB::transaction(function () use ($arguments) {
-
-                    $history = History::findOrFail($arguments['id']);
-                    $history->account()->increment('current_balance', $history->amount);
-                    $history->purchase()->decrement('paid', $history->amount);
-                    $history->purchase()->increment('due', $history->amount);
-                    $history->delete();
-
-                });
-
-                Notification::make()
-                    ->title('Deleted Successfully')
-                    ->success()->send();
-
-            });
     }
 
     public function addpaymentAction(): Action
@@ -144,19 +103,19 @@ class PurchaseShow extends Page implements HasActions, HasForms
             })
             ->action(function (array $arguments, array $data) {
                 DB::transaction(function () use ($arguments, $data) {
-                    $purchase = Purchase::query()->findOrFail($arguments['id']);
+                    $order = Order::query()->findOrFail($arguments['id']);
 
-                    $purchase->increment('paid', $data['amount']);
-                    $purchase->decrement('due', $data['amount']);
+                    $order->increment('paid', $data['amount']);
+                    $order->decrement('due', $data['amount']);
 
-                    $purchase->histories()->create([
+                    $order->histories()->create([
                         'amount' => $data['amount'],
                         'account_id' => $data['account'],
                         'date' => $data['date'],
                         'note' => $data['note'],
-                        'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
-                        'supplier_id' => $purchase->supplier_id,
-
+                        'type' => HistoryTypeEnum::RECEIVED->value,
+                        // 'total_amount' => customerDue($order->customer_id),
+                        'customer_id' => $order->customer_id,
                     ]);
 
                     Account::find($data['account'])->decrement('current_balance', $data['amount']);
@@ -165,6 +124,29 @@ class PurchaseShow extends Page implements HasActions, HasForms
                 Notification::make()->success()
                     ->title('Payment Added Successfully')
                     ->send();
+
+            });
+    }
+
+    public function deleteAction(): Action
+    {
+        return Action::make('delete')
+            ->requiresConfirmation()
+            ->action(function (array $arguments) {
+
+                DB::transaction(function () use ($arguments) {
+
+                    $history = History::findOrFail($arguments['id']);
+                    $history->account()->increment('current_balance', $history->amount);
+                    $history->order()->decrement('paid', $history->amount);
+                    $history->order()->increment('due', $history->amount);
+                    $history->delete();
+
+                });
+
+                Notification::make()
+                    ->title('Deleted Successfully')
+                    ->success()->send();
 
             });
     }

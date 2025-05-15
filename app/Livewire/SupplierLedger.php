@@ -85,13 +85,34 @@ class SupplierLedger extends Component implements HasForms
         $supplierId = $this->supplier_id;
         Supplier::findOrFail($supplierId);
 
-        $datas = DB::table('purchases')
+        // $datas = DB::table('purchases')
+        //     ->where('tenant_id', $tenantId)
+        //     ->where('supplier_id', $supplierId)
+        //     ->when($this->start_date != null && $this->end_date != null, function ($query) {
+        //         return $query->whereBetween('purchase_date', [$this->start_date, $this->end_date]);
+        //     })
+        //     ->select('id', 'purchase_date as date', 'payable as amount', 'total_amount', 'created_at', DB::raw('"purchase" as type'), 'billno as particulars')
+        //     ->union(
+        //         DB::table('histories')
+        //             ->where('tenant_id', $tenantId)
+        //             ->where('supplier_id', $supplierId)
+        //             ->when($this->start_date != null && $this->end_date != null, function ($query) {
+        //                 return $query->whereBetween('date', [$this->start_date, $this->end_date]);
+        //             })
+        //             ->select('id', 'date', 'amount', 'total_amount', 'created_at', DB::raw('"history" as type'), DB::raw('"Paid to Supplier" as particulars'))
+        //     )
+        //     ->orderBy('created_at', 'asc')
+        //     ->get();
+
+
+
+            $datas = DB::table('purchases')
             ->where('tenant_id', $tenantId)
             ->where('supplier_id', $supplierId)
             ->when($this->start_date != null && $this->end_date != null, function ($query) {
                 return $query->whereBetween('purchase_date', [$this->start_date, $this->end_date]);
             })
-            ->select('id', 'purchase_date as date', 'payable as amount', 'total_amount', 'created_at', DB::raw('"purchase" as type'), 'billno as particulars')
+            ->select('id', 'purchase_date as date', 'payable as amount', 'created_at', DB::raw('"purchase" as type'), 'billno as particulars')
             ->union(
                 DB::table('histories')
                     ->where('tenant_id', $tenantId)
@@ -99,7 +120,16 @@ class SupplierLedger extends Component implements HasForms
                     ->when($this->start_date != null && $this->end_date != null, function ($query) {
                         return $query->whereBetween('date', [$this->start_date, $this->end_date]);
                     })
-                    ->select('id', 'date', 'amount', 'total_amount', 'created_at', DB::raw('"history" as type'), DB::raw('"Paid to Supplier" as particulars'))
+                    ->select('id', 'date', 'amount', 'created_at', DB::raw('"history" as type'), DB::raw('"Paid to Supplier" as particulars'))
+            )
+            ->union(
+                DB::table('opening_balances')
+                    ->where('tenant_id', $tenantId)
+                    ->where('supplier_id', $supplierId)
+                    ->when($this->start_date != null && $this->end_date != null, function ($query) {
+                        return $query->whereBetween('created_at', [$this->start_date, $this->end_date]);
+                    })
+                    ->select('id', 'created_at as date', 'amount', 'created_at', DB::raw('"opening_balance" as type'), 'particulars')
             )
             ->orderBy('created_at', 'asc')
             ->get();

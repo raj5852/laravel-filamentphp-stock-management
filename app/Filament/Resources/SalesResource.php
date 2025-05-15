@@ -167,9 +167,14 @@ class SalesResource extends Resource
                 ActionGroup::make([
 
                     Action::make('Invoice')
-                    ->label('Invoice')
-                    ->icon('heroicon-s-printer')
-                    ->url(fn (Order $record) => route('filament.admin.resources.sales.pos-receipt', ['record' => $record->id])),
+                        ->label('Invoice')
+                        ->icon('heroicon-s-printer')
+                        ->url(fn (Order $record) => route('filament.admin.resources.sales.pos-receipt', ['record' => $record->id])),
+
+                    Action::make('Show')
+                        ->label('Show')
+                        ->icon('heroicon-s-computer-desktop')
+                        ->url(fn (Order $record) => route('filament.admin.resources.sales.pos-show', ['record' => $record->id])),
 
                     Action::make('add_payment')
                         ->label('Add Payment')
@@ -204,7 +209,7 @@ class SalesResource extends Resource
 
                         ])
                         ->action(function (array $data, Order $record) {
-                            // dd($record);
+
                             DB::transaction(function () use ($record, $data) {
                                 $order = Order::query()->findOrFail($record->id);
 
@@ -217,9 +222,12 @@ class SalesResource extends Resource
                                     'date' => $data['date'],
                                     'note' => $data['note'],
                                     'type' => HistoryTypeEnum::RECEIVED->value,
+                                    // 'total_amount' => customerDue($order->customer_id),
+                                    'customer_id' => $order->customer_id,
                                 ]);
 
                                 Account::find($data['account'])->increment('current_balance', $data['amount']);
+
                             });
 
                             Notification::make()->success()
@@ -297,9 +305,8 @@ class SalesResource extends Resource
     {
         return [
             'index' => Pages\ListSales::route('/'),
-            // 'create' => Pages\CreateSales::route('/create'),
-            // 'edit' => Pages\EditSales::route('/{record}/edit'),
             'pos-receipt' => Pages\PosReceipt::route('/pos-receipt/{record}'),
+            'pos-show' => Pages\SalesShow::route('/pos-show/{record}'),
         ];
     }
 }

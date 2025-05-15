@@ -203,7 +203,7 @@ class PurchaseResource extends Resource
                                     'note' => $data['note'],
                                     'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
                                     'supplier_id' => $record->supplier_id,
-                                    'total_amount' => supplierDue($record->supplier_id),
+                                    // 'total_amount' => supplierDue($record->supplier_id),
                                 ]);
 
                                 Account::find($data['account'])->decrement('current_balance', $data['amount']);

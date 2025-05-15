@@ -10,8 +10,6 @@ use Illuminate\Database\Eloquent\Model;
 #[ScopedBy(TenantScope::class)]
 class Supplier extends Model
 {
-    //
-
     protected $guarded = [];
 
     protected static function boot()
@@ -36,6 +34,25 @@ class Supplier extends Model
             $model->wallet = $model->opening_receivable - $model->opening_payable;
 
             $model->save();
+
+            $amount = $model->opening_receivable - $model->opening_payable;
+
+            if ($amount != 0) {
+
+                if ($amount < 0) {
+                    $amount = $amount;
+                    $particulars = 'Opening Payable';
+                } else {
+                    $amount = $amount;
+                    $particulars = 'Opening Receivable';
+                }
+
+                OpeningBalance::create([
+                    'supplier_id' => $model->id,
+                    'amount' => $amount,
+                    'particulars' => $particulars,
+                ]);
+            }
 
         });
 

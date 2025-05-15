@@ -13,7 +13,9 @@ class PaymentResource extends Resource
 {
     protected static ?string $model = History::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
+    protected static ?string $navigationGroup = 'Expenses & Payment';
+    protected static ?int $navigationSort = 3;
 
     public static function getModelLabel(): string
     {

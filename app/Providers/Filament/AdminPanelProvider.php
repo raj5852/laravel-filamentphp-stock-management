@@ -30,6 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 'Sale & Purchase',
                 'Product Information',
+                'Expenses & Payment',
                 'Peoples',
                 'Reports',
                 'Setting & Customize',

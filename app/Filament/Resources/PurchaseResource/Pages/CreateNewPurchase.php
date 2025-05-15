@@ -405,7 +405,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                         'paid' => $paid,
                         'due' => $due,
                         'note' => $data['note'],
-                        'total_amount' => $payable + supplierDue($this->supplier_id),
+                        // 'total_amount' => $payable + supplierDue($this->supplier_id),
                     ]);
 
                     foreach ($this->products as $product) {
@@ -458,7 +458,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                             'note' => '',
                             'purchase_id' => $purchase->id,
                             'supplier_id' => $this->supplier_id,
-                            'total_amount' => supplierDue($this->supplier_id),
+
                         ]);
                     }
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Customer;
+use App\Models\Supplier;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,21 +13,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('orders', function (Blueprint $table) {
+        Schema::create('opening_balances', function (Blueprint $table) {
             $table->id();
 
-            $table->string('invoiceno')->nullable();
-            $table->foreignIdFor(Customer::class);
+            $table->foreignIdFor(Customer::class)->nullable();
+            $table->foreignIdFor(Supplier::class)->nullable();
 
-            $table->date('order_date');
-            $table->float('receivable');
-            $table->float('paid');
-            $table->float('due');
-
-            $table->text('note')->nullable();
-            $table->float('profit')->nullable()->default(0);
-
-            // $table->float('total_amount')->nullable()->default(0);
+            $table->float('amount')->default(0);
+            $table->string('particulars')->nullable();
 
             $table->foreignId('tenant_id')->nullable();
             $table->foreignId('created_by')->nullable();
@@ -40,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('orders');
+        Schema::dropIfExists('opening_balances');
     }
 };

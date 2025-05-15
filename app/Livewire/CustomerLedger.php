@@ -91,7 +91,7 @@ class CustomerLedger extends Component implements HasForms
             ->when($this->start_date != null && $this->end_date != null, function ($query) {
                 return $query->whereBetween('order_date', [$this->start_date, $this->end_date]);
             })
-            ->select('id', 'order_date as date', 'receivable as amount', 'total_amount', 'created_at', DB::raw('"order" as type'), 'invoiceno as particulars')
+            ->select('id', 'order_date as date', 'receivable as amount', 'created_at', DB::raw('"order" as type'), 'invoiceno as particulars')
             ->union(
                 DB::table('histories')
                     ->where('tenant_id', $tenantId)
@@ -99,7 +99,16 @@ class CustomerLedger extends Component implements HasForms
                     ->when($this->start_date != null && $this->end_date != null, function ($query) {
                         return $query->whereBetween('date', [$this->start_date, $this->end_date]);
                     })
-                    ->select('id', 'date', 'amount', 'total_amount', 'created_at', DB::raw('"history" as type'), DB::raw('"Received from Customer" as particulars'))
+                    ->select('id', 'date', 'amount', 'created_at', DB::raw('"history" as type'), DB::raw('"Received from Customer" as particulars'))
+            )
+            ->union(
+                DB::table('opening_balances')
+                    ->where('tenant_id', $tenantId)
+                    ->where('customer_id', $customerId)
+                    ->when($this->start_date != null && $this->end_date != null, function ($query) {
+                        return $query->whereBetween('created_at', [$this->start_date, $this->end_date]);
+                    })
+                    ->select('id', 'created_at as date', 'amount', 'created_at', DB::raw('"opening_balance" as type'), 'particulars')
             )
             ->orderBy('created_at', 'asc')
             ->get();

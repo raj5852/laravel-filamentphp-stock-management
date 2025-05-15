@@ -37,6 +37,25 @@ class Customer extends Model
 
             $model->save();
 
+            $amount = $model->opening_payable - $model->opening_receivable;
+
+            if ($amount != 0) {
+
+                if ($amount < 0) {
+                    $amount = abs($amount);
+                    $particulars = 'Opening Receivable';
+                } else {
+                    $amount = -($amount);
+                    $particulars = 'Opening Payable';
+                }
+
+                OpeningBalance::create([
+                    'customer_id' => $model->id,
+                    'amount' => $amount,
+                    'particulars' => $particulars,
+                ]);
+            }
+
         });
 
         static::updating(function ($model) {

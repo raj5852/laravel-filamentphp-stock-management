@@ -140,7 +140,7 @@
                                         <td class="border border-gray-300 dark:border-gray-700 px-2 py-1">
                                             {{ Carbon\Carbon::parse($sale->date)->format('d M, Y') }} </td>
                                         <td class="border border-gray-300 dark:border-gray-700 px-2 py-1"> <a
-                                                href="{{ route('filament.admin.pages.sales') }}?invoiceno={{ $sale->order->invoiceno }}"
+                                                href="{{ route('filament.admin.resources.sales.index') }}?invoiceno={{ $sale->order->invoiceno }}"
                                                 style="color: #33cabb">Sale#{{ $sale->order->invoiceno }} </a> </td>
                                         <td class="border border-gray-300 dark:border-gray-700 px-2 py-1">
                                             {{ $sale->product?->product_name }} </td>
@@ -164,7 +164,7 @@
                 </div>
 
 
-                <div class="mb-7">
+                {{-- <div class="mb-7">
                     <div class="mb-2" style="display: flex; justify-content: space-between">
                         <div style="font-size: 25px">Returns</div>
 
@@ -195,7 +195,7 @@
                         </table>
                     </div>
 
-                </div>
+                </div> --}}
 
 
                 <div class="mb-7">

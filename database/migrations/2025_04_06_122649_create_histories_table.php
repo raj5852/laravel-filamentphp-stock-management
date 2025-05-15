@@ -33,7 +33,7 @@ return new class extends Migration
             $table->text('note')->nullable();
             // $table->enum('wallet_payment');
 
-            $table->float('total_amount')->nullable()->default(0);
+            // $table->float('total_amount')->nullable()->default(0);
 
             $table->foreignId('tenant_id')->nullable();
             $table->foreignId('created_by')->nullable();

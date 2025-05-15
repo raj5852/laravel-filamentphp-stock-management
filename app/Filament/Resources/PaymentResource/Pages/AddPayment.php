@@ -238,7 +238,7 @@ class AddPayment extends Page implements HasForms
                     //         'note' => '', // $this->note
                     //         'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
                     //         'supplier_id' => $this->account_id,
-                    //         'total_amount' => supplierDue($this->account_id),
+                    //
                     //     ]);
 
                     //     Account::find($this->transition_account)->decrement('current_balance', $pur['due']);
@@ -291,7 +291,7 @@ class AddPayment extends Page implements HasForms
                             'note' => '', // $this->note
                             'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
                             'supplier_id' => $this->account_id,
-                            'total_amount' => supplierDue($this->account_id),
+
                         ]);
 
                         Account::find($this->transition_account)->decrement('current_balance', $pur['due']);

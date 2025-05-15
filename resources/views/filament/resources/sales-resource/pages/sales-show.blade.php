@@ -69,54 +69,68 @@
         <div class="mt-4">
             <p class="text-right text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Total:</span>
                 {{ number_format($order->receivable, 2) }} Tk</p>
-            {{-- <p class="text-right text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Discount:</span>
-                900.00 Tk</p> --}}
-            {{-- <p class="text-right text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Grand
-                    Total:</span> 95,000.00 Tk</p> --}}
+
             <p class="text-right text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Total
                     Paid:</span> {{ number_format($order->paid, 2) }} Tk</p>
 
-            @if($previous_due > 0)
-                <p class="text-right text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Previous Due:</span>  {{ number_format($previous_due, 2) }} Tk</p>
+            @if ($previous_due > 0)
+                <p class="text-right text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Previous
+                        Due:</span> {{ number_format($previous_due, 2) }} Tk</p>
             @endif
 
-            @if($previous_due > 0)
-                <p class="text-right text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Current Due:</span>  {{ number_format($order->due, 2) }} Tk</p>
+            @if ($previous_due > 0)
+                <p class="text-right text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Current
+                        Due:</span> {{ number_format($order->due, 2) }} Tk</p>
             @endif
 
             <p class="text-right text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Total Due:</span>
                 {{ number_format($order->due + $previous_due, 2) }} Tk</p>
         </div>
 
-        <p class="mt-4 text-sm text-gray-700 dark:text-gray-300">In Word: {{ numberToBanglaWord($order->receivable) }} </p>
+        <div class="mb-6">
+            <div class="mb-2" style="display: flex; justify-content: space-between">
+                <div style="font-size: 25px">Payments</div>
 
-        <div class="mt-4 grid grid-cols-2 gap-4">
-            <div>
-                <p
-                    class="border-t border-gray-200 dark:border-gray-700 pt-2 text-center text-sm text-gray-700 dark:text-gray-300">
-                    Customer's Signature</p>
+                <x-filament::button class="" color="primary" tag="button"
+                    wire:click="mountAction('addpayment', { id: {{ $order->id }} , amount: {{ $order->due ?: 0 }} })">
+                    Add Payment
+                </x-filament::button>
             </div>
-            <div>
-                <p
-                    class="border-t border-gray-200 dark:border-gray-700 pt-2 text-center text-sm text-gray-700 dark:text-gray-300">
-                    Authorized Signature</p>
-            </div>
-        </div>
-{{--
-        <p class="mt-4 text-sm text-center text-gray-500 dark:text-gray-400">Software Developed by SOFTGHOR LTD. For
-            query: 01958-104250</p> --}}
 
-        <div class="mt-4 flex justify-center gap-4">
-            <button
-                class="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 dark:bg-teal-700 dark:hover:bg-teal-600">New
-                Sale</button>
-            <button
-                class="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 dark:bg-teal-700 dark:hover:bg-teal-600">Show</button>
-            <button
-                class="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 dark:bg-teal-700 dark:hover:bg-teal-600">Sale
-                List</button>
-            <button onclick="window.print()"
-                class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600">Print</button>
+            <div>
+                <table class="w-full text-sm border border-gray-300 dark:border-gray-700">
+                    <thead>
+                        <tr class="bg-gray-200 dark:bg-gray-800">
+                            <th class="border border-gray-300 dark:border-gray-700 px-2 py-1 text-left">Date
+                            </th>
+                            <th class="border border-gray-300 dark:border-gray-700 px-2 py-1 text-left">Amount
+                            </th>
+                            <th class="border border-gray-300 dark:border-gray-700 px-2 py-1 text-center">Action
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($order->histories as $history)
+                            <tr>
+                                <td class="border border-gray-300 dark:border-gray-700 px-2 py-1">
+                                    {{ Carbon\Carbon::parse($history->date)->format('d M, Y') }} </td>
+                                <td class="border border-gray-300 dark:border-gray-700 px-2 py-1">
+                                    {{ number_format($history->amount, 2) }} </td>
+                                <td class="border border-gray-300 dark:border-gray-700 px-2 py-1">
+                                    <x-filament::button class=" text-center" color="danger" tag="button"
+                                        wire:click="mountAction('delete', { id: {{ $history->id }} })">
+                                        <x-fas-trash class="w-4 h-4 " />
+                                    </x-filament::button>
+                                </td>
+
+                            </tr>
+                        @endforeach
+
+
+                    </tbody>
+                </table>
+            </div>
+
         </div>
     </div>
 

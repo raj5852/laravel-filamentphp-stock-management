@@ -4,6 +4,7 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\Unit;
+use Illuminate\Support\Number;
 
 function getTotalStock($productId, $openingStockValue = null, $subOpeningStockValue = null)
 {
@@ -89,4 +90,9 @@ function customerDue($id)
     $customer = Customer::query()->withSum('orders', 'due')->find($id);
 
     return $customer->orders_sum_due ?? 0;
+}
+
+function numberToBanglaWord($num = 0)
+{
+    return Number::spell($num);
 }
