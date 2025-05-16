@@ -75,4 +75,8 @@ class Customer extends Model
             get: fn () => 0,
         );
     }
+
+    function histories(){
+        return $this->hasMany(History::class);
+    }
 }

@@ -6,6 +6,7 @@ use App\Filament\Resources\PaymentResource;
 use App\HistoryTypeEnum;
 use App\Models\Account;
 use App\Models\Customer;
+use App\Models\Order;
 use App\Models\Purchase;
 use App\Models\Supplier;
 use App\Services\ProductService;
@@ -165,12 +166,35 @@ class AddPayment extends Page implements HasForms
                     $customer->update([
                         'wallet' => $customer->wallet + $data['amount'],
                     ]);
+
+
+                    $customer->histories()->create([
+                        'amount' => $data['amount'],
+                        'account_id' => $this->transition_account,
+                        'date' => today(),
+                        'note' => '',
+                        'type' => HistoryTypeEnum::RECEIVED->value,
+                    ]);
+
+                    Account::find($this->transition_account)->increment('current_balance', $data['amount']);
+
                 }
 
                 if ($data['payment_type'] == 'cash_pay') {
                     $customer->update([
                         'wallet' => $customer->wallet - $data['amount'],
                     ]);
+
+                    $customer->histories()->create([
+                        'amount' => $data['amount'],
+                        'account_id' => $this->transition_account,
+                        'date' => today(),
+                        'note' => '',
+                        'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
+                    ]);
+
+                    Account::find($this->transition_account)->decrement('current_balance', $data['amount']);
+
                 }
 
             }
@@ -183,12 +207,34 @@ class AddPayment extends Page implements HasForms
                     $supplier->update([
                         'wallet' => $supplier->wallet - $data['amount'],
                     ]);
+
+                    $supplier->histories()->create([
+                        'amount' => $data['amount'],
+                        'account_id' => $this->transition_account,
+                        'date' => today(),
+                        'note' => '',
+                        'type' => HistoryTypeEnum::RECEIVED->value,
+                    ]);
+
+                    Account::find($this->transition_account)->increment('current_balance', $data['amount']);
+
                 }
 
                 if ($data['payment_type'] == 'cash_pay') {
                     $supplier->update([
                         'wallet' => $supplier->wallet + $data['amount'],
                     ]);
+
+                    $supplier->histories()->create([
+                        'amount' => $data['amount'],
+                        'account_id' => $this->transition_account,
+                        'date' => today(),
+                        'note' => '',
+                        'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
+                    ]);
+
+                    Account::find($this->transition_account)->decrement('current_balance', $data['amount']);
+
                 }
 
             }
@@ -209,9 +255,21 @@ class AddPayment extends Page implements HasForms
                 $salesAmount = $data['amount'] - ($balance > 0 ? $balance : 0);
 
                 if ($data['payment_type'] == 'cash_pay') {
+
                     $customer->update([
                         'wallet' => $customer->wallet - $data['amount'],
                     ]);
+
+                    $customer->histories()->create([
+                        'amount' => $data['amount'],
+                        'account_id' => $this->transition_account,
+                        'date' => today(),
+                        'note' => '',
+                        'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
+                    ]);
+
+                    Account::find($this->transition_account)->decrement('current_balance', $data['amount']);
+
                 }
 
                 if ($data['payment_type'] == 'cash_receive') {
@@ -221,29 +279,40 @@ class AddPayment extends Page implements HasForms
                             'wallet' => $customer->wallet + $balance,
                         ]);
 
+                        $customer->histories()->create([
+                            'amount' => $balance,
+                            'account_id' => $this->transition_account,
+                            'date' => today(),
+                            'note' => '',
+                            'type' => HistoryTypeEnum::RECEIVED->value,
+                        ]);
+
+                        Account::find($this->transition_account)->increment('current_balance', $balance);
+
                     }
 
                     $sales = ProductService::paidableSales($customer->id, $salesAmount);
 
-                    // foreach ($sales as $pur) {
-                    //     $purchase = Purchase::query()->findOrFail($pur['id']);
+                    foreach ($sales as $sale) {
 
-                    //     $purchase->increment('paid', $pur['due']);
-                    //     $purchase->decrement('due', $pur['due']);
+                        $order = Order::query()->findOrFail($sale['id']);
 
-                    //     $purchase->histories()->create([
-                    //         'amount' => $pur['due'],
-                    //         'account_id' => $this->transition_account,
-                    //         'date' => $this->payment_date,
-                    //         'note' => '', // $this->note
-                    //         'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
-                    //         'supplier_id' => $this->account_id,
-                    //
-                    //     ]);
+                        $order->increment('paid', $sale['due']);
+                        $order->decrement('due', $sale['due']);
 
-                    //     Account::find($this->transition_account)->decrement('current_balance', $pur['due']);
+                        $order->histories()->create([
+                            'amount' => $sale['due'],
+                            'account_id' => $this->transition_account,
+                            'date' => $this->payment_date,
+                            'note' => '',
+                            'type' => HistoryTypeEnum::RECEIVED->value,
+                            // 'total_amount' => customerDue($order->customer_id),
+                            'customer_id' => $order->customer_id,
+                        ]);
 
-                    // }
+                        Account::find($this->transition_account)->increment('current_balance', $sale['due']);
+
+                    }
                 }
 
             }
@@ -264,6 +333,17 @@ class AddPayment extends Page implements HasForms
                     $supplier->update([
                         'wallet' => $supplier->wallet - $data['amount'],
                     ]);
+
+                    $supplier->histories()->create([
+                        'amount' => $data['amount'],
+                        'account_id' => $this->transition_account,
+                        'date' => today(),
+                        'note' => '',
+                        'type' => HistoryTypeEnum::RECEIVED->value,
+                    ]);
+
+                    Account::find($this->transition_account)->increment('current_balance', $data['amount']);
+
                 }
 
                 if ($data['payment_type'] == 'cash_pay') {
@@ -273,6 +353,16 @@ class AddPayment extends Page implements HasForms
                         $supplier->update([
                             'wallet' => $supplier->wallet + $balance,
                         ]);
+
+                        $supplier->histories()->create([
+                            'amount' => $balance,
+                            'account_id' => $this->transition_account,
+                            'date' => today(),
+                            'note' => '',
+                            'type' => HistoryTypeEnum::RECEIVED->value,
+                        ]);
+
+                        Account::find($this->transition_account)->increment('current_balance', $balance);
 
                     }
 

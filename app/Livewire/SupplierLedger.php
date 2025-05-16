@@ -104,9 +104,7 @@ class SupplierLedger extends Component implements HasForms
         //     ->orderBy('created_at', 'asc')
         //     ->get();
 
-
-
-            $datas = DB::table('purchases')
+        $datas = DB::table('purchases')
             ->where('tenant_id', $tenantId)
             ->where('supplier_id', $supplierId)
             ->when($this->start_date != null && $this->end_date != null, function ($query) {
