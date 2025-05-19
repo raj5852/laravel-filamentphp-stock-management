@@ -50,7 +50,8 @@ class PurchaseShow extends Page implements HasActions, HasForms
                     'purchaseitems' => function ($query) {
                         $query->select('id', 'product_id', 'purchase_id', 'total_in_text', 'rate', 'total_rate')
                             ->with('product:id,product_name,product_code');
-                    }])
+                    },
+                ])
                 ->find($this->record->id),
 
             'damages' => Damage::query()->with('product')->whereJsonContains('purchase_ids', ['purchase_id' => $this->record->id])
@@ -76,13 +77,11 @@ class PurchaseShow extends Page implements HasActions, HasForms
                     $history->purchase()->decrement('paid', $history->amount);
                     $history->purchase()->increment('due', $history->amount);
                     $history->delete();
-
                 });
 
                 Notification::make()
                     ->title('Deleted Successfully')
                     ->success()->send();
-
             });
     }
 
@@ -109,7 +108,8 @@ class PurchaseShow extends Page implements HasActions, HasForms
                     ->searchable()
                     ->options(Account::query()->pluck('name', 'id'))
                     ->rules([
-                        'required', Rule::exists('accounts', 'id'),
+                        'required',
+                        Rule::exists('accounts', 'id'),
                     ])
                     ->required(),
 
@@ -122,12 +122,13 @@ class PurchaseShow extends Page implements HasActions, HasForms
                         'max:9999999999',
                         'numeric',
                     ])
-                    ->default(fn (array $arguments) => $arguments['amount'] ?? 0)
+                    ->default(fn(array $arguments) => $arguments['amount'] ?? 0)
                     ->numeric(),
 
                 Textarea::make('note')
                     ->rules([
-                        'nullable', 'max:65535',
+                        'nullable',
+                        'max:65535',
 
                     ])
                     ->label('note'),
@@ -145,35 +146,48 @@ class PurchaseShow extends Page implements HasActions, HasForms
             })
             ->action(function (array $arguments, array $data) {
 
-                DB::transaction(function () use ($arguments, $data) {
-                    $purchase = Purchase::query()->findOrFail($arguments['id']);
+                $purchase = Purchase::query()->findOrFail($arguments['id']);
 
-                    $purchase->increment('paid', $data['amount']);
-                    $purchase->decrement('due', $data['amount']);
+                if ($data['amount'] > $purchase->due) {
+                    Notification::make()->warning()
+                        ->title('Amount is greater than due amount')
+                        ->send();
 
-                    $payment = Payment::create([
-                        'supplier_id' => $purchase->supplier_id,
-                        'payment_date' => $data['date'],
-                        'payment_type' => 'Cash Pay',
-                        'note' => $data['note'],
-                    ]);
+                    return;
+                } else {
+                    try {
+                        DB::beginTransaction();
 
-                    $purchase->histories()->create([
-                        'amount' => $data['amount'],
-                        'account_id' => $data['account'],
-                        'date' => today(),
-                        'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
-                        'supplier_id' => $purchase->supplier_id,
-                        'payment_id' => $payment->id,
-                    ]);
+                        $purchase->increment('paid', $data['amount']);
+                        $purchase->decrement('due', $data['amount']);
 
-                    Account::find($data['account'])->decrement('current_balance', $data['amount']);
-                });
+                        $payment = Payment::create([
+                            'supplier_id' => $purchase->supplier_id,
+                            'payment_date' => $data['date'],
+                            'payment_type' => 'Cash Pay',
+                            'note' => $data['note'],
+                        ]);
 
-                Notification::make()->success()
-                    ->title('Payment Added Successfully')
-                    ->send();
+                        $purchase->histories()->create([
+                            'amount' => $data['amount'],
+                            'account_id' => $data['account'],
+                            'date' => today(),
+                            'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
+                            'supplier_id' => $purchase->supplier_id,
+                            'payment_id' => $payment->id,
+                        ]);
 
+                        Account::find($data['account'])->decrement('current_balance', $data['amount']);
+
+                        Notification::make()->success()
+                            ->title('Payment Added Successfully')
+                            ->send();
+
+                        DB::commit();
+                    } catch (\Throwable $th) {
+                        DB::rollBack();
+                    }
+                }
             });
     }
 }

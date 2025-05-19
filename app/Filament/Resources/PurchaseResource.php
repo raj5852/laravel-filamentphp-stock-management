@@ -202,34 +202,46 @@ class PurchaseResource extends Resource
                         ])
                         ->action(function (array $data, Purchase $record) {
 
-                            DB::transaction(function () use ($record, $data) {
-                                $purchase = Purchase::query()->findOrFail($record->id);
+                            $purchase = Purchase::query()->findOrFail($record->id);
 
-                                $purchase->increment('paid', $data['amount']);
-                                $purchase->decrement('due', $data['amount']);
+                            if ($data['amount'] > $purchase->due) {
+                                Notification::make()->warning()
+                                    ->title('Payment amount is greater than due')
+                                    ->send();
 
-                                $payment = Payment::create([
-                                    'supplier_id' => $record->supplier_id,
-                                    'payment_date' => $data['date'],
-                                    'payment_type' => 'Cash Pay',
-                                    'note' => $data['note'],
-                                ]);
+                                return;
+                            } else {
+                                try {
+                                    DB::beginTransaction();
+                                    $purchase->increment('paid', $data['amount']);
+                                    $purchase->decrement('due', $data['amount']);
 
-                                $purchase->histories()->create([
-                                    'amount' => $data['amount'],
-                                    'account_id' => $data['account'],
-                                    'date' => today(),
-                                    'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
-                                    'supplier_id' => $record->supplier_id,
-                                    'payment_id' => $payment->id,
-                                ]);
+                                    $payment = Payment::create([
+                                        'supplier_id' => $record->supplier_id,
+                                        'payment_date' => $data['date'],
+                                        'payment_type' => 'Cash Pay',
+                                        'note' => $data['note'],
+                                    ]);
 
-                                Account::find($data['account'])->decrement('current_balance', $data['amount']);
-                            });
+                                    $purchase->histories()->create([
+                                        'amount' => $data['amount'],
+                                        'account_id' => $data['account'],
+                                        'date' => today(),
+                                        'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
+                                        'supplier_id' => $record->supplier_id,
+                                        'payment_id' => $payment->id,
+                                    ]);
 
-                            Notification::make()->success()
-                                ->title('Payment Added Successfully')
-                                ->send();
+                                    Account::find($data['account'])->decrement('current_balance', $data['amount']);
+
+                                    Notification::make()->success()
+                                        ->title('Payment Added Successfully')
+                                        ->send();
+                                    DB::commit();
+                                } catch (\Throwable $th) {
+                                    DB::rollBack();
+                                }
+                            }
                         })
                         ->modalHeading('Add Payment')
                         ->modalButton('Add Payment')
