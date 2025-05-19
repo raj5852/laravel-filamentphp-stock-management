@@ -116,9 +116,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
             $this->products[$index]['main_unit_qty'] = $this->getMainQty($product['mainunit']['related_to_unit'], $product['related_by_value'], $product['available_stock']);
             $this->products[$index]['sub_unit_qty'] = $this->getSubQty($product['related_by_value'], $product['available_stock']);
-
         }
-
     }
 
     public function getMainQty($related_to_unit, $related_by_value, $totalStockAmount)
@@ -226,7 +224,6 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
                             return;
                         }
-
                     }),
                 Select::make('product_id')
                     ->label('')
@@ -374,11 +371,13 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                 Split::make([
                     Stack::make([
                         ImageColumn::make('product_image')->defaultImageUrl('/images/notfound.jpg')->alignCenter(),
-                        TextColumn::make('product_name')->getStateUsing(fn ($record) => $record->product_name.' - '.$record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
-                        TextColumn::make('sale_price')->getStateUsing(fn ($record) => number_format($record->sale_price, 2, '.', ''))->alignCenter(),
+                        TextColumn::make('product_name')->getStateUsing(fn($record) => $record->product_name . ' - ' . $record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
+                        TextColumn::make('sale_price')->getStateUsing(function ($record) {
+                            return new HtmlString('<span class="font-bold">' . number_format($record->sale_price, 2, '.', '') . '</span>'  . ' TK');
+                        })->alignCenter(),
                         TextColumn::make('productdetails.available_stock_in_text')
                             ->getStateUsing(function ($record) {
-                                return new HtmlString('<span class="font-bold">Stock: </span>'.$record->productdetails?->available_stock_in_text);
+                                return new HtmlString('<span >Stock: </span>' . $record->productdetails?->available_stock_in_text);
                             })
                             ->alignCenter(),
                     ]),
@@ -420,7 +419,6 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                         }
 
                         $this->addProduct($record->id);
-
                     }),
 
             ])
@@ -461,7 +459,8 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                 Textarea::make('note')
                     ->label('Note')
                     ->rules([
-                        'nullable', 'max:5000',
+                        'nullable',
+                        'max:5000',
                     ])
                     ->placeholder('Enter Note (Optional)'),
                 Grid::make(2)
@@ -496,7 +495,6 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                                         $totalPayable = $this->getGrandTotalProperty();
                                         $set('pay_amount', number_format($totalPayable, 2, '.', ''));
                                         $set('due', 0);
-
                                     })
                             ),
                     ]),
@@ -655,7 +653,6 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                             'customer_id' => $this->customer_id,
                             'payment_id' => $payment->id,
                         ]);
-
                     }
 
                     $this->customer_id = null;
@@ -669,11 +666,9 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                         ->danger()
                         ->title('Something went wrong')
                         ->send();
-
                 }
 
                 return to_route('filament.admin.resources.sales.pos-receipt', ['record' => $order->id]);
-
             });
     }
 

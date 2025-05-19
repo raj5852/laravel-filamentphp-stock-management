@@ -38,11 +38,20 @@ class CurrentMonthOverview extends BaseWidget
 
         return [
             Stat::make('Sold in '.$currentMonthYear, 'TK '.number_format($soldInCurrentMonth, 1))
-                ->icon('heroicon-o-user'),
+                ->icon('heroicon-o-banknotes')
+                ->iconBackgroundColor('success')
+                ->descriptionColor('success')
+                ->iconColor('warning'),
             Stat::make('Purchased - in '.$currentMonthYear, 'TK '.number_format($purchasedInCurrentMonth + $purchaseInProduct, 1))
-                ->icon('heroicon-o-user'),
+                ->icon('heroicon-o-banknotes')
+                ->iconBackgroundColor('success')
+                ->descriptionColor('success')
+                ->iconColor('warning'),
             Stat::make('Profit '.$currentMonthYear, 'TK '.number_format($soldInCurrentMonth - $current_month_sold_purchase_cost, 1))
-                ->icon('heroicon-o-user'),
+                ->icon('heroicon-o-banknotes')
+                ->iconBackgroundColor('success')
+                ->descriptionColor('success')
+                ->iconColor('warning'),
 
         ];
     }

@@ -4,11 +4,16 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PaymentResource\Pages;
 use App\HistoryTypeEnum;
+use App\Models\Customer;
 use App\Models\Payment;
+use App\Models\Supplier;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
@@ -98,8 +103,43 @@ class PaymentResource extends Resource
 
             ])
             ->filters([
-                // SelectFilter::make('payment_type'),
-            ])
+                SelectFilter::make('customer_id')
+                    ->label('Customer')
+                    ->options(Customer::query()->where('is_default', '!=', 1)->pluck('customer_name', 'id'))
+                    ->searchable(),
+
+                SelectFilter::make('supplier_id')
+                    ->label('Supplier')
+                    ->options(Supplier::query()->pluck('supplier_name', 'id'))
+                    ->searchable(),
+
+                Filter::make('start_date')
+                    ->label('')
+                    ->form([
+                        DatePicker::make('start_date')
+                            ->label('Start Date')
+                            ->native(false)
+                            ->placeholder('Start Date'),
+                    ])
+                    ->query(function ($query, array $data) {
+                        return $query->when($data['start_date'], fn ($query, $term) => $query->where('payment_date', '>=', $term)
+                        );
+                    }),
+                Filter::make('end_date')
+                    ->label('')
+                    ->form([
+                        DatePicker::make('end_date')
+                            ->label('End Date')
+                            ->native(false)
+                            ->placeholder('End Date'),
+                    ])
+                    ->query(function ($query, array $data) {
+                        return $query->when($data['end_date'], fn ($query, $term) => $query->where('payment_date', '<=', $term)
+                        );
+                    }),
+
+            ], layout: FiltersLayout::AboveContent)
+
             ->actions([
                 Tables\Actions\DeleteAction::make()
                     ->button()
@@ -161,6 +201,8 @@ class PaymentResource extends Resource
                     // Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
+            ->filtersFormColumns(4)
+            // ->hiddenFilterIndicators()
             ->paginated([10, 20, 50, 100]);
     }
 

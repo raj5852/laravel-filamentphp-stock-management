@@ -35,7 +35,7 @@ class AdminPanelProvider extends PanelProvider
                 'Reports',
                 'Setting & Customize',
             ])
-            ->plugin(FilamentProgressbarPlugin::make()->color('#29b'))
+            // ->plugin(FilamentProgressbarPlugin::make()->color('#29b'))
             ->id('admin')
             ->path('user')
             ->login()

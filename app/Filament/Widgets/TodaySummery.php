@@ -25,19 +25,19 @@ class TodaySummery extends BaseWidget
 
         return [
             Stat::make('Today Sold', 'TK '.number_format($today_sold, 1))
-                ->icon('heroicon-o-user')
+                ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')
                 ->descriptionColor('success')
                 ->iconColor('success'),
 
             Stat::make('Today Sold - Purchase Cost', 'TK '.number_format($today_sold_purchase_cost, 1))
-                ->icon('heroicon-o-user')
+                ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')
                 ->descriptionColor('success')
                 ->iconColor('success'),
 
             Stat::make('Today Sell Profit', 'TK '.number_format($today_sold - $today_sold_purchase_cost, 1))
-                ->icon('heroicon-o-user')
+                ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')
                 ->descriptionColor('success')
                 ->iconColor('success'),

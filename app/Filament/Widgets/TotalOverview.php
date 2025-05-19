@@ -31,11 +31,17 @@ class TotalOverview extends BaseWidget
         return [
 
             Stat::make('Total Sold ', 'TK '.number_format($totalSold, 1))
-                ->icon('heroicon-o-user'),
+                ->icon('heroicon-o-banknotes')
+                ->iconBackgroundColor('success')
+                ->iconColor('dark'),
             Stat::make('Total Purchased ', 'TK '.number_format($totalPurchased + $purchaseInProduct, 1))
-                ->icon('heroicon-o-user'),
+                ->icon('heroicon-o-banknotes')
+                ->iconBackgroundColor('success')
+                ->iconColor('dark'),
             Stat::make('Total Profit', 'TK '.number_format($totalSold - $total_sold_purchase_cost, 1))
-                ->icon('heroicon-o-user'),
+                ->icon('heroicon-o-banknotes')
+                ->iconBackgroundColor('success')
+                ->iconColor('dark'),
 
         ];
     }
