@@ -36,6 +36,8 @@ class PurchaseResource extends Resource
 
     protected static ?string $navigationGroup = 'Sale & Purchase';
 
+    protected static ?int $navigationSort = 3;
+
     public static function canCreate(): bool
     {
         return false;
@@ -93,7 +95,9 @@ class PurchaseResource extends Resource
 
                     ])
                     ->query(function ($query, array $data) {
-                        return $query->when($data['billno'], fn ($query, $term) => $query->where('billno', $term)
+                        return $query->when(
+                            $data['billno'],
+                            fn ($query, $term) => $query->where('billno', $term)
                         );
                     }),
 
@@ -106,7 +110,9 @@ class PurchaseResource extends Resource
                             ->placeholder('Start Date'),
                     ])
                     ->query(function ($query, array $data) {
-                        return $query->when($data['start_date'], fn ($query, $term) => $query->where('purchase_date', '>=', $term)
+                        return $query->when(
+                            $data['start_date'],
+                            fn ($query, $term) => $query->where('purchase_date', '>=', $term)
                         );
                     }),
                 Filter::make('end_date')
@@ -118,7 +124,9 @@ class PurchaseResource extends Resource
                             ->placeholder('End Date'),
                     ])
                     ->query(function ($query, array $data) {
-                        return $query->when($data['end_date'], fn ($query, $term) => $query->where('purchase_date', '<=', $term)
+                        return $query->when(
+                            $data['end_date'],
+                            fn ($query, $term) => $query->where('purchase_date', '<=', $term)
                         );
                     }),
 
@@ -138,9 +146,11 @@ class PurchaseResource extends Resource
                             ->searchable(),
                     ])
                     ->query(function ($query, array $data) {
-                        return $query->when($data['product_id'], fn ($query, $term) => $query->whereHas('purchaseItems', function ($query) use ($term) {
-                            $query->where('product_id', $term);
-                        })
+                        return $query->when(
+                            $data['product_id'],
+                            fn ($query, $term) => $query->whereHas('purchaseItems', function ($query) use ($term) {
+                                $query->where('product_id', $term);
+                            })
                         );
                     }),
 
@@ -171,7 +181,8 @@ class PurchaseResource extends Resource
                                 ->searchable()
                                 ->options(Account::query()->pluck('name', 'id'))
                                 ->rules([
-                                    'required', Rule::exists('accounts', 'id'),
+                                    'required',
+                                    Rule::exists('accounts', 'id'),
                                 ])
                                 ->required(),
                             TextInput::make('amount')
@@ -219,7 +230,6 @@ class PurchaseResource extends Resource
                             Notification::make()->success()
                                 ->title('Payment Added Successfully')
                                 ->send();
-
                         })
                         ->modalHeading('Add Payment')
                         ->modalButton('Add Payment')

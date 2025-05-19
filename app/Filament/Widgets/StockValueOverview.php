@@ -32,11 +32,11 @@ class StockValueOverview extends BaseWidget
 
         return [
 
-            Stat::make('Stock - Purchase Value ', 'TK ' . number_format($stock_purchase_value, 1))
+            Stat::make('Stock - Purchase Value ', 'TK '.number_format($stock_purchase_value, 1))
                 ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')
                 ->iconColor('primary'),
-            Stat::make('Stock - Sell Value', 'TK ' . number_format($stock_sell_value, 1))
+            Stat::make('Stock - Sell Value', 'TK '.number_format($stock_sell_value, 1))
                 ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')
                 ->iconColor('primary'),

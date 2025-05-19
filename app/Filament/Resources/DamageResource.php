@@ -29,6 +29,8 @@ class DamageResource extends Resource
 
     protected static ?string $navigationGroup = 'Sale & Purchase';
 
+    protected static ?int $navigationSort = 5;
+
     public static function canCreate(): bool
     {
         return false;
@@ -185,7 +187,6 @@ class DamageResource extends Resource
                             // Handle exception
 
                         }
-
                     }),
             ])
             ->columns([
@@ -222,7 +223,9 @@ class DamageResource extends Resource
                             ->placeholder('Id'),
                     ])
                     ->query(function ($query, array $data) {
-                        return $query->when($data['id'], fn ($query, $term) => $query->where('id', $term)
+                        return $query->when(
+                            $data['id'],
+                            fn ($query, $term) => $query->where('id', $term)
                         );
                     }),
             ], layout: FiltersLayout::AboveContent)

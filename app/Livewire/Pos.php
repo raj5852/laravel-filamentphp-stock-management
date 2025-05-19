@@ -45,6 +45,8 @@ class Pos extends Component implements HasActions, HasForms, HasTable
     use InteractsWithForms;
     use InteractsWithTable;
 
+    protected static ?int $navigationSort = 1;
+
     public $order_date = null;
 
     public $customer_id = null;
@@ -371,13 +373,13 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                 Split::make([
                     Stack::make([
                         ImageColumn::make('product_image')->defaultImageUrl('/images/notfound.jpg')->alignCenter(),
-                        TextColumn::make('product_name')->getStateUsing(fn($record) => $record->product_name . ' - ' . $record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
+                        TextColumn::make('product_name')->getStateUsing(fn ($record) => $record->product_name.' - '.$record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
                         TextColumn::make('sale_price')->getStateUsing(function ($record) {
-                            return new HtmlString('<span class="font-bold">' . number_format($record->sale_price, 2, '.', '') . '</span>'  . ' TK');
+                            return new HtmlString('<span class="font-bold">'.number_format($record->sale_price, 2, '.', '').'</span>'.' TK');
                         })->alignCenter(),
                         TextColumn::make('productdetails.available_stock_in_text')
                             ->getStateUsing(function ($record) {
-                                return new HtmlString('<span >Stock: </span>' . $record->productdetails?->available_stock_in_text);
+                                return new HtmlString('<span >Stock: </span>'.$record->productdetails?->available_stock_in_text);
                             })
                             ->alignCenter(),
                     ]),
@@ -566,109 +568,124 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
                     return;
                 }
-
-                try {
-                    DB::beginTransaction();
-
-                    $totalOrder = Order::count() + 1;
-
-                    $receable = number_format($this->getGrandTotalProperty(), 2, '.', '');
-                    $paid = $data['pay_amount'] ?: 0;
-
-                    $order = Order::create([
-                        'invoiceno' => $totalOrder,
-                        'customer_id' => $this->customer_id,
-                        'order_date' => $this->order_date,
-                        'receivable' => $receable,
-                        'paid' => $paid,
-                        'due' => $due,
-                        'note' => $data['note'],
-                    ]);
-
-                    foreach ($this->products as $product) {
-                        $main_unit_qty = $product['main_unit_qty'] ?: 0;
-                        $sub_unit_qty = $product['sub_unit_qty'] ?: 0;
-
-                        $mainunitprice = ($product['rate'] ?: 0) * ($product['main_unit_qty'] ?: 0);
-                        if ($product['subunit'] != '') {
-                            $SingleSubunitPrice = ($product['rate'] ?: 0) / $product['related_by_value'];
-                            $subunitPrice = $SingleSubunitPrice * ($product['sub_unit_qty'] ?: 0);
-                        } else {
-                            $subunitPrice = 0;
-                        }
-
-                        $total_subunitprice = number_format($mainunitprice + $subunitPrice, 2, '.', '');
-
-                        $totalQty = getTotalStock($product['id'], $main_unit_qty, $sub_unit_qty);
-                        $total_qty_in_text = getTotalStockInText($product['id'], $totalQty);
-
-                        $getproduct = Product::find($product['id'])->load('productdetails');
-                        $available_stock = $getproduct->productdetails->available_stock ?: 0;
-                        $sold = $getproduct->productdetails->sold;
-
-                        $purchaseCost = $totalQty * $getproduct->productdetails->single_unit_purchase_price;
-                        $getproduct->productdetails()->update([
-                            'available_stock' => $available_stock - $totalQty,
-                            'available_stock_in_text' => getTotalStockInText($product['id'], ($available_stock - $totalQty)),
-                            'sold' => $sold + $totalQty,
-                            'sold_in_text' => getTotalStockInText($product['id'], ($sold + $totalQty)),
-                        ]);
-
-                        $purchaseIds = ExpensePurchase::addPurchaseExpense($product['id'], $totalQty);
-
-                        $order->orderitems()->create([
-                            'product_id' => $product['id'],
-                            'rate' => $product['rate'],
-                            'total_rate' => $total_subunitprice,
-                            'main_unit_qty' => $product['main_unit_qty'],
-                            'sub_unit_qty' => $product['sub_unit_qty'],
-                            'total_qty' => $totalQty,
-                            'total_in_text' => $total_qty_in_text,
-                            'available_qty' => $totalQty,
-                            'purchase_cost' => $purchaseCost,
-                            'purchase_ids' => $purchaseIds,
-                        ]);
-                    }
-                    $orderDetails = $order->orderitems;
-                    $order->update([
-                        'profit' => ($orderDetails->sum('total_rate') ?: 0) - ($orderDetails->sum('purchase_cost') ?: 0),
-                    ]);
-
-                    $payment = Payment::create([
-                        'customer_id' => $this->customer_id,
-                        'payment_date' => $this->order_date,
-                        'payment_type' => 'Cash Received',
-                        'note' => $data['note'],
-                    ]);
-
-                    if ($data['pay_amount'] != '') {
-
-                        $account = Account::find($data['account_id']);
-                        $account->increment('current_balance', $data['pay_amount']);
-                        $account->histories()->create([
-                            'date' => today(),
-                            'amount' => $data['pay_amount'],
-                            'type' => HistoryTypeEnum::RECEIVED->value,
-                            'order_id' => $order->id,
-                            'customer_id' => $this->customer_id,
-                            'payment_id' => $payment->id,
-                        ]);
-                    }
-
-                    $this->customer_id = null;
-
-                    DB::commit();
-                } catch (\Exception $e) {
-                    DB::rollBack();
-
-                    // Handle exception
+                // dd($due, $data['pay_amount']);
+                $receable = number_format($this->getGrandTotalProperty(), 2, '.', '');
+                if ($receable < $data['pay_amount']) {
                     Notification::make()
                         ->danger()
-                        ->title('Something went wrong')
+                        ->title('Paid amount is greater than due amount')
                         ->send();
-                }
 
-                return to_route('filament.admin.resources.sales.pos-receipt', ['record' => $order->id]);
+                    return;
+                } else {
+
+                    try {
+                        DB::beginTransaction();
+
+                        $totalOrder = Order::count() + 1;
+
+                        $paid = $data['pay_amount'] ?: 0;
+
+                        $order = Order::create([
+                            'invoiceno' => $totalOrder,
+                            'customer_id' => $this->customer_id,
+                            'order_date' => $this->order_date,
+                            'receivable' => $receable,
+                            'paid' => $paid,
+                            'due' => $due,
+                            'note' => $data['note'],
+                        ]);
+
+                        foreach ($this->products as $product) {
+                            $main_unit_qty = $product['main_unit_qty'] ?: 0;
+                            $sub_unit_qty = $product['sub_unit_qty'] ?: 0;
+
+                            $mainunitprice = ($product['rate'] ?: 0) * ($product['main_unit_qty'] ?: 0);
+                            if ($product['subunit'] != '') {
+                                $SingleSubunitPrice = ($product['rate'] ?: 0) / $product['related_by_value'];
+                                $subunitPrice = $SingleSubunitPrice * ($product['sub_unit_qty'] ?: 0);
+                            } else {
+                                $subunitPrice = 0;
+                            }
+
+                            $total_subunitprice = number_format($mainunitprice + $subunitPrice, 2, '.', '');
+
+                            $totalQty = getTotalStock($product['id'], $main_unit_qty, $sub_unit_qty);
+                            $total_qty_in_text = getTotalStockInText($product['id'], $totalQty);
+
+                            $getproduct = Product::find($product['id'])->load('productdetails');
+                            $available_stock = $getproduct->productdetails->available_stock ?: 0;
+                            $sold = $getproduct->productdetails->sold;
+
+                            $purchaseCost = $totalQty * $getproduct->productdetails->single_unit_purchase_price;
+                            $getproduct->productdetails()->update([
+                                'available_stock' => $available_stock - $totalQty,
+                                'available_stock_in_text' => getTotalStockInText($product['id'], ($available_stock - $totalQty)),
+                                'sold' => $sold + $totalQty,
+                                'sold_in_text' => getTotalStockInText($product['id'], ($sold + $totalQty)),
+                            ]);
+
+                            $purchaseIds = ExpensePurchase::addPurchaseExpense($product['id'], $totalQty);
+
+                            $order->orderitems()->create([
+                                'product_id' => $product['id'],
+                                'rate' => $product['rate'],
+                                'total_rate' => $total_subunitprice,
+                                'main_unit_qty' => $product['main_unit_qty'],
+                                'sub_unit_qty' => $product['sub_unit_qty'],
+                                'total_qty' => $totalQty,
+                                'total_in_text' => $total_qty_in_text,
+                                'available_qty' => $totalQty,
+                                'purchase_cost' => $purchaseCost,
+                                'purchase_ids' => $purchaseIds,
+                            ]);
+                        }
+                        $orderDetails = $order->orderitems;
+                        $order->update([
+                            'profit' => ($orderDetails->sum('total_rate') ?: 0) - ($orderDetails->sum('purchase_cost') ?: 0),
+                        ]);
+
+                        $payment = Payment::create([
+                            'customer_id' => $this->customer_id,
+                            'payment_date' => $this->order_date,
+                            'payment_type' => 'Cash Received',
+                            'note' => $data['note'],
+                        ]);
+
+                        if ($data['pay_amount'] != '') {
+
+                            $account = Account::find($data['account_id']);
+                            $account->increment('current_balance', $data['pay_amount']);
+                            $account->histories()->create([
+                                'date' => today(),
+                                'amount' => $data['pay_amount'],
+                                'type' => HistoryTypeEnum::RECEIVED->value,
+                                'order_id' => $order->id,
+                                'customer_id' => $this->customer_id,
+                                'payment_id' => $payment->id,
+                            ]);
+                        }
+
+                        $this->customer_id = null;
+
+                        DB::commit();
+                    } catch (\Exception $e) {
+                        DB::rollBack();
+
+                        // Handle exception
+                        Notification::make()
+                            ->danger()
+                            ->title('Something went wrong')
+                            ->send();
+                    }
+
+                    Notification::make()
+                        ->success()
+                        ->title('Order Created Successfully')
+                        ->send();
+
+                    return to_route('filament.admin.resources.sales.pos-receipt', ['record' => $order->id]);
+                }
             });
     }
 

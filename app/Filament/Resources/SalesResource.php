@@ -36,13 +36,12 @@ class SalesResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Sales';
 
+    protected static ?int $navigationSort = 2;
+
     public static function form(Form $form): Form
     {
         return $form
-
-            ->schema([
-
-            ]);
+            ->schema([]);
     }
 
     public static function canCreate(): bool
@@ -110,7 +109,9 @@ class SalesResource extends Resource
                             ->placeholder('Bill Number'),
                     ])
                     ->query(function ($query, array $data) {
-                        return $query->when($data['invoiceno'], fn ($query, $term) => $query->where('invoiceno', $term)
+                        return $query->when(
+                            $data['invoiceno'],
+                            fn ($query, $term) => $query->where('invoiceno', $term)
                         );
                     }),
                 Filter::make('start_date')
@@ -122,7 +123,9 @@ class SalesResource extends Resource
                             ->placeholder('Start Date'),
                     ])
                     ->query(function ($query, array $data) {
-                        return $query->when($data['start_date'], fn ($query, $term) => $query->where('order_date', '>=', $term)
+                        return $query->when(
+                            $data['start_date'],
+                            fn ($query, $term) => $query->where('order_date', '>=', $term)
                         );
                     }),
                 Filter::make('end_date')
@@ -134,7 +137,9 @@ class SalesResource extends Resource
                             ->placeholder('End Date'),
                     ])
                     ->query(function ($query, array $data) {
-                        return $query->when($data['end_date'], fn ($query, $term) => $query->where('order_date', '<=', $term)
+                        return $query->when(
+                            $data['end_date'],
+                            fn ($query, $term) => $query->where('order_date', '<=', $term)
                         );
                     }),
 
@@ -155,9 +160,11 @@ class SalesResource extends Resource
                             ->searchable(),
                     ])
                     ->query(function ($query, array $data) {
-                        return $query->when($data['product_id'], fn ($query, $term) => $query->whereHas('orderitems', function ($query) use ($term) {
-                            $query->where('product_id', $term);
-                        })
+                        return $query->when(
+                            $data['product_id'],
+                            fn ($query, $term) => $query->whereHas('orderitems', function ($query) use ($term) {
+                                $query->where('product_id', $term);
+                            })
                         );
                     }),
 
@@ -191,7 +198,8 @@ class SalesResource extends Resource
                                 ->searchable()
                                 ->options(Account::query()->pluck('name', 'id'))
                                 ->rules([
-                                    'required', Rule::exists('accounts', 'id'),
+                                    'required',
+                                    Rule::exists('accounts', 'id'),
                                 ])
                                 ->required(),
                             TextInput::make('amount')
@@ -210,37 +218,47 @@ class SalesResource extends Resource
 
                         ])
                         ->action(function (array $data, Order $record) {
+                            $order = Order::query()->findOrFail($record->id);
 
-                            DB::transaction(function () use ($record, $data) {
-                                $order = Order::query()->findOrFail($record->id);
+                            if ($order->due < $data['amount']) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Amount is greater than due amount')
+                                    ->send();
 
-                                $order->increment('paid', $data['amount']);
-                                $order->decrement('due', $data['amount']);
+                                return;
+                            } else {
+                                try {
+                                    DB::beginTransaction();
 
-                                $payment = Payment::create([
-                                    'customer_id' => $order->customer_id,
-                                    'payment_date' => $data['date'],
-                                    'payment_type' => 'Cash Received',
-                                    'note' => $data['note'],
-                                ]);
+                                    $order->increment('paid', $data['amount']);
+                                    $order->decrement('due', $data['amount']);
 
-                                $order->histories()->create([
-                                    'amount' => $data['amount'],
-                                    'account_id' => $data['account'],
-                                    'date' => today(),
-                                    'type' => HistoryTypeEnum::RECEIVED->value,
-                                    'customer_id' => $order->customer_id,
-                                    'payment_id' => $payment->id,
-                                ]);
+                                    $payment = Payment::create([
+                                        'customer_id' => $order->customer_id,
+                                        'payment_date' => $data['date'],
+                                        'payment_type' => 'Cash Received',
+                                        'note' => $data['note'],
+                                    ]);
 
-                                Account::find($data['account'])->increment('current_balance', $data['amount']);
+                                    $order->histories()->create([
+                                        'amount' => $data['amount'],
+                                        'account_id' => $data['account'],
+                                        'date' => today(),
+                                        'type' => HistoryTypeEnum::RECEIVED->value,
+                                        'customer_id' => $order->customer_id,
+                                        'payment_id' => $payment->id,
+                                    ]);
 
-                            });
-
-                            Notification::make()->success()
-                                ->title('Payment Added Successfully')
-                                ->send();
-
+                                    Account::find($data['account'])->increment('current_balance', $data['amount']);
+                                    DB::commit();
+                                } catch (\Throwable $th) {
+                                    DB::rollBack();
+                                }
+                                Notification::make()->success()
+                                    ->title('Payment Added Successfully')
+                                    ->send();
+                            }
                         })
                         ->modalHeading('Add Payment')
                         ->modalButton('Add Payment')
@@ -295,9 +313,7 @@ class SalesResource extends Resource
                     ->size('sm')
                     ->icon('fas-gears'),
             ])
-            ->bulkActions([
-
-            ])
+            ->bulkActions([])
             ->paginated([10, 25, 50, 100]);
     }
 

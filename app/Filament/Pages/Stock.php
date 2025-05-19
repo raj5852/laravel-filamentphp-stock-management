@@ -20,6 +20,8 @@ class Stock extends Page implements HasTable
     use InteractsWithRecord;
     use InteractsWithTable;
 
+    protected static ?int $navigationSort = 4;
+
     protected static ?string $navigationIcon = 'fas-cubes-stacked';
 
     protected static string $view = 'filament.pages.stock';
@@ -88,7 +90,9 @@ class Stock extends Page implements HasTable
                             ->placeholder('Product Code'),
                     ])
                     ->query(function ($query, array $data) {
-                        return $query->when($data['product_code'], fn ($query, $term) => $query->where('product_code', $term)
+                        return $query->when(
+                            $data['product_code'],
+                            fn ($query, $term) => $query->where('product_code', $term)
                         );
                     }),
 
@@ -101,7 +105,9 @@ class Stock extends Page implements HasTable
                             ->placeholder('Product Name'),
                     ])
                     ->query(function ($query, array $data) {
-                        return $query->when($data['product_name'], fn ($query, $term) => $query->where('product_name', 'like', '%'.$term.'%')
+                        return $query->when(
+                            $data['product_name'],
+                            fn ($query, $term) => $query->where('product_name', 'like', '%'.$term.'%')
                         );
                     }),
 

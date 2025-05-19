@@ -47,7 +47,6 @@ class SalesShow extends Page
 
     public function addpaymentAction(): Action
     {
-
         return Action::make('addpayment')
             ->label('Add Payment')
             ->icon('fas-plus')
@@ -57,40 +56,25 @@ class SalesShow extends Page
             ->color('success')
             ->modalHeading('Add Payment')
             ->form([
-                DatePicker::make('date')
-                    ->label('Payment Date')
-                    ->native(false)
-                    ->required()
-                    ->default(now()),
+                DatePicker::make('date')->label('Payment Date')->native(false)->required()->default(now()),
 
                 Select::make('account')
                     ->label('Transaction Account')
                     ->searchable()
                     ->options(Account::query()->pluck('name', 'id'))
-                    ->rules([
-                        'required', Rule::exists('accounts', 'id'),
-                    ])
+                    ->rules(['required', Rule::exists('accounts', 'id')])
                     ->required(),
 
                 TextInput::make('amount')
                     ->label('Amount')
                     ->required()
-                    ->rules([
-                        'required',
-                        'min:0',
-                        'max:9999999999',
-                        'numeric',
-                    ])
+                    ->rules(['required', 'min:0', 'max:9999999999', 'numeric'])
                     ->default(fn (array $arguments) => $arguments['amount'] ?? 0)
                     ->numeric(),
 
                 Textarea::make('note')
-                    ->rules([
-                        'nullable', 'max:65535',
-
-                    ])
+                    ->rules(['nullable', 'max:65535'])
                     ->label('note'),
-
             ])
             ->modalWidth('sm')
             ->modalHeading('Add Payment')
@@ -103,35 +87,47 @@ class SalesShow extends Page
                 ]);
             })
             ->action(function (array $arguments, array $data) {
-                DB::transaction(function () use ($arguments, $data) {
-                    $order = Order::query()->findOrFail($arguments['id']);
+                $order = Order::query()->findOrFail($arguments['id']);
 
-                    $order->increment('paid', $data['amount']);
-                    $order->decrement('due', $data['amount']);
+                if ($order->due < $data['amount']) {
+                    Notification::make()
+                        ->danger()
+                        ->title('Amount is greater than due amount')
+                        ->send();
 
-                    $payment = Payment::create([
-                        'customer_id' => $order->customer_id,
-                        'payment_date' => $data['date'],
-                        'payment_type' => 'Cash Received',
-                        'note' => $data['note'],
-                    ]);
+                    return;
+                } else {
+                    try {
+                        DB::beginTransaction();
 
-                    $order->histories()->create([
-                        'amount' => $data['amount'],
-                        'account_id' => $data['account'],
-                        'date' => today(),
-                        'type' => HistoryTypeEnum::RECEIVED->value,
-                        'customer_id' => $order->customer_id,
-                        'payment_id' => $payment->id,
-                    ]);
+                        $order->increment('paid', $data['amount']);
+                        $order->decrement('due', $data['amount']);
 
-                    Account::find($data['account'])->decrement('current_balance', $data['amount']);
-                });
+                        $payment = Payment::create([
+                            'customer_id' => $order->customer_id,
+                            'payment_date' => $data['date'],
+                            'payment_type' => 'Cash Received',
+                            'note' => $data['note'],
+                        ]);
 
-                Notification::make()->success()
-                    ->title('Payment Added Successfully')
-                    ->send();
+                        $order->histories()->create([
+                            'amount' => $data['amount'],
+                            'account_id' => $data['account'],
+                            'date' => today(),
+                            'type' => HistoryTypeEnum::RECEIVED->value,
+                            'customer_id' => $order->customer_id,
+                            'payment_id' => $payment->id,
+                        ]);
 
+                        Account::find($data['account'])->decrement('current_balance', $data['amount']);
+
+                        Notification::make()->success()->title('Payment Added Successfully')->send();
+
+                        DB::commit();
+                    } catch (\Throwable $th) {
+                        DB::rollBack();
+                    }
+                }
             });
     }
 
@@ -140,21 +136,15 @@ class SalesShow extends Page
         return Action::make('delete')
             ->requiresConfirmation()
             ->action(function (array $arguments) {
-
                 DB::transaction(function () use ($arguments) {
-
                     $history = History::findOrFail($arguments['id']);
                     $history->account()->increment('current_balance', $history->amount);
                     $history->order()->decrement('paid', $history->amount);
                     $history->order()->increment('due', $history->amount);
                     $history->delete();
-
                 });
 
-                Notification::make()
-                    ->title('Deleted Successfully')
-                    ->success()->send();
-
+                Notification::make()->title('Deleted Successfully')->success()->send();
             });
     }
 }
