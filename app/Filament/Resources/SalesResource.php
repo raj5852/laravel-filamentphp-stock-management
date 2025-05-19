@@ -7,6 +7,7 @@ use App\HistoryTypeEnum;
 use App\Models\Account;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Product;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -216,14 +217,20 @@ class SalesResource extends Resource
                                 $order->increment('paid', $data['amount']);
                                 $order->decrement('due', $data['amount']);
 
+                                $payment = Payment::create([
+                                    'customer_id' => $order->customer_id,
+                                    'payment_date' => $data['date'],
+                                    'payment_type' => 'Cash Received',
+                                    'note' => $data['note'],
+                                ]);
+
                                 $order->histories()->create([
                                     'amount' => $data['amount'],
                                     'account_id' => $data['account'],
-                                    'date' => $data['date'],
-                                    'note' => $data['note'],
+                                    'date' => today(),
                                     'type' => HistoryTypeEnum::RECEIVED->value,
-                                    // 'total_amount' => customerDue($order->customer_id),
                                     'customer_id' => $order->customer_id,
+                                    'payment_id' => $payment->id,
                                 ]);
 
                                 Account::find($data['account'])->increment('current_balance', $data['amount']);

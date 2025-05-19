@@ -74,8 +74,8 @@ class Supplier extends Model
         );
     }
 
-
-    function histories(){
+    public function histories()
+    {
         return $this->hasMany(History::class);
     }
 }

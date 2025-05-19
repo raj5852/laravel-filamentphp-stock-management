@@ -7,6 +7,7 @@ use App\HistoryTypeEnum;
 use App\Models\Account;
 use App\Models\Damage;
 use App\Models\OrderItem;
+use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Supplier;
@@ -196,14 +197,20 @@ class PurchaseResource extends Resource
                                 $purchase->increment('paid', $data['amount']);
                                 $purchase->decrement('due', $data['amount']);
 
+                                $payment = Payment::create([
+                                    'supplier_id' => $record->supplier_id,
+                                    'payment_date' => $data['date'],
+                                    'payment_type' => 'Cash Pay',
+                                    'note' => $data['note'],
+                                ]);
+
                                 $purchase->histories()->create([
                                     'amount' => $data['amount'],
                                     'account_id' => $data['account'],
-                                    'date' => $data['date'],
-                                    'note' => $data['note'],
+                                    'date' => today(),
                                     'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
                                     'supplier_id' => $record->supplier_id,
-                                    // 'total_amount' => supplierDue($record->supplier_id),
+                                    'payment_id' => $payment->id,
                                 ]);
 
                                 Account::find($data['account'])->decrement('current_balance', $data['amount']);

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\PurchaseResource\Pages;
 use App\Filament\Resources\PurchaseResource;
 use App\HistoryTypeEnum;
 use App\Models\Account;
+use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Supplier;
@@ -58,12 +59,12 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
     public function getActions(): array
     {
         return [
-            Action::make('add_supplier')
-                ->label('Add Supplier')
-                ->color(Color::Green)
-                ->form([
+            // Action::make('add_supplier')
+            //     ->label('Add Supplier')
+            //     ->color(Color::Green)
+            //     ->form([
 
-                ]),
+            //     ]),
 
         ];
     }
@@ -448,6 +449,13 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                         ]);
                     }
 
+                    $payment = Payment::create([
+                        'supplier_id' => $this->supplier_id,
+                        'payment_date' => $this->purchase_date,
+                        'payment_type' => 'Cash Pay',
+                        'note' => $data['note'],
+                    ]);
+
                     if ($data['pay_amount'] != '') {
                         $account = Account::find($data['account_id']);
                         $account->decrement('current_balance', $data['pay_amount']);
@@ -458,7 +466,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                             'note' => '',
                             'purchase_id' => $purchase->id,
                             'supplier_id' => $this->supplier_id,
-
+                            'payment_id' => $payment->id,
                         ]);
                     }
 

@@ -3,15 +3,19 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PaymentResource\Pages;
-use App\Models\History;
+use App\HistoryTypeEnum;
+use App\Models\Payment;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 
 class PaymentResource extends Resource
 {
-    protected static ?string $model = History::class;
+    protected static ?string $model = Payment::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
 
@@ -46,20 +50,118 @@ class PaymentResource extends Resource
                     ->icon('heroicon-o-plus')
                     ->url(fn (): string => route('filament.admin.resources.payments.add-payment')),
             ])
+            ->query(Payment::query()->whereHas('histories')->withSum('histories', 'amount')->with('customer', 'supplier')->latest('id'))
             ->columns([
+                TextColumn::make('details')
+                    ->getStateUsing(function ($record) {
+
+                        if ($record->customer_id != '') {
+                            return new HtmlString('
+                            <table class="w-1/2 border-collapse border border-gray-200 dark:border-gray-700 text-sm font-sans">
+                               <tr>
+                                   <td class="px-4 py-2 font-bold text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">Customer Name:</td>
+                                   <td class="px-4 py-2 text-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">'.$record->customer->customer_name.'</td>
+                               </tr>
+                               <tr>
+                                   <td class="px-4 py-2 font-bold text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">Phone:</td>
+                                   <td class="px-4 py-2 text-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">'.$record->customer->phone.'</td>
+                               </tr>
+                           </table>
+                           ');
+                        }
+
+                        if ($record->supplier_id != '') {
+                            return new HtmlString('
+                            <table class="w-1/2 border-collapse border border-gray-200 dark:border-gray-700 text-sm font-sans">
+                               <tr>
+                                   <td class="px-4 py-2 font-bold text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">Supplier Name:</td>
+                                   <td class="px-4 py-2 text-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">'.$record->supplier->supplier_name.'</td>
+                               </tr>
+                               <tr>
+                                   <td class="px-4 py-2 font-bold text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">Phone:</td>
+                                   <td class="px-4 py-2 text-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">'.$record->supplier->phone.'</td>
+                               </tr>
+                           </table>
+                           ');
+                        }
+
+                    }),
+
+                TextColumn::make('payment_date')->date(),
+                TextColumn::make('histories_sum_amount')
+                    ->label('Amount')
+                    ->getStateUsing(function ($record) {
+                        return number_format($record->histories_sum_amount, 2, '.', '');
+                    }),
+                TextColumn::make('payment_type')->label('Payment Type'),
+                TextColumn::make('note'),
 
             ])
             ->filters([
-                //
+                // SelectFilter::make('payment_type'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->button()
+                    ->before(function ($record, $action) {
+
+                        $histories = $record->histories;
+
+                        foreach ($histories as $history) {
+                            $account = $history->account;
+
+                            if ($history->type == HistoryTypeEnum::RECEIVED) {
+                                $account->decrement('current_balance', $history->amount);
+                            } elseif ($history->type == HistoryTypeEnum::SPENT_OR_WITHDRAW) {
+                                $account->increment('current_balance', $history->amount);
+                            }
+
+                            if ($history->order_id != '') {
+                                $order = $history->order;
+                                $order->decrement('paid', $history->amount);
+                                $order->increment('due', $history->amount);
+                            }
+
+                            if ($history->purchase_id != '') {
+                                $purchase = $history->purchase;
+                                $purchase->decrement('paid', $history->amount);
+                                $purchase->increment('due', $history->amount);
+
+                            }
+
+                            if ($history->is_wallet_transaction === 1) {
+
+                                if ($history->customer_id != '') {
+
+                                    $customer = $history->customer;
+                                    if ($history->type == HistoryTypeEnum::RECEIVED) {
+                                        $customer->decrement('wallet', $history->amount);
+                                    } elseif ($history->type == HistoryTypeEnum::SPENT_OR_WITHDRAW) {
+                                        $customer->increment('wallet', $history->amount);
+                                    }
+                                }
+
+                                if ($history->supplier_id != '') {
+                                    $supplier = $history->supplier;
+                                    if ($history->type == HistoryTypeEnum::RECEIVED) {
+                                        $supplier->increment('wallet', $history->amount);
+                                    } elseif ($history->type == HistoryTypeEnum::SPENT_OR_WITHDRAW) {
+                                        $supplier->decrement('wallet', $history->amount);
+                                    }
+                                }
+                            }
+
+                            $history->delete();
+                        }
+
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    // Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->paginated([10, 20, 50, 100]);
     }
 
     public static function getRelations(): array

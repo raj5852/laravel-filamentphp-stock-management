@@ -7,19 +7,23 @@ use App\HistoryTypeEnum;
 use App\Models\Account;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Purchase;
 use App\Models\Supplier;
 use App\Services\ProductService;
 use App\Services\PurchaseService;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
+use Illuminate\Support\HtmlString;
 use Illuminate\Validation\Rule;
 
 class AddPayment extends Page implements HasForms
@@ -105,6 +109,7 @@ class AddPayment extends Page implements HasForms
                         ->label('Account ID')
                         ->required()
                         ->searchable()
+                        ->live()
                         ->options(function ($get) {
                             if ($get('account_type') == 'supplier') {
                                 return Supplier::query()->latest()->pluck('supplier_name', 'id');
@@ -122,6 +127,7 @@ class AddPayment extends Page implements HasForms
                         ->label('Amount')
                         ->type('number')
                         ->required()
+                        ->autocomplete(false)
                         ->rules([
                             'required',
                             'numeric',
@@ -129,7 +135,6 @@ class AddPayment extends Page implements HasForms
                             'max:9999999999',
                         ])
                         ->placeholder('Enter Amount'),
-
                     Select::make('transition_account')
                         ->label('Transition Account')
                         ->options(Account::query()->pluck('name', 'id'))
@@ -139,6 +144,74 @@ class AddPayment extends Page implements HasForms
                             Rule::exists('accounts', 'id'),
                         ])
                         ->searchable(),
+
+                    Placeholder::make('')
+                        ->content(function ($get) {
+                            if ($get('account_id') != null && $get('account_type') == 'customer') {
+                                $customer = Customer::find($get('account_id'));
+                                $dueInvoiceCount = $customer->orders()->where('due', '>', 0)->count();
+                                $totalInvoiceDue = $customer->orders()->sum('due');
+
+                                $message = '';
+
+                                if ($customer->wallet < 0) {
+                                    $message = '<span>**কাস্টমারের কাছে আপনার </span><span>পাওনা রয়েছে</span>';
+                                } elseif ($customer->wallet >= 0) {
+                                    $message = '**** কাস্টমারের ওয়ালেটে জমা আছেঃ ';
+                                }
+
+                                // balance
+                                $balance = 0;
+
+                                if ($customer->wallet <= 0) {
+                                    $balance = abs($customer->wallet);
+                                } else {
+                                    $balance = 0;
+                                }
+
+                                return new HtmlString('
+                                    <p><b>Name:  '.$customer->customer_name.'</b> </p>
+                                    <p><b>Due Invoice Count:  '.$dueInvoiceCount.'</b></p>
+                                    <p><b>Total Invoice Due:  '.$totalInvoiceDue.' TK</b> *** বিক্রয় বাবদ পাওনা আছে '.$totalInvoiceDue.' Tk *** </p>
+                                    <p><b>Wallet Balance: '.number_format(abs($customer->wallet), 1).' TK</b> '.$message.' '.abs($customer->wallet).' Tk **** </p>
+                                    <p><b>Total Due: '.$balance + $totalInvoiceDue.' TK </b> </p>
+                                ');
+                            }
+
+                            if ($get('account_id') != null && $get('account_type') == 'supplier') {
+                                $supplier = Supplier::find($get('account_id'));
+                                $dueInvoiceCount = $supplier->purchases()->where('due', '>', 0)->count();
+                                $totalInvoiceDue = $supplier->purchases()->sum('due');
+
+                                $message = '';
+
+                                if ($supplier->wallet > 0) {
+                                    $message = '<span >*** সাপ্লাইয়ারের কাছে জমা আছেঃ </span>';
+                                } elseif ($supplier->wallet <= 0) {
+                                    $message = '<span >*** আপনার থেকে সাপ্লাইয়ার পাবেঃ</span>';
+                                }
+
+                                // balance
+                                $balance = 0;
+
+                                if ($supplier->wallet <= 0) {
+                                    $balance = abs($supplier->wallet);
+                                } else {
+                                    $balance = 0;
+
+                                }
+
+                                return new HtmlString('
+                                <p><b>Name:  '.$supplier->supplier_name.'</b> </p>
+                                <p><b>Due Invoice Count:  '.$dueInvoiceCount.'</b></p>
+                                <p><b>Total Invoice Due:  '.$totalInvoiceDue.' TK</b> *** ক্রয় বাবদ দেনা আছে '.$totalInvoiceDue.' Tk *** </p>
+                                <p><b>Wallet Balance: '.number_format(abs($supplier->wallet), 1).' TK</b> '.$message.' '.abs($supplier->wallet).' Tk **** </p>
+                                <p><b>Total Due: '.number_format($balance + $totalInvoiceDue, 2).' TK </b> </p>
+                            ');
+
+                            }
+
+                        }),
 
                     Textarea::make('note')
                         ->placeholder('Write Note(optional)')
@@ -167,13 +240,20 @@ class AddPayment extends Page implements HasForms
                         'wallet' => $customer->wallet + $data['amount'],
                     ]);
 
+                    $payment = Payment::create([
+                        'customer_id' => $this->account_id,
+                        'payment_date' => $this->payment_date,
+                        'payment_type' => 'Cash Received',
+                        'note' => $data['note'],
+                    ]);
 
                     $customer->histories()->create([
                         'amount' => $data['amount'],
                         'account_id' => $this->transition_account,
                         'date' => today(),
-                        'note' => '',
                         'type' => HistoryTypeEnum::RECEIVED->value,
+                        'payment_id' => $payment->id,
+                        'is_wallet_transaction' => 1,
                     ]);
 
                     Account::find($this->transition_account)->increment('current_balance', $data['amount']);
@@ -185,12 +265,20 @@ class AddPayment extends Page implements HasForms
                         'wallet' => $customer->wallet - $data['amount'],
                     ]);
 
+                    $payment = Payment::create([
+                        'customer_id' => $this->account_id,
+                        'payment_date' => $this->payment_date,
+                        'payment_type' => 'Cash Pay',
+                        'note' => $data['note'],
+                    ]);
+
                     $customer->histories()->create([
                         'amount' => $data['amount'],
                         'account_id' => $this->transition_account,
                         'date' => today(),
-                        'note' => '',
                         'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
+                        'payment_id' => $payment->id,
+                        'is_wallet_transaction' => 1,
                     ]);
 
                     Account::find($this->transition_account)->decrement('current_balance', $data['amount']);
@@ -208,12 +296,20 @@ class AddPayment extends Page implements HasForms
                         'wallet' => $supplier->wallet - $data['amount'],
                     ]);
 
+                    $payment = Payment::create([
+                        'supplier_id' => $this->account_id,
+                        'payment_date' => $this->payment_date,
+                        'payment_type' => 'Cash Received',
+                        'note' => $data['note'],
+                    ]);
+
                     $supplier->histories()->create([
                         'amount' => $data['amount'],
                         'account_id' => $this->transition_account,
                         'date' => today(),
-                        'note' => '',
                         'type' => HistoryTypeEnum::RECEIVED->value,
+                        'payment_id' => $payment->id,
+                        'is_wallet_transaction' => 1,
                     ]);
 
                     Account::find($this->transition_account)->increment('current_balance', $data['amount']);
@@ -225,12 +321,20 @@ class AddPayment extends Page implements HasForms
                         'wallet' => $supplier->wallet + $data['amount'],
                     ]);
 
+                    $payment = Payment::create([
+                        'supplier_id' => $this->account_id,
+                        'payment_date' => $this->payment_date,
+                        'payment_type' => 'Cash Pay',
+                        'note' => $data['note'],
+                    ]);
+
                     $supplier->histories()->create([
                         'amount' => $data['amount'],
                         'account_id' => $this->transition_account,
                         'date' => today(),
-                        'note' => '',
                         'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
+                        'payment_id' => $payment->id,
+                        'is_wallet_transaction' => 1,
                     ]);
 
                     Account::find($this->transition_account)->decrement('current_balance', $data['amount']);
@@ -260,12 +364,21 @@ class AddPayment extends Page implements HasForms
                         'wallet' => $customer->wallet - $data['amount'],
                     ]);
 
+                    $payment = Payment::create([
+                        'customer_id' => $this->account_id,
+                        'payment_date' => $this->payment_date,
+                        'payment_type' => 'Cash Pay',
+                        'note' => $data['note'],
+
+                    ]);
+
                     $customer->histories()->create([
                         'amount' => $data['amount'],
                         'account_id' => $this->transition_account,
                         'date' => today(),
-                        'note' => '',
                         'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
+                        'payment_id' => $payment->id,
+                        'is_wallet_transaction' => 1,
                     ]);
 
                     Account::find($this->transition_account)->decrement('current_balance', $data['amount']);
@@ -273,6 +386,13 @@ class AddPayment extends Page implements HasForms
                 }
 
                 if ($data['payment_type'] == 'cash_receive') {
+
+                    $payment = Payment::create([
+                        'customer_id' => $this->account_id,
+                        'payment_date' => $this->payment_date,
+                        'payment_type' => 'Cash Received',
+                        'note' => $data['note'],
+                    ]);
 
                     if ($balance > 0) {
                         $customer->update([
@@ -283,8 +403,9 @@ class AddPayment extends Page implements HasForms
                             'amount' => $balance,
                             'account_id' => $this->transition_account,
                             'date' => today(),
-                            'note' => '',
                             'type' => HistoryTypeEnum::RECEIVED->value,
+                            'payment_id' => $payment->id,
+                            'is_wallet_transaction' => 1,
                         ]);
 
                         Account::find($this->transition_account)->increment('current_balance', $balance);
@@ -303,11 +424,10 @@ class AddPayment extends Page implements HasForms
                         $order->histories()->create([
                             'amount' => $sale['due'],
                             'account_id' => $this->transition_account,
-                            'date' => $this->payment_date,
-                            'note' => '',
+                            'date' => today(),
                             'type' => HistoryTypeEnum::RECEIVED->value,
-                            // 'total_amount' => customerDue($order->customer_id),
                             'customer_id' => $order->customer_id,
+                            'payment_id' => $payment->id,
                         ]);
 
                         Account::find($this->transition_account)->increment('current_balance', $sale['due']);
@@ -334,12 +454,21 @@ class AddPayment extends Page implements HasForms
                         'wallet' => $supplier->wallet - $data['amount'],
                     ]);
 
+                    $payment = Payment::create([
+                        'supplier_id' => $this->account_id,
+                        'payment_date' => $this->payment_date,
+                        'payment_type' => 'Cash Received',
+                        'note' => $data['note'],
+                    ]);
+
                     $supplier->histories()->create([
                         'amount' => $data['amount'],
                         'account_id' => $this->transition_account,
                         'date' => today(),
-                        'note' => '',
                         'type' => HistoryTypeEnum::RECEIVED->value,
+                        'payment_id' => $payment->id,
+                        'is_wallet_transaction' => 1,
+
                     ]);
 
                     Account::find($this->transition_account)->increment('current_balance', $data['amount']);
@@ -347,6 +476,13 @@ class AddPayment extends Page implements HasForms
                 }
 
                 if ($data['payment_type'] == 'cash_pay') {
+
+                    $payment = Payment::create([
+                        'supplier_id' => $this->account_id,
+                        'payment_date' => $this->payment_date,
+                        'payment_type' => 'Cash Pay',
+                        'note' => $data['note'],
+                    ]);
 
                     if ($balance > 0) {
 
@@ -358,11 +494,12 @@ class AddPayment extends Page implements HasForms
                             'amount' => $balance,
                             'account_id' => $this->transition_account,
                             'date' => today(),
-                            'note' => '',
-                            'type' => HistoryTypeEnum::RECEIVED->value,
+                            'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
+                            'payment_id' => $payment->id,
+                            'is_wallet_transaction' => 1,
                         ]);
 
-                        Account::find($this->transition_account)->increment('current_balance', $balance);
+                        Account::find($this->transition_account)->decrement('current_balance', $balance);
 
                     }
 
@@ -378,9 +515,9 @@ class AddPayment extends Page implements HasForms
                             'amount' => $pur['due'],
                             'account_id' => $this->transition_account,
                             'date' => $this->payment_date,
-                            'note' => '', // $this->note
                             'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
                             'supplier_id' => $this->account_id,
+                            'payment_id' => $payment->id,
 
                         ]);
 
@@ -392,6 +529,13 @@ class AddPayment extends Page implements HasForms
             }
 
         }
+
+        Notification::make()
+            ->title('Payment Added Successfully')
+            ->success()
+            ->send();
+
+        redirect()->route('filament.admin.resources.payments.index');
 
     }
 }

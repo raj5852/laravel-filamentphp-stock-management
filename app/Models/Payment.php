@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use App\HistoryTypeEnum;
 use App\Models\Scopes\TenantScope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 
 #[ScopedBy(TenantScope::class)]
-class History extends Model
+class Payment extends Model
 {
     //
 
@@ -30,23 +30,16 @@ class History extends Model
         });
     }
 
-    public $casts = [
-        'type' => HistoryTypeEnum::class,
-    ];
-
-    public function account()
+    public function histories()
     {
-        return $this->belongsTo(Account::class);
+        return $this->hasMany(History::class);
     }
 
-    public function purchase()
+    protected function details(): Attribute
     {
-        return $this->belongsTo(Purchase::class);
-    }
-
-    public function order()
-    {
-        return $this->belongsTo(Order::class);
+        return Attribute::make(
+            get: fn () => 0,
+        );
     }
 
     public function customer()

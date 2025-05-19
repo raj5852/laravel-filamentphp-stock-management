@@ -8,6 +8,7 @@ use App\Models\Account;
 use App\Models\Damage;
 use App\Models\History;
 use App\Models\OrderItem;
+use App\Models\Payment;
 use App\Models\Purchase;
 use App\Models\Setting;
 use Filament\Actions\Action;
@@ -143,20 +144,27 @@ class PurchaseShow extends Page implements HasActions, HasForms
                 ]);
             })
             ->action(function (array $arguments, array $data) {
+
                 DB::transaction(function () use ($arguments, $data) {
                     $purchase = Purchase::query()->findOrFail($arguments['id']);
 
                     $purchase->increment('paid', $data['amount']);
                     $purchase->decrement('due', $data['amount']);
 
+                    $payment = Payment::create([
+                        'supplier_id' => $purchase->supplier_id,
+                        'payment_date' => $data['date'],
+                        'payment_type' => 'Cash Pay',
+                        'note' => $data['note'],
+                    ]);
+
                     $purchase->histories()->create([
                         'amount' => $data['amount'],
                         'account_id' => $data['account'],
-                        'date' => $data['date'],
-                        'note' => $data['note'],
+                        'date' => today(),
                         'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
                         'supplier_id' => $purchase->supplier_id,
-
+                        'payment_id' => $payment->id,
                     ]);
 
                     Account::find($data['account'])->decrement('current_balance', $data['amount']);

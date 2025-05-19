@@ -5,6 +5,7 @@ use App\Models\Account;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Owner;
+use App\Models\Payment;
 use App\Models\Purchase;
 use App\Models\Supplier;
 use Illuminate\Database\Migrations\Migration;
@@ -26,14 +27,14 @@ return new class extends Migration
             $table->foreignIdFor(Order::class)->nullable();
             $table->foreignIdFor(Customer::class)->nullable();
             $table->foreignIdFor(Supplier::class)->nullable();
+            $table->foreignIdFor(Payment::class)->nullable();
 
             $table->date('date');
             $table->float('amount');
             $table->enum('type', HistoryTypeEnum::toArray());
             $table->text('note')->nullable();
-            // $table->enum('wallet_payment');
 
-            // $table->float('total_amount')->nullable()->default(0);
+            $table->boolean('is_wallet_transaction')->default(0);
 
             $table->foreignId('tenant_id')->nullable();
             $table->foreignId('created_by')->nullable();

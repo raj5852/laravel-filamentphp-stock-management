@@ -171,8 +171,9 @@ class SupplierResource extends Resource
                         ->before(function ($record, $action) {
 
                             $purchase = $record->purchases()->count();
+                            $histories = $record->histories()->exists();
 
-                            if ($purchase > 0) {
+                            if (($purchase > 0) || $histories) {
                                 Notification::make()
                                     ->title("You can't delete it.")
                                     ->danger()
