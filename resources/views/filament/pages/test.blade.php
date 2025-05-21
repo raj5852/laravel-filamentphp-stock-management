@@ -1,129 +1,134 @@
 <x-filament-panels::page>
-    <div class="mt-6 bg-white dark:bg-gray-900 rounded-lg shadow">
-        <div class="overflow-x-auto">
-            <table
-                class="w-full text-sm text-left text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700">
-                <thead class="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-100">
-                    <tr>
-                        <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">
-                            #SL
-                        </th>
-                        <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">
-                            Product
-                        </th>
-                        <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">
-                            Rate
-                        </th>
-                        <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">
-                            Qty
-                        </th>
-                        <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">
-                            Sub Total
-                        </th>
-                        <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700"></th>
-                    </tr>
-                </thead>
-                <tbody>
+    <!-- Invoice content -->
+    <div class="max-w-4xl mx-auto p-1 md:p-6">
+        <div class="bg-white shadow-md rounded-sm p-1 md:p-6">
+            <!-- Company info -->
+            <div class="flex flex-col md:flex-row justify-center md:justify-between mb-6">
+                <div class="flex flex-col items-center">
+                    <div class="bg-[#3498db] text-white px-3 py-1 mb-1">
+                        <span class="font-bold">SOFT</span>
+                        <span class="bg-white text-[#3498db] px-2 py-0.5 font-bold">GHOR</span>
+                    </div>
+                    <p class="text-xs text-gray-600 !text-black">Digital Solution Provider</p>
+                    <h2 class="font-bold mt-1 !text-black">Softghor.Com</h2>
+                </div>
+                <div class="md:max-w-[250px] text-center md:text-left">
+                    <p class="text-sm !text-black">
+                        <span class="font-semibold">Address :</span> Holding: 53 (1st
+                        floor), Road: 04 Block: G, Banasree, Dhaka 1219.
+                    </p>
+                    <p class="text-sm !text-black">
+                        <span class="font-semibold">Phone :</span> 01779724380
+                    </p>
+                    <p class="text-sm !text-black">
+                        <span class="font-semibold">Email :</span> info@softghor.com
+                    </p>
+                </div>
+            </div>
 
-                    <tr class="bg-white dark:bg-gray-900">
-                        <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 text-center">
-                            1
-                        </td>
-                        <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">
-                            p2
-                        </td>
+            <!-- Invoice details -->
+            <div class="border border-gray-200 mb-6">
+                <div class="grid grid-cols-2 border-b border-gray-200">
+                    <div class="p-2 border-gray-200 !text-black">
+                        <span class="font-semibold">Invoice No: 17</span>
+                    </div>
+                    <div class="p-2 !text-black">
+                        <span class="font-semibold">Date: 20 May, 2025</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 border-b border-gray-200">
+                    <div class="p-2 border-gray-200 !text-black">
+                        <span class="font-semibold">Supplier Name :</span> Default Supplier
+                    </div>
+                    <div class="p-2"></div>
+                </div>
+                <div class="grid grid-cols-2 border-b border-gray-200">
+                    <div class="p-2 border-gray-200 !text-black">
+                        <span class="font-semibold">Address :</span> Default Address
+                    </div>
+                    <div class="p-2"></div>
+                </div>
+                <div class="grid grid-cols-2">
+                    <div class="p-2 border-gray-200 !text-black">
+                        <span class="font-semibold">Mobile :</span> 111111
+                    </div>
+                    <div class="p-2"></div>
+                </div>
+            </div>
 
-                        <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 md:w-[160px]">
-                            <input type="number" min="0" wire:model.live.debounce.10ms="products.0.rate"
-                                class="w-full min-w-[70px] px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-center text-gray-900 dark:text-white" />
-                        </td>
+            <!-- Invoice table -->
+            <div class="mb-6">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-gray-100 !text-black">
+                            <th class="border border-gray-200 p-2 text-left w-12 !text-black">#</th>
+                            <th class="border border-gray-200 p-2 text-left !text-black">Details</th>
+                            <th class="border border-gray-200 p-2 text-center !text-black">Qty</th>
+                            <th class="border border-gray-200 p-2 text-right !text-black">Price</th>
+                            <th class="border border-gray-200 p-2 text-right !text-black">Net A</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="border border-gray-200 p-2 text-center !text-black">1</td>
+                            <td class="border border-gray-200 p-2 !text-black">napa extend | 00000016</td>
+                            <td class="border border-gray-200 p-2 text-center !text-black">3 Dozen 2 pc</td>
+                            <td class="border border-gray-200 p-2 text-right !text-black">1.00 Tk</td>
+                            <td class="border border-gray-200 p-2 text-right !text-black">3.17 Tk</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="border border-gray-200"></td>
+                            <td
+                                class="whitespace-nowrap border border-gray-200 p-2 text-right font-semibold !text-black">
+                                Grand Total :</td>
+                            <td class="whitespace-nowrap border border-gray-200 p-2 text-right !text-black">3.17 Tk</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="border border-gray-200"></td>
+                            <td class="border border-gray-200 p-2 text-right font-semibold !text-black">Paid :</td>
+                            <td class="border border-gray-200 p-2 text-right !text-black">3.17 Tk</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="border border-gray-200"></td>
+                            <td class="border border-gray-200 p-2 text-right font-semibold !text-black">Due :</td>
+                            <td class="border border-gray-200 p-2 text-right !text-black">0.00 Tk</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-                        <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 md:w-[300px]">
-                            <div class="flex items-center gap-2">
-                                <div class="flex-1 flex flex-col md:flex-row md:gap-2 md:items-center">
-                                    <label class="text-sm text-gray-700 dark:text-gray-300">dozon:</label>
-                                    <input type="number" wire:model.live="products.0.main_unit_qty" min="0"
-                                        class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-center text-gray-900 dark:text-white"
-                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/^0(?!$)/, '');" />
-                                </div>
+            <!-- Note -->
+            <div class="mb-6">
+                <p class="font-semibold mb-1 !text-black">Note:</p>
+                <div class="min-h-8"></div>
+            </div>
 
-                                <div class="flex-1 flex flex-col md:flex-row md:gap-2 md:items-center">
-                                    <label class="text-sm text-gray-700 dark:text-gray-300">PC:</label>
-                                    <input type="number" wire:model.live="products.0.sub_unit_qty" min="0"
-                                        class="w-full min-w-[70px] px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-center text-gray-900 dark:text-white"
-                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/^0(?!$)/, '');" />
-                                </div>
+            <!-- Action buttons -->
+            <div class="mb-6">
+                <button
+                    class="w-full bg-gray-200 text-gray-800 py-2 flex items-center justify-center gap-2 hover:bg-gray-300 !text-black">
+                    <span>Print</span>
+                </button>
+            </div>
 
-                            </div>
-                        </td>
+            <div class="grid grid-cols-2 gap-4">
+                <button
+                    class="bg-teal-500 text-white py-2 flex items-center justify-center gap-2 hover:bg-teal-600 !text-black">
+                    <span>New Purchase</span>
+                </button>
+                <button
+                    class="bg-teal-500 text-white py-2 flex items-center justify-center gap-2 hover:bg-teal-600 !text-black">
+                    <span>Purchase List</span>
+                </button>
+            </div>
+        </div>
 
-                        <td
-                            class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 font-semibold text-center text-gray-900 dark:text-white">
-                            0.00 Tk
-                        </td>
-                        <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 text-center">
-                            <button wire:click="removeProduct(0)"
-                                class="text-gray-600 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400">
-                                🗑️
-                            </button>
-                        </td>
-                    </tr>
-                    <tr class="bg-white dark:bg-gray-900">
-                        <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 text-center">
-                            2
-                        </td>
-                        <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">
-                            Product
-                        </td>
-
-                        <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 md:w-[160px]">
-                            <div class="flex items-center gap-2 md:w-full">
-                                <input type="number" min="0" wire:model.live.debounce.10ms="products.1.rate"
-                                    class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-center text-gray-900 dark:text-white" />
-                            </div>
-                        </td>
-
-                        <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 md:w-[200px]">
-                            <div class="flex items-center gap-2">
-                                <div class="flex-1 flex items-center gap-2">
-                                    <label class="text-sm text-gray-700 dark:text-gray-300">PC:</label>
-                                    <input type="number" wire:model.live="products.1.main_unit_qty" min="0"
-                                        class="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-center text-gray-900 dark:text-white"
-                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/^0(?!$)/, '');" />
-                                </div>
-
-                            </div>
-                        </td>
-
-                        <td
-                            class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 font-semibold text-center text-gray-900 dark:text-white">
-                            0.00 Tk
-                        </td>
-                        <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 text-center">
-                            <button wire:click="removeProduct(1)"
-                                class="text-gray-600 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400">
-                                🗑️
-                            </button>
-                        </td>
-                    </tr>
-
-                </tbody>
-                <tfoot>
-                    <tr class="bg-gray-100 dark:bg-gray-800">
-                        <td colspan="4"
-                            class="wrap px-4 py-2 text-right font-bold border dark:border-gray-700 text-gray-800 dark:text-gray-200">
-                            Grand Total:
-                        </td>
-                        <td
-                            class="text-center px-4 py-2 font-bold text-gray-900 dark:text-white border dark:border-gray-700">
-                            0.00 Tk
-                        </td>
-                        <td
-                            class="text-center px-4 py-2 font-bold text-gray-900 dark:text-white border dark:border-gray-700">
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
+        <!-- Footer -->
+        <div class="mt-6 text-center text-sm text-gray-600 !text-black">
+            <p>
+                Copyright © 2025 <span class="text-teal-500 !text-black">SOFTGHOR</span>. All
+                rights reserved.
+            </p>
         </div>
     </div>
 </x-filament-panels::page>

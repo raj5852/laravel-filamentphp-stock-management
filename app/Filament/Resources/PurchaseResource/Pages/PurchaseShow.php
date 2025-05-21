@@ -46,7 +46,7 @@ class PurchaseShow extends Page implements HasActions, HasForms
             'purchase' => Purchase::query()
                 ->with([
                     'histories',
-                    'supplier:id,supplier_name,phone',
+                    'supplier:id,supplier_name,phone,address',
                     'purchaseitems' => function ($query) {
                         $query->select('id', 'product_id', 'purchase_id', 'total_in_text', 'rate', 'total_rate')
                             ->with('product:id,product_name,product_code');
@@ -122,7 +122,7 @@ class PurchaseShow extends Page implements HasActions, HasForms
                         'max:9999999999',
                         'numeric',
                     ])
-                    ->default(fn (array $arguments) => $arguments['amount'] ?? 0)
+                    ->default(fn(array $arguments) => $arguments['amount'] ?? 0)
                     ->numeric(),
 
                 Textarea::make('note')
