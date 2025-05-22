@@ -15,74 +15,92 @@
     <br><br>
 
     <div class="mt-6">
-        <table class="table-auto w-full border-collapse border border-gray-300">
+        <div class="overflow-x-auto relative">
 
-            <thead>
-                <tr class="bg-gray-100 dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-200 rounded-t-lg">
-                    <th class="border border-gray-300 dark:border-gray-600 px-6 py-3 text-left rounded-tl-lg">Date</th>
-                    <th class="border border-gray-300 dark:border-gray-600 px-6 py-3 text-left">Particulars</th>
-                    <th class="border border-gray-300 dark:border-gray-600 px-6 py-3 text-left">Debit</th>
-                    <th class="border border-gray-300 dark:border-gray-600 px-6 py-3 text-left">Credit</th>
-                    <th class="border border-gray-300 dark:border-gray-600 px-6 py-3 text-left rounded-tr-lg">Balance
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                @php
-                    $bal = 0;
-                @endphp
-                @forelse ($datas as $data)
-                @php
-                     if ($data->type == 'purchase') {
-                        $bal = $bal - abs($data->amount);
-                    } elseif ($data->type == 'opening_balance') {
-                        $bal = $data->amount;
-                    } else {
-                        $bal = $bal + abs($data->amount);
-                    }
+            <table class="table-auto w-full border-collapse border border-gray-300">
 
-                @endphp
-                    <tr class="{{ $loop->odd ? 'bg-gray-50 dark:bg-gray-700' : 'bg-white dark:bg-gray-900' }}">
-                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2 dark:text-white">
-                            {{ Carbon\Carbon::parse($data->date)->format('d M, Y') }}</td>
-                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2 dark:text-white">
-                            @if ($data->type == 'history')
-                                Paid to Supplier
-                            @elseif($data->type == 'opening_balance')
-                                {{ $data->particulars }}
-                            @else
-                                Purchase #{{ $data->particulars }}
-                            @endif
-                        </td>
-                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2 dark:text-white">
-                            @if ($data->type == 'history' || $data->particulars == 'Opening Receivable')
-                                {{ abs($data->amount) }}
-                            @endif
-                        </td>
-                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2 dark:text-white">
-                            @if ($data->type == 'purchase' || $data->particulars == 'Opening Payable')
-                                {{ abs($data->amount) }}
-                            @endif
-                        </td>
-                        <td class="border border-gray-300 dark:border-gray-600 px-4 py-2 dark:text-white">
-                            {{ number_format($bal ,2) }}
-                        </td>
+                <thead>
+                    <tr class="bg-gray-100 dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-200 rounded-t-lg">
+                        <th
+                            class="whitespace-nowrap border border-gray-300 dark:border-gray-600 px-6 py-3 text-left rounded-tl-lg">
+                            Date</th>
+                        <th class="whitespace-nowrap border border-gray-300 dark:border-gray-600 px-6 py-3 text-left">
+                            Particulars</th>
+                        <th class="whitespace-nowrap border border-gray-300 dark:border-gray-600 px-6 py-3 text-left">
+                            Debit
+                        </th>
+                        <th class="whitespace-nowrap border border-gray-300 dark:border-gray-600 px-6 py-3 text-left">
+                            Credit
+                        </th>
+                        <th
+                            class="whitespace-nowrap border border-gray-300 dark:border-gray-600 px-6 py-3 text-left rounded-tr-lg">
+                            Balance
+                        </th>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="5"
-                            class="text-center border border-gray-300 dark:border-gray-600 px-4 py-2 dark:text-white">
-                            @if ($supplier_id)
-                                No data available
-                            @else
-                                Please Select Supplier
-                            @endif
+                </thead>
+                <tbody>
+                    @php
+                        $bal = 0;
+                    @endphp
+                    @forelse ($datas as $data)
+                        @php
+                            if ($data->type == 'purchase') {
+                                $bal = $bal - abs($data->amount);
+                            } elseif ($data->type == 'opening_balance') {
+                                $bal = $data->amount;
+                            } else {
+                                $bal = $bal + abs($data->amount);
+                            }
 
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                        @endphp
+                        <tr class="{{ $loop->odd ? 'bg-gray-50 dark:bg-gray-700' : 'bg-white dark:bg-gray-900' }}">
+                            <td
+                                class="whitespace-nowrap border border-gray-300 dark:border-gray-600 px-4 py-3 dark:text-white">
+                                {{ Carbon\Carbon::parse($data->date)->format('d M, Y') }}</td>
+                            <td
+                                class="whitespace-nowrap border border-gray-300 dark:border-gray-600 px-4 py-3 dark:text-white">
+                                @if ($data->type == 'history')
+                                    Paid to Supplier
+                                @elseif($data->type == 'opening_balance')
+                                    {{ $data->particulars }}
+                                @else
+                                    Purchase #{{ $data->particulars }}
+                                @endif
+                            </td>
+                            <td
+                                class="whitespace-nowrap border border-gray-300 dark:border-gray-600 px-4 py-3 dark:text-white">
+                                @if ($data->type == 'history' || $data->particulars == 'Opening Receivable')
+                                    {{ abs($data->amount) }}
+                                @endif
+                            </td>
+                            <td
+                                class="whitespace-nowrap border border-gray-300 dark:border-gray-600 px-4 py-3 dark:text-white">
+                                @if ($data->type == 'purchase' || $data->particulars == 'Opening Payable')
+                                    {{ abs($data->amount) }}
+                                @endif
+                            </td>
+                            <td
+                                class="whitespace-nowrap border border-gray-300 dark:border-gray-600 px-4 py-3 dark:text-white">
+                                {{ number_format($bal, 2) }}
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5"
+                                class="whitespace-nowrap text-center border border-gray-300 dark:border-gray-600 px-4 py-3 dark:text-white">
+                                @if ($supplier_id)
+                                    No data available
+                                @else
+                                    Please Select Supplier
+                                @endif
+
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
     </div>
 
 

@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-    <div class="max-w-4xl mx-auto p-1 md:p-6">
+    <div class="max-w-[700px] w-full mx-auto p-1 md:p-6">
         <div class="bg-white shadow-md rounded-sm p-1 md:p-6">
             <div id="invoice-container">
                 <!-- Company info -->
@@ -58,56 +58,62 @@
 
                 <!-- Invoice table -->
                 <div class="mb-7">
-                    <table class="w-full border-collapse">
-                        <thead>
-                            <tr class="bg-gray-100 !text-black">
-                                <th class="border border-gray-200 p-2 text-left w-12 !text-black">#</th>
-                                <th class="border border-gray-200 p-2 text-left !text-black">Details</th>
-                                <th class="border border-gray-200 p-2 text-center !text-black">Qty</th>
-                                <th class="border border-gray-200 p-2 text-right !text-black">Price</th>
-                                <th class="border border-gray-200 p-2 text-right !text-black">Net A</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($purchase->purchaseitems as $key => $item)
-                                <tr>
-                                    <td class="border border-gray-200 p-2 text-center !text-black"> {{ $key + 1 }}
-                                    </td>
-                                    <td class="border border-gray-200 p-2 !text-black">
-                                        {{ $item->product?->product_name }}
-                                        | {{ $item->product?->product_code }}</td>
-                                    <td class="border border-gray-200 p-2 text-center !text-black">
-                                        {{ $item->total_in_text }}</td>
-                                    <td class="border border-gray-200 p-2 text-right !text-black">
-                                        {{ number_format($item->rate, 2) }} Tk</td>
-                                    <td class="border border-gray-200 p-2 text-right !text-black">
-                                        {{ number_format($item->total_rate, 2) }} Tk</td>
+                    <div class="overflow-x-auto relative">
+
+                        <table class="w-full border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 !text-black">
+                                    <th class="border border-gray-200 p-2 text-left w-12 !text-black">#</th>
+                                    <th class="border border-gray-200 p-2 text-left !text-black">Details</th>
+                                    <th class="border border-gray-200 p-2 text-center !text-black">Qty</th>
+                                    <th class="border border-gray-200 p-2 text-right !text-black">Price</th>
+                                    <th class="border border-gray-200 p-2 text-right !text-black">Net A</th>
                                 </tr>
-                            @endforeach
+                            </thead>
+                            <tbody>
+                                @foreach ($purchase->purchaseitems as $key => $item)
+                                    <tr>
+                                        <td class="border border-gray-200 p-2 text-center !text-black">
+                                            {{ $key + 1 }}
+                                        </td>
+                                        <td class="border border-gray-200 p-2 !text-black">
+                                            {{ $item->product?->product_name }}
+                                            | {{ $item->product?->product_code }}</td>
+                                        <td class="border border-gray-200 p-2 text-center !text-black">
+                                            {{ $item->total_in_text }}</td>
+                                        <td class="border border-gray-200 p-2 text-right !text-black">
+                                            {{ number_format($item->rate, 2) }} Tk</td>
+                                        <td class="border border-gray-200 p-2 text-right !text-black">
+                                            {{ number_format($item->total_rate, 2) }} Tk</td>
+                                    </tr>
+                                @endforeach
 
 
-                            <tr>
-                                <td colspan="3" class="border border-gray-200"></td>
-                                <td
-                                    class="whitespace-nowrap border border-gray-200 p-2 text-right font-semibold !text-black">
-                                    Grand Total :</td>
-                                <td class="whitespace-nowrap border border-gray-200 p-2 text-right !text-black">
-                                    {{ number_format($purchase->payable, 2) }} Tk</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="border border-gray-200"></td>
-                                <td class="border border-gray-200 p-2 text-right font-semibold !text-black">Paid :</td>
-                                <td class="border border-gray-200 p-2 text-right !text-black">
-                                    {{ number_format($purchase->paid, 2) }} Tk</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="border border-gray-200"></td>
-                                <td class="border border-gray-200 p-2 text-right font-semibold !text-black">Due :</td>
-                                <td class="border border-gray-200 p-2 text-right !text-black">
-                                    {{ number_format($purchase->due, 2) }} Tk</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                <tr>
+                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td
+                                        class="whitespace-nowrap border border-gray-200 p-2 text-right font-semibold !text-black">
+                                        Grand Total :</td>
+                                    <td class="whitespace-nowrap border border-gray-200 p-2 text-right !text-black">
+                                        {{ number_format($purchase->payable, 2) }} Tk</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td class="border border-gray-200 p-2 text-right font-semibold !text-black">Paid :
+                                    </td>
+                                    <td class="border border-gray-200 p-2 text-right !text-black">
+                                        {{ number_format($purchase->paid, 2) }} Tk</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td class="border border-gray-200 p-2 text-right font-semibold !text-black">Due :
+                                    </td>
+                                    <td class="border border-gray-200 p-2 text-right !text-black">
+                                        {{ number_format($purchase->due, 2) }} Tk</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <div>
@@ -120,34 +126,37 @@
                         </x-filament::button>
                     </div>
                     <div class="mb-6">
-                        <table class="w-full border-collapse">
-                            <thead>
-                                <tr class="bg-gray-100 !text-black">
-                                    <th class="border border-gray-200 p-2 text-left !text-black">Date</th>
-                                    <th class="border border-gray-200 p-2 text-left !text-black">Amount</th>
-                                    <th class="border border-gray-200 p-2 text-center !text-black">Actions</th>
+                        <div class="overflow-x-auto relative">
 
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($purchase->histories as $history)
-                                    <tr>
-                                        <td class="border border-gray-200 p-1 text-center !text-black">
-                                            {{ Carbon\Carbon::parse($history->date)->format('d M, Y') }}
-                                        </td>
-                                        <td class="border border-gray-200 p-1 !text-black">
-                                            {{ number_format($history->amount, 2) }}</td>
-                                        <td class="border border-gray-200 p-1 text-center !text-black">
-                                            <x-filament::button class=" text-center" color="danger" tag="button"
-                                                wire:click="mountAction('delete', { id: {{ $history->id }} })">
-                                                <x-fas-trash class="w-4 h-4 " />
-                                            </x-filament::button>
-                                        </td>
+                            <table class="w-full border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-100 !text-black">
+                                        <th class="border border-gray-200 p-2 text-left !text-black">Date</th>
+                                        <th class="border border-gray-200 p-2 text-left !text-black">Amount</th>
+                                        <th class="border border-gray-200 p-2 text-center !text-black">Actions</th>
 
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @foreach ($purchase->histories as $history)
+                                        <tr>
+                                            <td class="border border-gray-200 p-1 text-center !text-black">
+                                                {{ Carbon\Carbon::parse($history->date)->format('d M, Y') }}
+                                            </td>
+                                            <td class="border border-gray-200 p-1 !text-black">
+                                                {{ number_format($history->amount, 2) }}</td>
+                                            <td class="border border-gray-200 p-1 text-center !text-black">
+                                                <x-filament::button class=" text-center" color="danger" tag="button"
+                                                    wire:click="mountAction('delete', { id: {{ $history->id }} })">
+                                                    <x-fas-trash class="w-4 h-4 " />
+                                                </x-filament::button>
+                                            </td>
+
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -158,44 +167,47 @@
 
                     </div>
                     <div class="mb-6">
-                        <table class="w-full border-collapse">
-                            <thead>
-                                <tr class="bg-gray-100 !text-black">
-                                    <th class="border border-gray-200 p-2 text-left !text-black">Date</th>
-                                    <th class="border border-gray-200 p-2 text-left !text-black">Sale</th>
-                                    <th class="border border-gray-200 p-2 text-center !text-black">Name</th>
-                                    <th class="border border-gray-200 p-2 text-center !text-black">Qty</th>
+                        <div class="overflow-x-auto relative">
 
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($sales as $sale)
-                                    <tr>
-                                        <td class="border border-gray-200 p-1 text-center !text-black">
-                                            {{ Carbon\Carbon::parse($sale->date)->format('d M, Y') }}
-                                        </td>
-                                        <td class="border border-gray-200 p-1 !text-black">
-                                            <a href="{{ route('filament.admin.resources.sales.index') }}?invoiceno={{ $sale->order->invoiceno }}"
-                                                style="color: #33cabb">Sale#{{ $sale->order->invoiceno }} </a>
-                                        </td>
-
-                                        <td class="border border-gray-200 p-1 !text-black">
-                                            {{ $sale->product?->product_name }}
-                                        </td>
-                                        <td class="border border-gray-200 p-1 !text-black">
-                                            @php
-                                                $purchase = collect($sale->purchase_ids)->firstWhere(
-                                                    'purchase_id',
-                                                    $this->record->id,
-                                                );
-                                            @endphp
-                                            {{ $purchase ? $purchase['qty_in_text'] : 'N/A' }}
-                                        </td>
+                            <table class="w-full border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-100 !text-black">
+                                        <th class="border border-gray-200 p-2 text-left !text-black">Date</th>
+                                        <th class="border border-gray-200 p-2 text-left !text-black">Sale</th>
+                                        <th class="border border-gray-200 p-2 text-center !text-black">Name</th>
+                                        <th class="border border-gray-200 p-2 text-center !text-black">Qty</th>
 
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @foreach ($sales as $sale)
+                                        <tr>
+                                            <td class="border border-gray-200 p-1 text-center !text-black">
+                                                {{ Carbon\Carbon::parse($sale->date)->format('d M, Y') }}
+                                            </td>
+                                            <td class="border border-gray-200 p-1 !text-black">
+                                                <a href="{{ route('filament.admin.resources.sales.index') }}?invoiceno={{ $sale->order->invoiceno }}"
+                                                    style="color: #33cabb">Sale#{{ $sale->order->invoiceno }} </a>
+                                            </td>
+
+                                            <td class="border border-gray-200 p-1 !text-black">
+                                                {{ $sale->product?->product_name }}
+                                            </td>
+                                            <td class="border border-gray-200 p-1 !text-black">
+                                                @php
+                                                    $purchase = collect($sale->purchase_ids)->firstWhere(
+                                                        'purchase_id',
+                                                        $this->record->id,
+                                                    );
+                                                @endphp
+                                                {{ $purchase ? $purchase['qty_in_text'] : 'N/A' }}
+                                            </td>
+
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -206,44 +218,47 @@
 
                     </div>
                     <div class="mb-6">
-                        <table class="w-full border-collapse">
-                            <thead>
-                                <tr class="bg-gray-100 !text-black">
-                                    <th class="border border-gray-200 p-2 text-left !text-black">Date</th>
-                                    <th class="border border-gray-200 p-2 text-left !text-black">Damage</th>
-                                    <th class="border border-gray-200 p-2 text-center !text-black">Name</th>
-                                    <th class="border border-gray-200 p-2 text-center !text-black">Qty</th>
+                        <div class="overflow-x-auto relative">
 
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($damages as $damage)
-                                    <tr>
-                                        <td class="border border-gray-200 p-1 text-center !text-black">
-                                            {{ Carbon\Carbon::parse($damage->damage)->format('d M, Y') }}
-                                        </td>
-                                        <td class="border border-gray-200 p-1 !text-black">
-                                            <a href="{{ route('filament.admin.resources.damages.index', ['tableFilters[id][id]=' => $damage->id]) }}"
-                                                style="color: #33cabb">Damage#{{ $damage->id }} </a>
-                                        </td>
-
-                                        <td class="border border-gray-200 p-1 !text-black">
-                                            {{ $damage->product?->product_name }}
-                                        </td>
-                                        <td class="border border-gray-200 p-1 !text-black">
-                                            @php
-                                                $purchase = collect($damage->purchase_ids)->firstWhere(
-                                                    'purchase_id',
-                                                    $this->record->id,
-                                                );
-                                            @endphp
-                                            {{ $purchase ? $purchase['qty_in_text'] : 'N/A' }}
-                                        </td>
+                            <table class="w-full border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-100 !text-black">
+                                        <th class="border border-gray-200 p-2 text-left !text-black">Date</th>
+                                        <th class="border border-gray-200 p-2 text-left !text-black">Damage</th>
+                                        <th class="border border-gray-200 p-2 text-center !text-black">Name</th>
+                                        <th class="border border-gray-200 p-2 text-center !text-black">Qty</th>
 
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @foreach ($damages as $damage)
+                                        <tr>
+                                            <td class="border border-gray-200 p-1 text-center !text-black">
+                                                {{ Carbon\Carbon::parse($damage->damage)->format('d M, Y') }}
+                                            </td>
+                                            <td class="border border-gray-200 p-1 !text-black">
+                                                <a href="{{ route('filament.admin.resources.damages.index', ['tableFilters[id][id]=' => $damage->id]) }}"
+                                                    style="color: #33cabb">Damage#{{ $damage->id }} </a>
+                                            </td>
+
+                                            <td class="border border-gray-200 p-1 !text-black">
+                                                {{ $damage->product?->product_name }}
+                                            </td>
+                                            <td class="border border-gray-200 p-1 !text-black">
+                                                @php
+                                                    $purchase = collect($damage->purchase_ids)->firstWhere(
+                                                        'purchase_id',
+                                                        $this->record->id,
+                                                    );
+                                                @endphp
+                                                {{ $purchase ? $purchase['qty_in_text'] : 'N/A' }}
+                                            </td>
+
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 

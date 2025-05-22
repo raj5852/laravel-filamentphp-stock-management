@@ -146,7 +146,7 @@ class SalesResource extends Resource
                 SelectFilter::make('customer_id')
                     ->label('Customer')
                     ->placeholder('Select Customer')
-                    ->options(Customer::query()->pluck('customer_name', 'id'))
+                    ->options(Customer::query()->where('is_default', '!=', 1)->pluck('customer_name', 'id'))
                     ->default(request('customer_id'))
                     ->searchable(),
 

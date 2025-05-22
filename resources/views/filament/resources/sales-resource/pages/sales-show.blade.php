@@ -11,127 +11,220 @@
         $previous_due = (abs($balance) + $customer->orders_sum_due ?: 0) - $order->due;
 
     @endphp
-    <div class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-        <div class="flex justify-between items-center border-b pb-4 mb-4">
-            <div>
-                <p class="text-sm text-gray-500 dark:text-gray-400">{{ $setting->company_name }} </p>
-            </div>
-            <div class="text-right">
-                <p class="text-sm text-gray-700 dark:text-gray-300">Address: {{ $setting->address }}</p>
-                <p class="text-sm text-gray-700 dark:text-gray-300">Phone: {{ $setting->phone }}</p>
-                <p class="text-sm text-gray-700 dark:text-gray-300">Email: {{ $setting->email_address }}</p>
-            </div>
-        </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-4">
-            <div>
-                <p class="text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Invoice No:</span>
-                    {{ $order->invoiceno }} </p>
-                <p class="text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Client Name:</span>
-                    {{ $customer->is_default == 1 ? 'Walk-in Customer' : $customer->customer_name }} </p>
-                <p class="text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Address:</span>
-                    {{ $customer->is_default == 1 ? 'Walk-in Customer' : $customer->address }}</p>
-                <p class="text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Mobile:</span>
-                    {{ $customer->is_default == 1 ? 'Walk-in Customer' : $customer->phone }}</p>
-            </div>
-            <div class="text-right">
-                <p class="text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Date:</span>
-                    {{ $order->order_date }} </p>
-            </div>
-        </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 border-collapse">
-                <thead>
-                    <tr class="bg-gray-100 dark:bg-gray-700">
-                        <th class="border px-4 py-2">#</th>
-                        <th class="border px-4 py-2">Details</th>
-                        <th class="border px-4 py-2">Qty</th>
-                        <th class="border px-4 py-2">Price</th>
-                        <th class="border px-4 py-2">Net.A</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($order->orderitems as $key => $item)
-                        <tr>
-                            <td class="border px-4 py-2">{{ $key + 1 }}</td>
-                            <td class="border px-4 py-2">{{ $item->product->product_name }}</td>
-                            <td class="border px-4 py-2">{{ $item->total_in_text }}</td>
-                            <td class="border px-4 py-2">{{ $item->rate }}</td>
-                            <td class="border px-4 py-2">{{ $item->total_rate }}</td>
-                        </tr>
-                    @endforeach
+    <div class="max-w-[700px] w-full mx-auto p-1 md:p-6">
+        <div class="bg-white shadow-md rounded-sm p-1 md:p-6">
+            <div id="invoice-container" class="mb-6">
 
-                </tbody>
-            </table>
-        </div>
+                <!-- Company info -->
+                <div class="flex flex-col md:flex-row justify-center md:justify-between mb-6">
+                    <div class="flex flex-col items-center">
+                        {{-- <div class="bg-[#3498db] text-white px-3 py-1 mb-1">
+                        <span class="font-bold">SOFT</span>
+                        <span class="bg-white text-[#3498db] px-2 py-0.5 font-bold">GHOR</span>
+                    </div>
+                    <p class="text-xs text-gray-600 !text-black">Digital Solution Provider</p> --}}
+                        <h2 class="font-bold mt-1 !text-black">{{ $setting['company_name'] }}</h2>
+                    </div>
+                    <div class="md:max-w-[250px] text-center md:text-left">
+                        <p class="text-sm !text-black">
+                            <span class="font-semibold">Address :</span> {{ $setting['address'] }}
+                        </p>
+                        <p class="text-sm !text-black">
+                            <span class="font-semibold">Phone :</span> {{ $setting['phone'] }}
+                        </p>
+                        <p class="text-sm !text-black">
+                            <span class="font-semibold">Email :</span> {{ $setting['email_address'] }}
+                        </p>
+                    </div>
+                </div>
 
-        <div class="mt-4">
-            <p class="text-right text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Total:</span>
-                {{ number_format($order->receivable, 2) }} Tk</p>
+                <!-- Invoice details -->
+                <div class="border border-gray-200 mb-6">
+                    <div class="grid grid-cols-2 border-b border-gray-200">
+                        <div class="p-2 border-gray-200 !text-black">
+                            <span class="font-semibold">Invoice No: {{ $order->billno }}</span>
+                        </div>
+                        <div class="p-2 !text-black">
+                            <span class="font-semibold">Date:
+                                {{ Carbon\Carbon::parse($order->order_date)->format('d M, Y') }}</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 border-b border-gray-200">
+                        <div class="p-2 border-gray-200 !text-black">
+                            <span class="font-semibold">Client Name
+                                :</span>{{ $customer->is_default == 1 ? 'Walk-in Customer' : $customer->customer_name }}
+                        </div>
+                        <div class="p-2"></div>
+                    </div>
+                    <div class="grid grid-cols-2 border-b border-gray-200">
+                        <div class="p-2 border-gray-200 !text-black">
+                            <span class="font-semibold">Address :</span>
+                            {{ $customer->is_default == 1 ? 'Walk-in Customer' : $customer->address }}
+                        </div>
+                        <div class="p-2"></div>
+                    </div>
+                    <div class="grid grid-cols-2">
+                        <div class="p-2 border-gray-200 !text-black">
+                            <span class="font-semibold">Mobile :</span>
+                            {{ $customer->is_default == 1 ? 'Walk-in Customer' : $customer->phone }}
+                        </div>
+                        <div class="p-2"></div>
+                    </div>
+                </div>
 
-            <p class="text-right text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Total
-                    Paid:</span> {{ number_format($order->paid, 2) }} Tk</p>
 
-            @if ($previous_due > 0)
-                <p class="text-right text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Previous
-                        Due:</span> {{ number_format($previous_due, 2) }} Tk</p>
-            @endif
 
-            @if ($previous_due > 0)
-                <p class="text-right text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Current
-                        Due:</span> {{ number_format($order->due, 2) }} Tk</p>
-            @endif
+                <!-- Invoice table -->
+                <div class="mb-6">
+                    <div class="overflow-x-auto relative">
+                        <table class="w-full border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 !text-black">
+                                    <th class="border border-gray-200 p-2 text-left w-12 !text-black">#</th>
+                                    <th class="border border-gray-200 p-2 text-left !text-black">Details</th>
+                                    <th class="border border-gray-200 p-2 text-center !text-black">Qty</th>
+                                    <th class="border border-gray-200 p-2 text-right !text-black">Price</th>
+                                    <th class="border border-gray-200 p-2 text-right !text-black">Net.A</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($order->orderitems as $key => $item)
+                                    <tr>
+                                        <td class="border border-gray-200 p-2 text-center !text-black">
+                                            {{ $key + 1 }}
+                                        </td>
+                                        <td class="border border-gray-200 p-2 !text-black">
+                                            {{ $item->product->product_name }}</td>
+                                        <td class="border border-gray-200 p-2 text-center !text-black">
+                                            {{ $item->total_in_text }}</td>
+                                        <td class="border border-gray-200 p-2 text-right !text-black">
+                                            {{ number_format($item->rate, 2) }} Tk</td>
+                                        <td class="border border-gray-200 p-2 text-right !text-black">
+                                            {{ number_format($item->total_rate, 2) }} Tk</td>
+                                    </tr>
+                                @endforeach
 
-            <p class="text-right text-sm text-gray-700 dark:text-gray-300"><span class="font-semibold">Total Due:</span>
-                {{ number_format($order->due + $previous_due, 2) }} Tk</p>
-        </div>
 
-        <div class="mb-6">
-            <div class="mb-2" style="display: flex; justify-content: space-between">
-                <div style="font-size: 25px">Payments</div>
+                                <tr>
+                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td
+                                        class="whitespace-nowrap border border-gray-200 p-2 text-right font-semibold !text-black">
+                                        Total :</td>
+                                    <td class="whitespace-nowrap border border-gray-200 p-2 text-right !text-black">
+                                        {{ number_format($order->receivable, 2) }} Tk</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td class="border border-gray-200 p-2 text-right font-semibold !text-black">Total
+                                        Paid:
+                                    </td>
+                                    <td class="border border-gray-200 p-2 text-right !text-black">
+                                        {{ number_format($order->paid, 2) }} Tk</td>
+                                </tr>
+                                @if ($previous_due > 0)
+                                    <tr>
+                                        <td colspan="3" class="border border-gray-200"></td>
+                                        <td class="border border-gray-200 p-2 text-right font-semibold !text-black">
+                                            Previous
+                                            Due:
+                                        </td>
+                                        <td class="border border-gray-200 p-2 text-right !text-black">
+                                            {{ number_format($previous_due, 2) }} Tk</td>
+                                    </tr>
+                                @endif
+                                @if ($previous_due > 0)
+                                    <tr>
+                                        <td colspan="3" class="border border-gray-200"></td>
+                                        <td class="border border-gray-200 p-2 text-right font-semibold !text-black">
+                                            Current
+                                            Due:
+                                        </td>
+                                        <td class="border border-gray-200 p-2 text-right !text-black">
+                                            {{ number_format($order->due, 2) }} Tk</td>
+                                    </tr>
+                                @endif
+                                <tr>
+                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td class="border border-gray-200 p-2 text-right font-semibold !text-black">Total
+                                        Due:
+                                    </td>
+                                    <td class="border border-gray-200 p-2 text-right !text-black">
+                                        {{ number_format($order->due + $previous_due, 2) }} Tk</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
-                <x-filament::button class="" color="primary" tag="button"
-                    wire:click="mountAction('addpayment', { id: {{ $order->id }} , amount: {{ $order->due ?: 0 }} })">
-                    Add Payment
-                </x-filament::button>
-            </div>
+                </div>
 
-            <div>
-                <table class="w-full text-sm border border-gray-300 dark:border-gray-700">
-                    <thead>
-                        <tr class="bg-gray-200 dark:bg-gray-800">
-                            <th class="border border-gray-300 dark:border-gray-700 px-2 py-1 text-left">Date
-                            </th>
-                            <th class="border border-gray-300 dark:border-gray-700 px-2 py-1 text-left">Amount
-                            </th>
-                            <th class="border border-gray-300 dark:border-gray-700 px-2 py-1 text-center">Action
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($order->histories as $history)
-                            <tr>
-                                <td class="border border-gray-300 dark:border-gray-700 px-2 py-1">
-                                    {{ Carbon\Carbon::parse($history->date)->format('d M, Y') }} </td>
-                                <td class="border border-gray-300 dark:border-gray-700 px-2 py-1">
-                                    {{ number_format($history->amount, 2) }} </td>
-                                <td class="border border-gray-300 dark:border-gray-700 px-2 py-1">
-                                    <x-filament::button class=" text-center" color="danger" tag="button"
-                                        wire:click="mountAction('delete', { id: {{ $history->id }} })">
-                                        <x-fas-trash class="w-4 h-4 " />
-                                    </x-filament::button>
-                                </td>
+                <div class="mb-2" style="display: flex; justify-content: space-between">
+                    <div style="font-size: 25px">Payments</div>
 
+                    <x-filament::button class="" color="primary" tag="button"
+                        wire:click="mountAction('addpayment', { id: {{ $order->id }} , amount: {{ $order->due ?: 0 }} })">
+                        Add Payment
+                    </x-filament::button>
+                </div>
+                <div class="overflow-x-auto relative">
+
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 !text-black">
+                                <th class="border border-gray-200 p-2 text-left  !text-black">Date</th>
+                                <th class="border border-gray-200 p-2 text-left !text-black">Amount</th>
+                                <th class="border border-gray-200 p-2 text-center !text-black">Action</th>
                             </tr>
-                        @endforeach
+                        </thead>
+                        <tbody>
+                            @foreach ($order->histories as $history)
+                                <tr>
+                                    <td class="border border-gray-200 p-2 text-center !text-black">
+                                        {{ Carbon\Carbon::parse($history->date)->format('d M, Y') }}</td>
+                                    <td class="border border-gray-200 p-2 text-center !text-black">
+                                        {{ number_format($history->amount, 2) }}</td>
+                                    <td class="border border-gray-200 p-2 text-center !text-black">
+                                        <x-filament::button class=" text-center" color="danger" tag="button"
+                                            wire:click="mountAction('delete', { id: {{ $history->id }} })">
+                                            <x-fas-trash class="w-4 h-4 " />
+                                        </x-filament::button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
 
-
-                    </tbody>
-                </table>
+                </div>
             </div>
 
+            <!-- Action buttons -->
+            <div class="hiddenButtons mb-6">
+
+                <div class="mb-6">
+                    <button onclick="printInvoice()"
+                        class="w-full bg-gray-200 text-gray-800 py-2 flex items-center justify-center gap-2 hover:bg-gray-300 !text-black">
+                        <span>Print</span>
+                        <div style="display: flex">
+                            <x-fas-print class="w-4 h-4" />
+                            <div style="margin-left: 5px; margin-top: -4px">Print</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script>
+        function printInvoice() {
+            const invoice = document.getElementById('invoice-container').innerHTML;
+            const originalContent = document.body.innerHTML;
+
+            document.body.innerHTML = invoice;
+            window.print();
+            document.body.innerHTML = originalContent;
+            window.location.reload(); // Restore layout
+        }
+    </script>
 
 </x-filament-panels::page>

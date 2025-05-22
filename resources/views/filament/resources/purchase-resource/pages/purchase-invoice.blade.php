@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-    <div class="max-w-4xl mx-auto p-1 md:p-6">
+    <div class="max-w-[700px] w-full mx-auto p-1 md:p-6">
         <div class="bg-white shadow-md rounded-sm p-1 md:p-6">
             <div id="invoice-container">
 
@@ -59,56 +59,62 @@
 
                 <!-- Invoice table -->
                 <div class="mb-6">
-                    <table class="w-full border-collapse">
-                        <thead>
-                            <tr class="bg-gray-100 !text-black">
-                                <th class="border border-gray-200 p-2 text-left w-12 !text-black">#</th>
-                                <th class="border border-gray-200 p-2 text-left !text-black">Details</th>
-                                <th class="border border-gray-200 p-2 text-center !text-black">Qty</th>
-                                <th class="border border-gray-200 p-2 text-right !text-black">Price</th>
-                                <th class="border border-gray-200 p-2 text-right !text-black">Net A</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($purchase->purchaseitems as $key => $item)
-                                <tr>
-                                    <td class="border border-gray-200 p-2 text-center !text-black"> {{ $key + 1 }}
-                                    </td>
-                                    <td class="border border-gray-200 p-2 !text-black">
-                                        {{ $item->product?->product_name }}
-                                        | {{ $item->product?->product_code }}</td>
-                                    <td class="border border-gray-200 p-2 text-center !text-black">
-                                        {{ $item->total_in_text }}</td>
-                                    <td class="border border-gray-200 p-2 text-right !text-black">
-                                        {{ number_format($item->rate, 2) }} Tk</td>
-                                    <td class="border border-gray-200 p-2 text-right !text-black">
-                                        {{ number_format($item->total_rate, 2) }} Tk</td>
+                    <div class="overflow-x-auto relative">
+                        <table class="w-full border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 !text-black">
+                                    <th class="border border-gray-200 p-2 text-left w-12 !text-black">#</th>
+                                    <th class="border border-gray-200 p-2 text-left !text-black">Details</th>
+                                    <th class="border border-gray-200 p-2 text-center !text-black">Qty</th>
+                                    <th class="border border-gray-200 p-2 text-right !text-black">Price</th>
+                                    <th class="border border-gray-200 p-2 text-right !text-black">Net A</th>
                                 </tr>
-                            @endforeach
+                            </thead>
+                            <tbody>
+                                @foreach ($purchase->purchaseitems as $key => $item)
+                                    <tr>
+                                        <td class="border border-gray-200 p-2 text-center !text-black">
+                                            {{ $key + 1 }}
+                                        </td>
+                                        <td class="border border-gray-200 p-2 !text-black">
+                                            {{ $item->product?->product_name }}
+                                            | {{ $item->product?->product_code }}</td>
+                                        <td class="border border-gray-200 p-2 text-center !text-black">
+                                            {{ $item->total_in_text }}</td>
+                                        <td class="border border-gray-200 p-2 text-right !text-black">
+                                            {{ number_format($item->rate, 2) }} Tk</td>
+                                        <td class="border border-gray-200 p-2 text-right !text-black">
+                                            {{ number_format($item->total_rate, 2) }} Tk</td>
+                                    </tr>
+                                @endforeach
 
 
-                            <tr>
-                                <td colspan="3" class="border border-gray-200"></td>
-                                <td
-                                    class="whitespace-nowrap border border-gray-200 p-2 text-right font-semibold !text-black">
-                                    Grand Total :</td>
-                                <td class="whitespace-nowrap border border-gray-200 p-2 text-right !text-black">
-                                    {{ number_format($purchase->payable, 2) }} Tk</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="border border-gray-200"></td>
-                                <td class="border border-gray-200 p-2 text-right font-semibold !text-black">Paid :</td>
-                                <td class="border border-gray-200 p-2 text-right !text-black">
-                                    {{ number_format($purchase->paid, 2) }} Tk</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" class="border border-gray-200"></td>
-                                <td class="border border-gray-200 p-2 text-right font-semibold !text-black">Due :</td>
-                                <td class="border border-gray-200 p-2 text-right !text-black">
-                                    {{ number_format($purchase->due, 2) }} Tk</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                <tr>
+                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td
+                                        class="whitespace-nowrap border border-gray-200 p-2 text-right font-semibold !text-black">
+                                        Grand Total :</td>
+                                    <td class="whitespace-nowrap border border-gray-200 p-2 text-right !text-black">
+                                        {{ number_format($purchase->payable, 2) }} Tk</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td class="border border-gray-200 p-2 text-right font-semibold !text-black">Paid :
+                                    </td>
+                                    <td class="border border-gray-200 p-2 text-right !text-black">
+                                        {{ number_format($purchase->paid, 2) }} Tk</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td class="border border-gray-200 p-2 text-right font-semibold !text-black">Due :
+                                    </td>
+                                    <td class="border border-gray-200 p-2 text-right !text-black">
+                                        {{ number_format($purchase->due, 2) }} Tk</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
                 </div>
 
                 <!-- Note -->

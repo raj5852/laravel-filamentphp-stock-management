@@ -59,10 +59,17 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
     public $count = 0;
 
-    public function __construct()
+    public $all_customers = [];
+
+    public function mount()
     {
         $this->order_date = now();
-        $this->customer_id = Customer::first()?->id;
+
+        $defaultCustomer = Customer::where('is_default', 1)->pluck('customer_name', 'id');
+        $this->customer_id = $defaultCustomer->keys()->first();
+        $customers = Customer::where('is_default', '!=', 1)->latest()->pluck('customer_name', 'id');
+
+        $this->all_customers = $defaultCustomer->union($customers);
     }
 
     public function addProduct($productId)
@@ -260,7 +267,8 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                     ->placeholder('Select Customer')
                     ->searchable()
                     ->native(false)
-                    ->options(Customer::query()->latest()->pluck('customer_name', 'id'))
+                    ->options($this->all_customers)
+                    // ->default($this->customer_id)
                     ->createOptionForm([
                         TextInput::make('customer_name')
                             ->label('Name')

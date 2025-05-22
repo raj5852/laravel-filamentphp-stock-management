@@ -32,7 +32,7 @@ class PurchaseResource extends Resource
 {
     protected static ?string $model = Purchase::class;
 
-    protected static ?string $navigationIcon = 'fas-bag-shopping';
+    protected static ?string $navigationIcon = 'fas-gifts';
 
     protected static ?string $navigationGroup = 'Sale & Purchase';
 

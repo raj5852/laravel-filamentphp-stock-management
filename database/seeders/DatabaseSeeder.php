@@ -7,7 +7,6 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Unit;
 use App\Models\User;
-use App\UserTypeEnum;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +28,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('password'),
             'remember_token' => Str::random(10),
             'tenant_id' => 1,
-            'type' => UserTypeEnum::USER->value,
+            'type' => '1',
             'expires_at' => now()->addYears(5),
         ]);
 
@@ -41,7 +40,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('password'),
             'remember_token' => Str::random(10),
             'tenant_id' => 2,
-            'type' => UserTypeEnum::SUPERADMIN->value,
+            'type' => '2',
             'expires_at' => now()->addYears(5),
         ]);
 
@@ -159,6 +158,5 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => 1,
             'wallet' => 0,
         ]);
-
     }
 }

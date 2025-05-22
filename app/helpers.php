@@ -96,3 +96,5 @@ function numberToBanglaWord($num = 0)
 {
     return Number::spell($num);
 }
+
+function getAllCustomers() {}

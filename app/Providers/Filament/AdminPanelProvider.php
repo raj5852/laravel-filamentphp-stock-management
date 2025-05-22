@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Widgets\AdvancedStatsOverviewWidget;
+use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\ApplyTenantThemeColors;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -64,12 +65,13 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                AdminMiddleware::class,
             ])
             ->authMiddleware([
                 Authenticate::class,
                 ApplyTenantThemeColors::class,
             ])
-            ->sidebarCollapsibleOnDesktop()
-            ->registration();
+            ->sidebarCollapsibleOnDesktop();
+        // ->registration()
     }
 }

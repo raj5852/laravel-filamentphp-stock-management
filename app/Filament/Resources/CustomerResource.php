@@ -87,11 +87,13 @@ class CustomerResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(Customer::query()
-                ->withSum('orders', 'receivable')
-                ->withSum('orders', 'paid')
-                ->withSum('orders', 'due')
-                ->latest()
+            ->query(
+                Customer::query()
+                    ->where('is_default', '!=', 1)
+                    ->withSum('orders', 'receivable')
+                    ->withSum('orders', 'paid')
+                    ->withSum('orders', 'due')
+                    ->latest()
 
             )
             ->columns([
@@ -135,7 +137,6 @@ class CustomerResource extends Resource
                         }
 
                         return new HtmlString('<span class="text-success"> <b>'.number_format(abs($record->wallet), 1).' TK </b> </span> <br>'.$message);
-
                     })
                     ->searchable(),
                 Tables\Columns\TextColumn::make('totaldue')
@@ -147,11 +148,9 @@ class CustomerResource extends Resource
                             $balance = abs($record->wallet);
                         } else {
                             $balance = 0;
-
                         }
 
                         return number_format(abs($balance) + $record->orders_sum_due ?: 0, 2).' TK';
-
                     }),
             ])
             ->filters([

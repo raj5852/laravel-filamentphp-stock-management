@@ -33,7 +33,7 @@ class PurchaseInvoice extends Page
                 'purchaseitems' => function ($query) {
                     $query->select('id', 'product_id', 'purchase_id', 'total_in_text', 'rate', 'total_rate')
                         ->with('product:id,product_name,product_code');
-                }
+                },
             ])->find($this->record->id),
 
         ];
