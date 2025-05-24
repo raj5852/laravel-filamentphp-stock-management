@@ -53,7 +53,7 @@ class CategoryResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(Category::query()->latest())
+            ->query(Category::query()->latest()->withCount('products'))
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
@@ -61,6 +61,10 @@ class CategoryResource extends Resource
                 Tables\Columns\ImageColumn::make('image')
                     ->defaultImageUrl(url('/images/notfound.jpg'))
                     ->extraImgAttributes(['loading' => 'lazy']),
+
+                Tables\Columns\TextColumn::make('products_count')
+                    ->label('Count Products'),
+                //
 
             ])
             ->filters([
@@ -78,7 +82,6 @@ class CategoryResource extends Resource
                                 ->send();
                             $action->cancel();
                         }
-
                     }),
             ])
             ->bulkActions([
@@ -87,7 +90,6 @@ class CategoryResource extends Resource
                 // ]),
             ])
             ->paginated([10, 25, 50, 100]);
-
     }
 
     public static function getRelations(): array
