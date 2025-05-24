@@ -38,6 +38,7 @@ class CustomerResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('email')
                     ->placeholder('Enter Customer Email')
+                    ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('tenant_id', auth()->user()->tenant_id))
                     ->rules([
                         'email',
                         'min:0',

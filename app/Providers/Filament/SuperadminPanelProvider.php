@@ -26,6 +26,7 @@ class SuperadminPanelProvider extends PanelProvider
         return $panel
             ->id('superadmin')
             ->path('superadmin')
+            ->profile()
             ->login()
             ->colors([
                 'primary' => Color::Amber,

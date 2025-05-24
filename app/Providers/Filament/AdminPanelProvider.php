@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Helper\CustomLogin;
 use App\Filament\Widgets\AdvancedStatsOverviewWidget;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\ApplyTenantThemeColors;
@@ -20,7 +21,6 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Njxqlus\FilamentProgressbar\FilamentProgressbarPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -36,10 +36,11 @@ class AdminPanelProvider extends PanelProvider
                 'Reports',
                 'Setting & Customize',
             ])
-            // ->plugin(FilamentProgressbarPlugin::make()->color('#29b'))
+            ->favicon('/images/favicon.ico')
             ->id('admin')
             ->path('user')
-            ->login()
+            // ->profile()
+            ->login(CustomLogin::class)
             ->colors([
                 'primary' => Color::Lime,
             ])
@@ -69,7 +70,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-                ApplyTenantThemeColors::class,
+                // ApplyTenantThemeColors::class,
             ])
             ->sidebarCollapsibleOnDesktop();
         // ->registration()

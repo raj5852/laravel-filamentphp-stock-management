@@ -1,0 +1,8 @@
+php artisan optimize:clear
+
+****** composer install --no-dev --optimize-autoloader
+
+php artisan filament:optimize-clear
+php artisan filament:optimize
+php artisan optimize
+

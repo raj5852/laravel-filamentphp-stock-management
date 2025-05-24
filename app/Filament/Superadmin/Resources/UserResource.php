@@ -12,6 +12,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 
 class UserResource extends Resource
@@ -87,7 +89,19 @@ class UserResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+
+                    Action::make('login')
+                        ->label('Login to user')
+                        ->icon('heroicon-s-printer')
+                        ->url(fn (User $record) => route('superadmin.login-to-user', ['id' => $record->id])),
+                ])
+                    ->dropdown(true)
+                    ->label('Actions')
+                    ->button()
+                    ->size('sm')
+                    ->icon('fas-gears'),
             ])
             ->bulkActions([
                 // Tables\Actions\BulkActionGroup::make([

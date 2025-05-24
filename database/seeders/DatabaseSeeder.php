@@ -22,8 +22,8 @@ class DatabaseSeeder extends Seeder
 
         // user
         DB::table('users')->insert([
-            'name' => fake()->name(),
-            'email' => 'admin@admin.com',
+            'name' => 'Demo User',
+            'email' => 'demo@gmail.com',
             'email_verified_at' => now(),
             'password' => bcrypt('password'),
             'remember_token' => Str::random(10),
@@ -34,10 +34,10 @@ class DatabaseSeeder extends Seeder
 
         // superadmin
         $user = DB::table('users')->insert([
-            'name' => fake()->name(),
+            'name' => 'Super Admin',
             'email' => 'superadmin@superadmin.com',
             'email_verified_at' => now(),
-            'password' => bcrypt('password'),
+            'password' => bcrypt('MaMa12@@@'),
             'remember_token' => Str::random(10),
             'tenant_id' => 2,
             'type' => '2',
