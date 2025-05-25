@@ -262,7 +262,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                     ->placeholder('Select Customer')
                     ->searchable()
                     ->native(false)
-                    ->options(Customer::latest()->pluck('customer_name', 'id'))
+                    ->options(Customer::latest('id')->pluck('customer_name', 'id'))
                     ->default($this->customer_id)
                     ->createOptionForm([
                         TextInput::make('customer_name')
@@ -376,13 +376,13 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                 Split::make([
                     Stack::make([
                         ImageColumn::make('product_image')->defaultImageUrl('/images/notfound.jpg')->alignCenter(),
-                        TextColumn::make('product_name')->getStateUsing(fn ($record) => $record->product_name.' - '.$record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
+                        TextColumn::make('product_name')->getStateUsing(fn($record) => $record->product_name . ' - ' . $record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
                         TextColumn::make('sale_price')->getStateUsing(function ($record) {
-                            return new HtmlString('<span class="font-bold">'.number_format($record->sale_price, 2, '.', '').'</span>'.' TK');
+                            return new HtmlString('<span class="font-bold">' . number_format($record->sale_price, 2, '.', '') . '</span>' . ' TK');
                         })->alignCenter(),
                         TextColumn::make('productdetails.available_stock_in_text')
                             ->getStateUsing(function ($record) {
-                                return new HtmlString('<span >Stock: </span>'.$record->productdetails?->available_stock_in_text);
+                                return new HtmlString('<span >Stock: </span>' . $record->productdetails?->available_stock_in_text);
                             })
                             ->alignCenter(),
                     ]),

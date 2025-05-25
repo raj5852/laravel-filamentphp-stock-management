@@ -61,6 +61,7 @@ class BrandResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->query(Brand::query()->withCount('products'))
             ->columns([
                 Tables\Columns\TextColumn::make('brand_name')
                     ->searchable(),
@@ -68,6 +69,9 @@ class BrandResource extends Resource
                 Tables\Columns\ImageColumn::make('brand_logo')
                     ->defaultImageUrl(url('/images/notfound.jpg'))
                     ->extraImgAttributes(['loading' => 'lazy']),
+
+                Tables\Columns\TextColumn::make('products_count')
+                    ->label('Count Products'),
 
             ])
             ->filters([
@@ -85,7 +89,6 @@ class BrandResource extends Resource
                                 ->send();
                             $action->cancel();
                         }
-
                     }),
             ])
             ->bulkActions([
@@ -94,7 +97,6 @@ class BrandResource extends Resource
                 // ]),
             ])
             ->paginated([10, 25, 50, 100]);
-
     }
 
     public static function getRelations(): array
