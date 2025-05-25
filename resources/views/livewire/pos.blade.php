@@ -34,7 +34,7 @@
                                                     <div
                                                         class="{{ $product['unit_id'] === null ? 'flex-1 flex items-center gap-2' : 'flex-1 flex flex-col md:flex-row md:gap-2 md:items-center min-w-[70px]' }}">
                                                         <label
-                                                            class="bg-white dark:bg-transparent z-10 text-sm text-gray-700 dark:text-gray-300 absolute top-0 left-7">{{ $product['mainunit']['unit_name'] }}:</label>
+                                                            class="bg-white dark:bg-transparent  text-sm text-gray-700 dark:text-gray-300 absolute top-0 left-7">{{ $product['mainunit']['unit_name'] }}:</label>
                                                         <input type="text"
                                                             wire:model.live="products.{{ $index }}.main_unit_qty"
                                                             wire:change="updateMainQuantity({{ $index }}, $event.target.value)"

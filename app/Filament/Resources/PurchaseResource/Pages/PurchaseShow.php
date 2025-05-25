@@ -34,6 +34,8 @@ class PurchaseShow extends Page implements HasActions, HasForms
 
     protected static string $view = 'filament.resources.purchase-resource.pages.purchase-show';
 
+    protected static ?string $title = '';
+
     public function mount(int|string $record): void
     {
         $this->record = $this->resolveRecord($record);

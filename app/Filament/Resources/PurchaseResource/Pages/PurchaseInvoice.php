@@ -16,7 +16,7 @@ class PurchaseInvoice extends Page
 
     protected static string $view = 'filament.resources.purchase-resource.pages.purchase-invoice';
 
-    protected static ?string $title = 'Purchase Invoice';
+    protected static ?string $title = '';
 
     public function mount(int|string $record): void
     {

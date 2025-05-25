@@ -108,7 +108,6 @@ class ProductResource extends Resource
                                     ->send();
 
                                 return $category->id;
-
                             }),
 
                         Forms\Components\Select::make('brand_id')
@@ -154,7 +153,6 @@ class ProductResource extends Resource
                                     ->send();
 
                                 return $brand->id;
-
                             }),
 
                         Forms\Components\Select::make('unit_id')
@@ -353,6 +351,11 @@ class ProductResource extends Resource
 
                 ActionGroup::make([
                     Tables\Actions\EditAction::make(),
+                    Action::make('sell-history')
+                        ->label('Sell History')
+                        ->icon('heroicon-s-clock')
+                        // clock-rotate-left
+                        ->url(fn (Product $record) => route('filament.admin.resources.products.sell-history', ['record' => $record->id])),
                     Tables\Actions\DeleteAction::make()
                         ->before(function ($record, $action) {
 
@@ -367,6 +370,8 @@ class ProductResource extends Resource
                                 $action->cancel();
                             }
                         }),
+                    // sell-history
+
                 ])
                     ->dropdown(true)
                     ->label('Actions')
@@ -407,7 +412,6 @@ class ProductResource extends Resource
                 // ]),
             ])
             ->paginated([10, 25, 50, 100]);
-
     }
 
     public static function getRelations(): array
@@ -422,6 +426,7 @@ class ProductResource extends Resource
         return [
             'index' => Pages\ListProducts::route('/'),
             'create' => Pages\CreateProduct::route('/create'),
+            'sell-history' => Pages\Sell::route('/sell-history/{record}'),
             // 'edit' => Pages\EditProduct::route('/{record}/edit'),
         ];
     }

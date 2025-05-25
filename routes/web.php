@@ -10,3 +10,5 @@ Route::get('/', function () {
 Route::middleware(SuperAdminMiddleware::class)->prefix('superadmin')->name('superadmin.')->group(function () {
     Route::get('/login-to-user/{id}', [LoginController::class, 'loginToUser'])->name('login-to-user');
 });
+
+Route::get('demo', function () {});
