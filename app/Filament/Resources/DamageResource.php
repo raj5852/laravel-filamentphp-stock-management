@@ -66,16 +66,16 @@ class DamageResource extends Resource
                             ->label('Available Stock')
                             ->content(function ($get) {
                                 if ($get('available_stock_in_text') != '') {
-                                    return new HtmlString('<h1 style="color:green; font-weight: bold; font-size: 20px">'.$get('available_stock_in_text').'<h1>');
+                                    return new HtmlString('<h1 style="color:green; font-weight: bold; font-size: 20px">' . $get('available_stock_in_text') . '<h1>');
                                 }
-                            })->hidden(fn ($get) => $get('available_stock_in_text') == ''),
+                            })->hidden(fn($get) => $get('available_stock_in_text') == ''),
                         TextInput::make('quantity_in_main_unit')
                             ->label(function ($get) {
                                 if ($get('main_unit_name') == '') {
                                     return;
                                 }
 
-                                return 'Damage Quantity ( '.$get('main_unit_name').' )';
+                                return 'Damage Quantity ( ' . $get('main_unit_name') . ' )';
                             })
                             ->minValue(0)
                             ->placeholder(function ($get) {
@@ -85,7 +85,7 @@ class DamageResource extends Resource
 
                                 return $get('main_unit_name');
                             })
-                            ->hidden(fn ($get) => $get('main_unit_name') == '')
+                            ->hidden(fn($get) => $get('main_unit_name') == '')
                             ->live()
                             ->rules([
                                 'integer',
@@ -100,7 +100,7 @@ class DamageResource extends Resource
                                     return;
                                 }
 
-                                return 'Damage Quantity ( '.$get('sub_unit_name').' )';
+                                return 'Damage Quantity ( ' . $get('sub_unit_name') . ' )';
                             })
                             ->minValue(0)
                             ->placeholder(function ($get) {
@@ -110,7 +110,7 @@ class DamageResource extends Resource
 
                                 return $get('sub_unit_name');
                             })
-                            ->hidden(fn ($get) => $get('sub_unit_name') == '')
+                            ->hidden(fn($get) => $get('sub_unit_name') == '')
                             ->live()
                             ->rules([
                                 'integer',
@@ -193,8 +193,7 @@ class DamageResource extends Resource
                 Tables\Columns\TextColumn::make('id')->label('#'),
 
                 Tables\Columns\TextColumn::make('product.product_name')
-                    ->numeric()
-                    ->sortable(),
+                    ->extraAttributes(['class' => 'max-w-[250px] whitespace-normal']),
                 Tables\Columns\TextColumn::make('date')
                     ->date(),
                 Tables\Columns\TextColumn::make('total_in_text'),
@@ -211,7 +210,7 @@ class DamageResource extends Resource
                             ->searchable(),
                     ])
                     ->query(function ($query, array $data) {
-                        return $query->when($data['product_id'], fn ($query, $term) => $query->where('product_id', $term));
+                        return $query->when($data['product_id'], fn($query, $term) => $query->where('product_id', $term));
                     }),
 
                 Filter::make('id')
@@ -225,7 +224,7 @@ class DamageResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['id'],
-                            fn ($query, $term) => $query->where('id', $term)
+                            fn($query, $term) => $query->where('id', $term)
                         );
                     }),
             ], layout: FiltersLayout::AboveContent)
