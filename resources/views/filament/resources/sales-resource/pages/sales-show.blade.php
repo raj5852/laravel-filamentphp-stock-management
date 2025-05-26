@@ -160,7 +160,7 @@
                 </div>
 
                 <div class="mb-2" style="display: flex; justify-content: space-between">
-                    <div style="font-size: 25px">Payments</div>
+                    <div style="font-size: 25px" class="!text-black">Payments</div>
 
                     <x-filament::button class="" color="primary" tag="button"
                         wire:click="mountAction('addpayment', { id: {{ $order->id }} , amount: {{ $order->due ?: 0 }} })">

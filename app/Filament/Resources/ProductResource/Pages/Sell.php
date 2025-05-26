@@ -43,19 +43,19 @@ class Sell extends Page implements HasForms, HasTable
                     ->label('Sell Date'),
                 TextColumn::make('order.invoiceno')
                     ->getStateUsing(function ($record) {
-                        return new HtmlString('<a href=' . route('filament.admin.resources.sales.index', ['invoiceno' => $record->order->invoiceno]) . ' style="color:#33cabb">Pos#' . $record->order->invoiceno . '</a>');
+                        return new HtmlString('<a href='.route('filament.admin.resources.sales.index', ['invoiceno' => $record->order->invoiceno]).' style="color:#33cabb">Pos#'.$record->order->invoiceno.'</a>');
                     })
                     ->label('Sale#'),
                 TextColumn::make('product.product_name')
                     ->label('Name'),
 
                 TextColumn::make('rate')
-                    ->getStateUsing(fn($record) => number_format($record->rate, 2))
+                    ->getStateUsing(fn ($record) => number_format($record->rate, 2))
                     ->label('Unit Price:'),
                 TextColumn::make('total_in_text')
                     ->label('Quantity'),
                 TextColumn::make('total_rate')
-                    ->getStateUsing(fn($record) => number_format($record->total_rate, 2))
+                    ->getStateUsing(fn ($record) => number_format($record->total_rate, 2))
                     ->label('Sub Total'),
 
             ])

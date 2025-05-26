@@ -118,7 +118,7 @@
 
                 <div>
                     <div class="mb-2 " style="display: flex; justify-content: space-between">
-                        <div style="font-size: 25px">Payments</div>
+                        <div style="font-size: 25px" class="!text-black">Payments</div>
 
                         <x-filament::button class="" color="primary" tag="button"
                             wire:click="mountAction('addpayment', { id: {{ $purchase->id }} , amount: {{ $purchase->due ?: 0 }} })">
@@ -162,7 +162,7 @@
 
                 <div>
                     <div class="mb-2 " style="display: flex; justify-content: space-between">
-                        <div style="font-size: 25px">Sales</div>
+                        <div style="font-size: 25px" class="!text-black">Sales</div>
 
 
                     </div>
@@ -213,7 +213,7 @@
 
                 <div>
                     <div class="mb-2 " style="display: flex; justify-content: space-between">
-                        <div style="font-size: 25px">Damages</div>
+                        <div style="font-size: 25px" class="!text-black">Damages</div>
 
 
                     </div>
