@@ -59,8 +59,8 @@ class ProductResource extends Resource
                                 'string',
                                 'max:50',
                             ])
-                            ->readOnly(fn (string $context) => $context === 'edit')
-                            ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('tenant_id', auth()->user()->tenant_id)),
+                            ->readOnly(fn(string $context) => $context === 'edit')
+                            ->unique(ignoreRecord: true, modifyRuleUsing: fn($rule) => $rule->where('tenant_id', auth()->user()->tenant_id)),
 
                         Forms\Components\Select::make('category_id')
                             ->label('Category')
@@ -169,7 +169,7 @@ class ProductResource extends Resource
                                 }),
                                 'required',
                             ])
-                            ->hidden(fn (string $context) => $context === 'edit')
+                            ->hidden(fn(string $context) => $context === 'edit')
                             ->afterStateUpdated(function ($set) {
                                 $set('sub_unit', null);
                                 $set('first_opening_stock', null);
@@ -196,7 +196,7 @@ class ProductResource extends Resource
                             })
                             ->searchable()
                             ->reactive()
-                            ->hidden(fn (string $context) => $context === 'edit')
+                            ->hidden(fn(string $context) => $context === 'edit')
                             ->afterStateUpdated(function ($set) {
                                 $set('first_opening_stock', null);
                                 $set('second_opening_stock', null);
@@ -245,7 +245,7 @@ class ProductResource extends Resource
 
                                 ])
                                 ->numeric(),
-                        ])->hidden(fn (string $context) => $context === 'edit'),
+                        ])->hidden(fn(string $context) => $context === 'edit'),
 
                     ]),
                 ])->columnSpan(['lg' => 2]),
@@ -312,6 +312,7 @@ class ProductResource extends Resource
                     ->label('Code'),
 
                 Tables\Columns\TextColumn::make('product_name')
+                    ->extraAttributes(['class' => 'max-w-[250px] whitespace-normal'])
                     ->label('Name'),
                 Tables\Columns\TextColumn::make('category.name')
                     ->label('Category'),
@@ -323,11 +324,11 @@ class ProductResource extends Resource
 
                 Tables\Columns\TextColumn::make('sale_price')
                     ->label('Price')
-                    ->formatStateUsing(fn ($state) => number_format((float) $state, 2, '.', '')),
+                    ->formatStateUsing(fn($state) => number_format((float) $state, 2, '.', '')),
 
                 Tables\Columns\TextColumn::make('purchase_cost')
                     ->label('Cost')
-                    ->formatStateUsing(fn ($state) => number_format((float) $state, 2, '.', '')),
+                    ->formatStateUsing(fn($state) => number_format((float) $state, 2, '.', '')),
 
                 Tables\Columns\TextColumn::make('product_details')
                     ->label('Details'),
@@ -344,8 +345,8 @@ class ProductResource extends Resource
                     ->icon('fas-eye')
                     ->button()
                     ->outlined()
-                    ->modalHeading(fn ($record) => $record->product_name) // Dynamic title
-                    ->modalContent(fn ($record) => view('filament.modals.product-details', ['product' => $record->load('category', 'brand', 'productdetails')]))
+                    ->modalHeading(fn($record) => $record->product_name) // Dynamic title
+                    ->modalContent(fn($record) => view('filament.modals.product-details', ['product' => $record->load('category', 'brand', 'productdetails')]))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close'),
 
@@ -355,7 +356,7 @@ class ProductResource extends Resource
                         ->label('Sell History')
                         ->icon('heroicon-s-clock')
                         // clock-rotate-left
-                        ->url(fn (Product $record) => route('filament.admin.resources.products.sell-history', ['record' => $record->id])),
+                        ->url(fn(Product $record) => route('filament.admin.resources.products.sell-history', ['record' => $record->id])),
                     Tables\Actions\DeleteAction::make()
                         ->before(function ($record, $action) {
 
@@ -384,7 +385,7 @@ class ProductResource extends Resource
                     ->icon('fas-qrcode')
                     ->button()
                     ->outlined()
-                    ->modalContent(fn ($record) => view('filament.modals.qr-code', [
+                    ->modalContent(fn($record) => view('filament.modals.qr-code', [
                         'qrCode' => QrCode::size(200)->generate($record->product_code),
                         'record' => $record,
                     ]))
@@ -397,7 +398,7 @@ class ProductResource extends Resource
                     ->icon('fas-barcode')
                     ->button()
                     ->outlined()
-                    ->modalContent(fn ($record) => view('filament.modals.barcode', [
+                    ->modalContent(fn($record) => view('filament.modals.barcode', [
                         'record' => $record,
                         'company_name' => Setting::first()->company_name,
                     ]))

@@ -29,12 +29,13 @@
                                                 {{ $product['name'] }}</td>
 
                                             <td
-                                                class="{{ $product['unit_id'] !== null && $product['sub_unit'] !== null ? 'px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 md:w-[300px] relative' : 'px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 md:w-[200px] min-w-[50px] relative' }}">
+                                                class="{{ $product['unit_id'] !== null && $product['sub_unit'] !== null ? 'px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 md:w-[300px] ' : 'px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 md:w-[200px] min-w-[50px] ' }}">
                                                 <div class="flex items-center gap-2">
                                                     <div
-                                                        class="{{ $product['unit_id'] === null ? 'flex-1 flex items-center gap-2' : 'flex-1 flex flex-col md:flex-row md:gap-2 md:items-center min-w-[70px]' }}">
+                                                        class="relative {{ $product['unit_id'] === null ? 'flex-1 flex items-center gap-2 ' : 'flex-1 flex flex-col md:flex-row md:gap-2 md:items-center min-w-[70px]' }}">
                                                         <label
-                                                            class="bg-white dark:bg-transparent  text-sm text-gray-700 dark:text-gray-300 absolute top-0 left-7">{{ $product['mainunit']['unit_name'] }}:</label>
+                                                            class="bg-white dark:bg-transparent  text-sm text-gray-700 dark:text-gray-300 absolute"
+                                                            style="top: -10px; left: 5px">{{ $product['mainunit']['unit_name'] }}:</label>
                                                         <input type="text"
                                                             wire:model.live="products.{{ $index }}.main_unit_qty"
                                                             wire:change="updateMainQuantity({{ $index }}, $event.target.value)"
@@ -44,9 +45,9 @@
                                                     </div>
                                                     @if ($product['sub_unit'] !== null)
                                                         <div
-                                                            class="flex-1 flex flex-col md:flex-row md:gap-2 md:items-center">
-                                                            <label
-                                                                class="bg-white dark:bg-transparent text-sm text-gray-700 dark:text-gray-300 absolute top-0 left-7">{{ $product['subunit']['unit_name'] }}:</label>
+                                                            class="relative flex-1 flex flex-col md:flex-row md:gap-2 md:items-center">
+                                                            <label style="top: -10px; left: 5px"
+                                                                class="bg-white dark:bg-transparent text-sm text-gray-700 dark:text-gray-300 absolute ">{{ $product['subunit']['unit_name'] }}:</label>
                                                             <input type="text"
                                                                 wire:model.live="products.{{ $index }}.sub_unit_qty"
                                                                 wire:change="updateSubQuantity({{ $index }}, $event.target.value)"

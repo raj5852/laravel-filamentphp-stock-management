@@ -6,95 +6,115 @@ use App\Models\Supplier;
 use App\Models\Unit;
 use Illuminate\Support\Number;
 
-function getTotalStock($productId, $openingStockValue = null, $subOpeningStockValue = null)
-{
-    $mainUnitId = Product::find($productId)->unit_id;
-    $mainUnit = Unit::find($mainUnitId);
+if (!function_exists('getTotalStock')) {
+    function getTotalStock($productId, $openingStockValue = null, $subOpeningStockValue = null)
+    {
+        $mainUnitId = Product::find($productId)->unit_id;
+        $mainUnit = Unit::find($mainUnitId);
 
-    $relatedToUnit = $mainUnit->related_to_unit;
-    if ($relatedToUnit != '') {
-        $relatedByValue = $mainUnit->related_by_value;
-    } else {
-        $relatedByValue = 1;
-    }
-
-    $totalMainUnit = ($openingStockValue ?: 0) * $relatedByValue;
-
-    return $totalMainUnit + ($subOpeningStockValue ?: 0);
-}
-
-function getTotalStockInText($productId, $totalStockAmount)
-{
-    $product = Product::find($productId);
-    $mainUnitId = $product->unit_id;
-    $mainUnit = Unit::find($mainUnitId);
-
-    $relatedToUnit = $mainUnit->related_to_unit;
-    if ($relatedToUnit == '') {
-        return ($totalStockAmount ?: 0).' '.$mainUnit->unit_name;
-    } else {
-        $subUnit = Unit::find($relatedToUnit);
-
-        $relatedByValue = ($mainUnit->related_by_value ?: 0);
-
-        $getMainStock = (int) (($totalStockAmount ?: 0) / $relatedByValue);
-        $getSubStock = ($totalStockAmount ?: 0) - ($relatedByValue * $getMainStock);
-
-        if ($product['sub_unit'] == null) {
-            return $getMainStock.' '.$mainUnit->unit_name;
+        $relatedToUnit = $mainUnit->related_to_unit;
+        if ($relatedToUnit != '') {
+            $relatedByValue = $mainUnit->related_by_value;
+        } else {
+            $relatedByValue = 1;
         }
 
-        return $getMainStock.' '.$mainUnit->unit_name.'  '.$getSubStock.' '.$subUnit->unit_name;
+        $totalMainUnit = ($openingStockValue ?: 0) * $relatedByValue;
+
+        return $totalMainUnit + ($subOpeningStockValue ?: 0);
     }
 }
 
-function singleUnitSalePrice($productId)
-{
-    $product = Product::find($productId);
-    $salePrice = $product->sale_price;
+if (!function_exists('getTotalStockInText')) {
+    function getTotalStockInText($productId, $totalStockAmount)
+    {
+        $product = Product::find($productId);
+        $mainUnitId = $product->unit_id;
+        $mainUnit = Unit::find($mainUnitId);
 
-    if ($product->sub_unit == '') {
-        return $salePrice;
-    } else {
-        $unit = Unit::find($product->unit_id);
-        $singleUnitSalePrice = $salePrice / $unit->related_by_value;
+        $relatedToUnit = $mainUnit->related_to_unit;
+        if ($relatedToUnit == '') {
+            return ($totalStockAmount ?: 0) . ' ' . $mainUnit->unit_name;
+        } else {
+            $subUnit = Unit::find($relatedToUnit);
 
-        return $singleUnitSalePrice;
+            $relatedByValue = ($mainUnit->related_by_value ?: 0);
+
+            $getMainStock = (int) (($totalStockAmount ?: 0) / $relatedByValue);
+            $getSubStock = ($totalStockAmount ?: 0) - ($relatedByValue * $getMainStock);
+
+            if ($product['sub_unit'] == null) {
+                return $getMainStock . ' ' . $mainUnit->unit_name;
+            }
+
+            return $getMainStock . ' ' . $mainUnit->unit_name . '  ' . $getSubStock . ' ' . $subUnit->unit_name;
+        }
     }
 }
 
-function singleUnitPurchasePrice($productId)
-{
-    $product = Product::find($productId);
-    $purchasePrice = $product->purchase_cost;
+if (!function_exists('singleUnitSalePrice')) {
 
-    if ($product->sub_unit == '') {
-        return $purchasePrice;
-    } else {
-        $unit = Unit::find($product->unit_id);
-        $singleUnitPurchasePrice = $purchasePrice / $unit->related_by_value;
 
-        return $singleUnitPurchasePrice;
+    function singleUnitSalePrice($productId)
+    {
+        $product = Product::find($productId);
+        $salePrice = $product->sale_price;
+
+        if ($product->sub_unit == '') {
+            return $salePrice;
+        } else {
+            $unit = Unit::find($product->unit_id);
+            $singleUnitSalePrice = $salePrice / $unit->related_by_value;
+
+            return $singleUnitSalePrice;
+        }
     }
 }
 
-function supplierDue($id)
-{
-    $supplier = Supplier::query()->withSum('purchases', 'due')->find($id);
+if (!function_exists('singleUnitPurchasePrice')) {
 
-    return $supplier->purchases_sum_due ?? 0;
+    function singleUnitPurchasePrice($productId)
+    {
+        $product = Product::find($productId);
+        $purchasePrice = $product->purchase_cost;
+
+        if ($product->sub_unit == '') {
+            return $purchasePrice;
+        } else {
+            $unit = Unit::find($product->unit_id);
+            $singleUnitPurchasePrice = $purchasePrice / $unit->related_by_value;
+
+            return $singleUnitPurchasePrice;
+        }
+    }
 }
 
-function customerDue($id)
-{
-    $customer = Customer::query()->withSum('orders', 'due')->find($id);
+if (!function_exists('supplierDue')) {
 
-    return $customer->orders_sum_due ?? 0;
+
+    function supplierDue($id)
+    {
+        $supplier = Supplier::query()->withSum('purchases', 'due')->find($id);
+
+        return $supplier->purchases_sum_due ?? 0;
+    }
 }
 
-function numberToBanglaWord($num = 0)
-{
-    return Number::spell($num);
+if (!function_exists('customerDue')) {
+
+
+    function customerDue($id)
+    {
+        $customer = Customer::query()->withSum('orders', 'due')->find($id);
+
+        return $customer->orders_sum_due ?? 0;
+    }
 }
 
-function getAllCustomers() {}
+if (!function_exists('numberToBanglaWord')) {
+
+    function numberToBanglaWord($num = 0)
+    {
+        return Number::spell($num);
+    }
+}
