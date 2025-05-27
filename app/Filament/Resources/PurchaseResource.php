@@ -50,7 +50,7 @@ class PurchaseResource extends Resource
                 Tables\Actions\Action::make('Purchase')
                     ->label('Add Purchase')
                     ->icon('heroicon-o-plus')
-                    ->url(fn(): string => route('filament.admin.resources.purchases.add-purchase')),
+                    ->url(fn (): string => route('filament.admin.resources.purchases.add-purchase')),
             ])
             ->query(Purchase::query()->with([
                 'supplier',
@@ -73,14 +73,14 @@ class PurchaseResource extends Resource
                         })->toArray();
 
                         // Format as a list (ul > li)
-                        return '<ul class="list-disc pl-5 space-y-2">' . implode('', array_map(fn($item) => "<li class='max-w-[300px] whitespace-normal '>{$item}</li>", $items)) . '</ul>';
+                        return '<ul class="list-disc pl-5 space-y-2">'.implode('', array_map(fn ($item) => "<li class='max-w-[300px] whitespace-normal '>{$item}</li>", $items)).'</ul>';
                     })
                     ->html(),
 
                 Tables\Columns\TextColumn::make('payable')
-                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', '') . ' Tk'),
-                Tables\Columns\TextColumn::make('paid')->formatStateUsing(fn($state) => number_format((float) $state, 2, '.', '') . ' Tk'),
-                Tables\Columns\TextColumn::make('due')->formatStateUsing(fn($state) => number_format((float) $state, 2, '.', '') . ' Tk'),
+                    ->formatStateUsing(fn ($state) => number_format($state, 2, '.', '').' Tk'),
+                Tables\Columns\TextColumn::make('paid')->formatStateUsing(fn ($state) => number_format((float) $state, 2, '.', '').' Tk'),
+                Tables\Columns\TextColumn::make('due')->formatStateUsing(fn ($state) => number_format((float) $state, 2, '.', '').' Tk'),
 
             ])
             ->filters([
@@ -97,7 +97,7 @@ class PurchaseResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['billno'],
-                            fn($query, $term) => $query->where('billno', $term)
+                            fn ($query, $term) => $query->where('billno', $term)
                         );
                     }),
 
@@ -112,7 +112,7 @@ class PurchaseResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['start_date'],
-                            fn($query, $term) => $query->where('purchase_date', '>=', $term)
+                            fn ($query, $term) => $query->where('purchase_date', '>=', $term)
                         );
                     }),
                 Filter::make('end_date')
@@ -126,7 +126,7 @@ class PurchaseResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['end_date'],
-                            fn($query, $term) => $query->where('purchase_date', '<=', $term)
+                            fn ($query, $term) => $query->where('purchase_date', '<=', $term)
                         );
                     }),
 
@@ -148,7 +148,7 @@ class PurchaseResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['product_id'],
-                            fn($query, $term) => $query->whereHas('purchaseItems', function ($query) use ($term) {
+                            fn ($query, $term) => $query->whereHas('purchaseItems', function ($query) use ($term) {
                                 $query->where('product_id', $term);
                             })
                         );
@@ -161,11 +161,11 @@ class PurchaseResource extends Resource
                     Action::make('Invoice')
                         ->label('Invoice')
                         ->icon('heroicon-s-printer')
-                        ->url(fn(Purchase $record) => route('filament.admin.resources.purchases.purchase-invoice', ['record' => $record->id])),
+                        ->url(fn (Purchase $record) => route('filament.admin.resources.purchases.purchase-invoice', ['record' => $record->id])),
                     Action::make('Show')
                         ->label('Show')
                         ->icon('heroicon-s-computer-desktop')
-                        ->url(fn(Purchase $record) => route('filament.admin.resources.purchases.purchase-show', ['record' => $record->id])),
+                        ->url(fn (Purchase $record) => route('filament.admin.resources.purchases.purchase-show', ['record' => $record->id])),
 
                     Action::make('add_payment')
                         ->label('Add Payment')
@@ -194,7 +194,7 @@ class PurchaseResource extends Resource
                                     'min:0',
                                     'max:9999999999',
                                 ])
-                                ->default(fn(Purchase $record) => $record->due)
+                                ->default(fn (Purchase $record) => $record->due)
                                 ->required(),
                             Textarea::make('note')
                                 ->label('Note'),

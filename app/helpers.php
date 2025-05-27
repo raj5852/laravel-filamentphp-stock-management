@@ -6,7 +6,7 @@ use App\Models\Supplier;
 use App\Models\Unit;
 use Illuminate\Support\Number;
 
-if (!function_exists('getTotalStock')) {
+if (! function_exists('getTotalStock')) {
     function getTotalStock($productId, $openingStockValue = null, $subOpeningStockValue = null)
     {
         $mainUnitId = Product::find($productId)->unit_id;
@@ -25,7 +25,7 @@ if (!function_exists('getTotalStock')) {
     }
 }
 
-if (!function_exists('getTotalStockInText')) {
+if (! function_exists('getTotalStockInText')) {
     function getTotalStockInText($productId, $totalStockAmount)
     {
         $product = Product::find($productId);
@@ -34,7 +34,7 @@ if (!function_exists('getTotalStockInText')) {
 
         $relatedToUnit = $mainUnit->related_to_unit;
         if ($relatedToUnit == '') {
-            return ($totalStockAmount ?: 0) . ' ' . $mainUnit->unit_name;
+            return ($totalStockAmount ?: 0).' '.$mainUnit->unit_name;
         } else {
             $subUnit = Unit::find($relatedToUnit);
 
@@ -44,16 +44,15 @@ if (!function_exists('getTotalStockInText')) {
             $getSubStock = ($totalStockAmount ?: 0) - ($relatedByValue * $getMainStock);
 
             if ($product['sub_unit'] == null) {
-                return $getMainStock . ' ' . $mainUnit->unit_name;
+                return $getMainStock.' '.$mainUnit->unit_name;
             }
 
-            return $getMainStock . ' ' . $mainUnit->unit_name . '  ' . $getSubStock . ' ' . $subUnit->unit_name;
+            return $getMainStock.' '.$mainUnit->unit_name.'  '.$getSubStock.' '.$subUnit->unit_name;
         }
     }
 }
 
-if (!function_exists('singleUnitSalePrice')) {
-
+if (! function_exists('singleUnitSalePrice')) {
 
     function singleUnitSalePrice($productId)
     {
@@ -71,7 +70,7 @@ if (!function_exists('singleUnitSalePrice')) {
     }
 }
 
-if (!function_exists('singleUnitPurchasePrice')) {
+if (! function_exists('singleUnitPurchasePrice')) {
 
     function singleUnitPurchasePrice($productId)
     {
@@ -89,8 +88,7 @@ if (!function_exists('singleUnitPurchasePrice')) {
     }
 }
 
-if (!function_exists('supplierDue')) {
-
+if (! function_exists('supplierDue')) {
 
     function supplierDue($id)
     {
@@ -100,8 +98,7 @@ if (!function_exists('supplierDue')) {
     }
 }
 
-if (!function_exists('customerDue')) {
-
+if (! function_exists('customerDue')) {
 
     function customerDue($id)
     {
@@ -111,7 +108,7 @@ if (!function_exists('customerDue')) {
     }
 }
 
-if (!function_exists('numberToBanglaWord')) {
+if (! function_exists('numberToBanglaWord')) {
 
     function numberToBanglaWord($num = 0)
     {

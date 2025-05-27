@@ -39,16 +39,16 @@ class Stock extends Page implements HasTable
                 TextColumn::make('product_name')
                     ->extraAttributes(['class' => 'max-w-[250px] whitespace-normal'])
                     ->label('Product')
-                    ->getStateUsing(fn($record) => $record->product_name . ' - ' . $record->product_code . ''),
+                    ->getStateUsing(fn ($record) => $record->product_name.' - '.$record->product_code.''),
                 TextColumn::make('category.name')
                     ->label('Category'),
 
                 TextColumn::make('sale_price')
                     ->label('Price')
-                    ->getStateUsing(fn($record) => number_format($record->sale_price, 2, '.', '')),
+                    ->getStateUsing(fn ($record) => number_format($record->sale_price, 2, '.', '')),
                 TextColumn::make('purchase_cost')
                     ->label('Cost')
-                    ->getStateUsing(fn($record) => number_format($record->purchase_cost, 2, '.', '')),
+                    ->getStateUsing(fn ($record) => number_format($record->purchase_cost, 2, '.', '')),
                 TextColumn::make('productdetails.purchased_in_text')
                     ->label('Purchased'),
 
@@ -64,13 +64,13 @@ class Stock extends Page implements HasTable
                     ->getStateUsing(function ($record) {
                         $val = ($record->productdetails?->single_unit_sale_price ?: 0) * ($record->productdetails?->available_stock ?: 0);
 
-                        return number_format($val, 2, '.', '') . ' ' . 'Tk';
+                        return number_format($val, 2, '.', '').' '.'Tk';
                     }),
                 TextColumn::make('purchase_value')
                     ->getStateUsing(function ($record) {
                         $val = ($record->productdetails?->single_unit_purchase_price ?: 0) * ($record->productdetails?->available_stock ?: 0);
 
-                        return number_format($val, 2, '.', '') . ' ' . 'Tk';
+                        return number_format($val, 2, '.', '').' '.'Tk';
                     }),
 
             ])
@@ -93,7 +93,7 @@ class Stock extends Page implements HasTable
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['product_code'],
-                            fn($query, $term) => $query->where('product_code', $term)
+                            fn ($query, $term) => $query->where('product_code', $term)
                         );
                     }),
 
@@ -108,7 +108,7 @@ class Stock extends Page implements HasTable
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['product_name'],
-                            fn($query, $term) => $query->where('product_name', 'like', '%' . $term . '%')
+                            fn ($query, $term) => $query->where('product_name', 'like', '%'.$term.'%')
                         );
                     }),
 
