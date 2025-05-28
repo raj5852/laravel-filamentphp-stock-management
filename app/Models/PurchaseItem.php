@@ -32,7 +32,7 @@ class PurchaseItem extends Model
         return $this->belongsTo(Product::class);
     }
 
-    function purchase()
+    public function purchase()
     {
         return $this->belongsTo(Purchase::class);
     }

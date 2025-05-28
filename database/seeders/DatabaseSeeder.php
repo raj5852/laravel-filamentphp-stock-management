@@ -139,6 +139,7 @@ class DatabaseSeeder extends Seeder
 
         DB::table('products')->where('id', 1)->update([
             'total_purchase_cost' => $single_unit_purchase_price * $qty,
+            'total_opening_stock' => $qty,
         ]);
 
         // customer

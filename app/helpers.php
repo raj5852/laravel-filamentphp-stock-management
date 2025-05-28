@@ -52,6 +52,32 @@ if (! function_exists('getTotalStockInText')) {
     }
 }
 
+if (! function_exists('getTotalStockInTextWithoutModal')) {
+    function getTotalStockInTextWithoutModal($productUnitSubUnit, $totalStockAmount)
+    {
+        $product = $productUnitSubUnit;
+        $mainUnit = $product->unit;
+
+        $relatedToUnit = $mainUnit->related_to_unit;
+        if ($relatedToUnit == '') {
+            return ($totalStockAmount ?: 0).' '.$mainUnit->unit_name;
+        } else {
+            $subUnit = $product->subunit;
+
+            $relatedByValue = ($mainUnit->related_by_value ?: 0);
+
+            $getMainStock = (int) (($totalStockAmount ?: 0) / $relatedByValue);
+            $getSubStock = ($totalStockAmount ?: 0) - ($relatedByValue * $getMainStock);
+
+            if ($product['sub_unit'] == null) {
+                return $getMainStock.' '.$mainUnit->unit_name;
+            }
+
+            return $getMainStock.' '.$mainUnit->unit_name.'  '.$getSubStock.' '.$subUnit->unit_name;
+        }
+    }
+}
+
 if (! function_exists('singleUnitSalePrice')) {
 
     function singleUnitSalePrice($productId)

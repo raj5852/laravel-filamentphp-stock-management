@@ -90,6 +90,7 @@ class PurchaseResource extends Resource
                     ->form([
                         TextInput::make('billno')
                             ->label('Bill No')
+                            ->default(request('billno'))
                             ->autocomplete(false)
                             ->placeholder('Bill Number'),
 

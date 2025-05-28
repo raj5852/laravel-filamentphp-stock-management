@@ -55,6 +55,7 @@ class Product extends Model
             ]);
 
             $model->total_purchase_cost = $single_unit_purchase_price * $qty;
+            $model->total_opening_stock = $qty;
             $model->save();
         });
 
@@ -69,7 +70,6 @@ class Product extends Model
                     Storage::disk('public')->delete($originalImage);
                 }
             }
-
         });
 
         static::updated(function ($model) {
@@ -85,7 +85,6 @@ class Product extends Model
                 Storage::disk('public')->delete($product->product_image ?? '');
             }
         });
-
     }
 
     public function category()
@@ -100,7 +99,9 @@ class Product extends Model
 
     public function productdetails()
     {
-        return $this->hasOne(ProductDetail::class, 'product_id')->withDefault([]);
+        return $this->hasOne(ProductDetail::class, 'product_id')->withDefault([
+            'sold' => 0,
+        ]);
     }
 
     public function unit()
