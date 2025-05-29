@@ -4,7 +4,6 @@ namespace App\Filament\Widgets;
 
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
 use App\Models\Purchase;
 use EightyNine\FilamentAdvancedWidget\AdvancedStatsOverviewWidget\Stat;
 // use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -27,14 +26,11 @@ class CurrentMonthOverview extends BaseWidget
         $soldInCurrentMonth = Order::query()->whereBetween('order_date', [$startOfMonth, $endOfMonth])->sum('receivable');
 
         $purchasedInCurrentMonth = Purchase::query()->whereBetween('purchase_date', [$startOfMonth, $endOfMonth])->sum('payable');
-
         $current_month_sold_purchase_cost = OrderItem::query()
             ->whereHas('order', function ($query) use ($startOfMonth, $endOfMonth) {
                 $query->whereBetween('order_date', [$startOfMonth, $endOfMonth]);
             })
             ->sum('purchase_cost');
-
-        $purchaseInProduct = Product::query()->whereBetween('created_at', [$startOfMonth, $endOfMonth])->sum('total_purchase_cost');
 
         return [
             Stat::make('Sold in '.$currentMonthYear, 'TK '.number_format($soldInCurrentMonth, 1))
@@ -42,7 +38,7 @@ class CurrentMonthOverview extends BaseWidget
                 ->iconBackgroundColor('success')
                 ->descriptionColor('success')
                 ->iconColor('warning'),
-            Stat::make('Purchased - in '.$currentMonthYear, 'TK '.number_format($purchasedInCurrentMonth + $purchaseInProduct, 1))
+            Stat::make('Purchased - in '.$currentMonthYear, 'TK '.number_format($purchasedInCurrentMonth, 1))
                 ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')
                 ->descriptionColor('success')

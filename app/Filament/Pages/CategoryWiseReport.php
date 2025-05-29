@@ -45,8 +45,6 @@ class CategoryWiseReport extends Page implements HasForms, HasTable
                         $dateEnd = $this->tableFilters['date_end']['date_end'];
                     }
 
-                    // dd($this?->tableFilters);
-
                     return Category::query()
 
                         // Total Sales Quantity
@@ -57,16 +55,6 @@ class CategoryWiseReport extends Page implements HasForms, HasTable
                                 });
                             }
                         }], 'total_qty')
-
-                        // purchase quantity
-                        ->withSum(['products as total_opening_stock' => function ($query) use ($dateForm, $dateEnd) {
-                            if (! empty($dateForm) && ! empty($dateEnd)) {
-                                $query->whereBetween('created_at', [
-                                    \Carbon\Carbon::parse($dateForm)->startOfDay(),
-                                    \Carbon\Carbon::parse($dateEnd)->endOfDay(),
-                                ]);
-                            }
-                        }], 'total_opening_stock')
 
                         // purchase quantity
                         ->withSum(['purchaseItems as purchase_quantity' => function ($query) use ($dateForm, $dateEnd) {
@@ -93,16 +81,7 @@ class CategoryWiseReport extends Page implements HasForms, HasTable
                                     $query->whereBetween('purchase_date', [$dateForm, $dateEnd]);
                                 });
                             }
-                        }], 'total_rate')
-                        // Total Purchase Amount
-                        ->withSum(['products as product_purchase_amount' => function ($query) use ($dateForm, $dateEnd) {
-                            if (! empty($dateForm) && ! empty($dateEnd)) {
-                                $query->whereBetween('created_at', [
-                                    \Carbon\Carbon::parse($dateForm)->startOfDay(),
-                                    \Carbon\Carbon::parse($dateEnd)->endOfDay(),
-                                ]);
-                            }
-                        }], 'total_purchase_cost');
+                        }], 'total_rate');
                 }
 
             )
@@ -112,12 +91,14 @@ class CategoryWiseReport extends Page implements HasForms, HasTable
                 TextColumn::make('total_sales_quantity')
                     ->getStateUsing(fn ($record) => $record->total_sales_quantity ?: 0)
                     ->label('Total Sales Quantity'),
-                TextColumn::make('total_opening_stock')
-                    ->getStateUsing(fn ($record) => ($record->total_opening_stock ?: 0) + ($record->purchase_quantity ?: 0))
+
+                TextColumn::make('purchase_quantity')
+                    ->getStateUsing(fn ($record) => ($record->purchase_quantity ?: 0))
                     ->label('Total Purchase Quantity'),
+
                 TextColumn::make('total_sales_amount')->getStateUsing(fn ($record) => number_format($record->total_sales_amount, 2).' Tk')->label('Total Sales Amount'),
-                TextColumn::make('purchase_amount')->getStateUsing(fn ($record) => number_format(($record->purchase_amount ?: 0) + ($record->product_purchase_amount ?: 0), 2).' Tk')->label('Total Purchase Amount'),
-                TextColumn::make('product_purchase_amount')->label('Profit')->getStateUsing(fn ($record) => number_format($record->total_sales_amount - (($record->purchase_amount ?: 0) + ($record->product_purchase_amount ?: 0)), 2)),
+                TextColumn::make('purchase_amount')->getStateUsing(fn ($record) => number_format(($record->purchase_amount ?: 0), 2).' Tk')->label('Total Purchase Amount'),
+                TextColumn::make('id')->label('Profit')->getStateUsing(fn ($record) => number_format($record->total_sales_amount - (($record->purchase_amount ?: 0)), 2)),
 
             ])
             ->filters([
@@ -140,9 +121,9 @@ class CategoryWiseReport extends Page implements HasForms, HasTable
                     ->label('')
                     ->form([
                         Select::make('brand_id')
-                            ->label('Category')
+                            ->label('Brand')
                             ->options(Brand::query()->pluck('brand_name', 'id'))
-                            ->placeholder('Select Category')
+                            ->placeholder('Select Brand')
                             ->searchable(),
                     ])
                     ->query(function ($query, array $data) {
@@ -171,31 +152,6 @@ class CategoryWiseReport extends Page implements HasForms, HasTable
                             ->native(false)
                             ->placeholder('End Date'),
                     ]),
-                // ->query(function ($query, array $data) {
-                //     return $query->when(
-                //         $data['start_date'],
-                //         fn($query, $term) => $query->whereHas('products', fn($query) => $query->where('created_at', '>=', $term))
-
-                //         // ->whereHas(
-                //         //         'purchase',
-                //         //         fn($query) => $query->where('purchase_date', '>=', $term)
-                //         //     )
-                //     );
-                // }),
-                // Filter::make('end_date')
-                //     ->label('')
-                //     ->form([
-                //         DatePicker::make('end_date')
-                //             ->label('End Date')
-                //             ->native(false)
-                //             ->placeholder('End Date'),
-                //     ])
-                //     ->query(function ($query, array $data) {
-                //         return $query->when(
-                //             $data['end_date'],
-                //             fn($query, $term) => $query->whereHas('purchase', fn($query) => $query->where('purchase_date', '<=', $term))
-                //         );
-                //     }),
 
             ], layout: FiltersLayout::AboveContent)
             ->actions([

@@ -75,7 +75,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
             Card::make([
                 Select::make('supplier_id')
                     ->label('Supplier')
-                    ->options(Supplier::query()->pluck('supplier_name', 'id'))
+                    ->options(Supplier::query()->where('is_default', '!=', 1)->pluck('supplier_name', 'id'))
                     ->searchable()
                     ->live()
                     ->rules([

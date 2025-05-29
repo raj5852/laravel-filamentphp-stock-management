@@ -31,11 +31,13 @@ class TopProduct extends Page implements HasForms, HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query(Product::withoutGlobalScope(TenantScope::class)
-                ->join('product_details', 'products.id', '=', 'product_details.product_id')
-                ->select('products.*', 'product_details.sold_in_text')
-                ->where('products.tenant_id', auth()->id())
-                ->orderBy('product_details.sold', 'desc'))
+            ->query(
+                Product::withoutGlobalScope(TenantScope::class)
+                    ->join('product_details', 'products.id', '=', 'product_details.product_id')
+                    ->select('products.*', 'product_details.sold_in_text')
+                    ->where('products.tenant_id', auth()->id())
+                    ->orderBy('product_details.sold', 'desc')
+            )
             ->columns([
 
                 TextColumn::make('product_name'),

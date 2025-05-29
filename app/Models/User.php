@@ -120,6 +120,15 @@ class User extends Authenticatable implements FilamentUser
                     'is_default' => 1,
                 ]);
 
+                DB::table('suppliers')->insert([
+                    'supplier_name' => 'Default Supplier',
+                    'email' => 'supplier@supplier.com',
+                    'phone' => '0000000000',
+                    'address' => 'Default Address',
+                    'tenant_id' => $user->tenant_id,
+                    'is_default' => 1,
+                ]);
+
                 DB::commit();
             } catch (\Throwable $th) {
                 DB::rollBack();

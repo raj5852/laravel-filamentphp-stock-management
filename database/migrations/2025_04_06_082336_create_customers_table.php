@@ -25,7 +25,7 @@ return new class extends Migration
             $table->foreignId('tenant_id')->nullable();
             $table->foreignId('created_by')->nullable();
             $table->foreignId('updated_by')->nullable();
-            $table->integer('is_default')->default(0);
+            $table->boolean('is_default')->default(0);
             $table->timestamps();
         });
     }

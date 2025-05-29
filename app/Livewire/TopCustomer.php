@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Models\Customer;
-use App\Models\Product;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -56,12 +55,13 @@ class TopCustomer extends Component implements HasForms
         $datas = Customer::query()
             ->where('is_default', '!=', 1)
             ->withSum(['orders as total_sell' => function ($query) use ($startOfMonth, $endOfMonth) {
-                if (!empty($startOfMonth) && !empty($endOfMonth)) {
+                if (! empty($startOfMonth) && ! empty($endOfMonth)) {
                     $query->whereBetween('order_date', [$startOfMonth, $endOfMonth]);
                 }
             }], 'receivable')
             ->orderBy('total_sell', 'desc')
             ->get();
+
         return view('livewire.top-customer', compact('datas'));
     }
 }

@@ -2,7 +2,12 @@
 
 use App\Http\Controllers\SuperAdmin\LoginController;
 use App\Http\Middleware\SuperAdminMiddleware;
-use App\Models\Customer;
+use App\Models\History;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\Purchase;
+use App\Models\Supplier;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -13,9 +18,26 @@ Route::middleware(SuperAdminMiddleware::class)->prefix('superadmin')->name('supe
 });
 
 Route::get('demo', function () {
-    return Customer::query()
-        ->where('is_default', '!=', 1)
-        ->withSum(['orders as total_sell'], 'receivable')
-        ->orderBy('total_sell', 'desc')
-        ->get();
+
+    // return  $top_sale_product =  Product::query()
+    //     ->withSum('orderitems as sold', 'total_qty')
+    //     ->withCount('orderitems as no_of_sales')
+    //     ->withSum('orderitems as sale_amount', 'total_rate')
+    //     ->orderBy('sale_amount', 'desc')
+    //     ->having('sale_amount', '>', 0)
+    //     ->get();
+
+
+
+    // return History::query()
+    //     ->where('supplier_id', '!=', '')
+    //     ->withWhereHas('account')
+    //     ->get();
+
+
+
+    // return History::query()
+    //     ->where('customer_id', '!=', '')
+    //     ->withWhereHas('account')
+    //     ->get();
 });

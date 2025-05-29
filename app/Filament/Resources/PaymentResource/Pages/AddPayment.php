@@ -113,7 +113,7 @@ class AddPayment extends Page implements HasForms
                         ->live()
                         ->options(function ($get) {
                             if ($get('account_type') == 'supplier') {
-                                return Supplier::query()->latest()->pluck('supplier_name', 'id');
+                                return Supplier::query()->where('is_default', '!=', 1)->latest()->pluck('supplier_name', 'id');
                             } elseif ($get('account_type') == 'customer') {
                                 return Customer::query()->where('is_default', '!=', 1)->latest()->pluck('customer_name', 'id');
                             }
@@ -171,11 +171,11 @@ class AddPayment extends Page implements HasForms
                                 }
 
                                 return new HtmlString('
-                                    <p><b>Name:  '.$customer->customer_name.'</b> </p>
-                                    <p><b>Due Invoice Count:  '.$dueInvoiceCount.'</b></p>
-                                    <p><b>Total Invoice Due:  '.$totalInvoiceDue.' TK</b> *** বিক্রয় বাবদ পাওনা আছে '.$totalInvoiceDue.' Tk *** </p>
-                                    <p><b>Wallet Balance: '.number_format(abs($customer->wallet), 1).' TK</b> '.$message.' '.abs($customer->wallet).' Tk **** </p>
-                                    <p><b>Total Due: '.$balance + $totalInvoiceDue.' TK </b> </p>
+                                    <p><b>Name:  ' . $customer->customer_name . '</b> </p>
+                                    <p><b>Due Invoice Count:  ' . $dueInvoiceCount . '</b></p>
+                                    <p><b>Total Invoice Due:  ' . $totalInvoiceDue . ' TK</b> *** বিক্রয় বাবদ পাওনা আছে ' . $totalInvoiceDue . ' Tk *** </p>
+                                    <p><b>Wallet Balance: ' . number_format(abs($customer->wallet), 1) . ' TK</b> ' . $message . ' ' . abs($customer->wallet) . ' Tk **** </p>
+                                    <p><b>Total Due: ' . $balance + $totalInvoiceDue . ' TK </b> </p>
                                 ');
                             }
 
@@ -202,11 +202,11 @@ class AddPayment extends Page implements HasForms
                                 }
 
                                 return new HtmlString('
-                                <p><b>Name:  '.$supplier->supplier_name.'</b> </p>
-                                <p><b>Due Invoice Count:  '.$dueInvoiceCount.'</b></p>
-                                <p><b>Total Invoice Due:  '.$totalInvoiceDue.' TK</b> *** ক্রয় বাবদ দেনা আছে '.$totalInvoiceDue.' Tk *** </p>
-                                <p><b>Wallet Balance: '.number_format(abs($supplier->wallet), 1).' TK</b> '.$message.' '.abs($supplier->wallet).' Tk **** </p>
-                                <p><b>Total Due: '.number_format($balance + $totalInvoiceDue, 2).' TK </b> </p>
+                                <p><b>Name:  ' . $supplier->supplier_name . '</b> </p>
+                                <p><b>Due Invoice Count:  ' . $dueInvoiceCount . '</b></p>
+                                <p><b>Total Invoice Due:  ' . $totalInvoiceDue . ' TK</b> *** ক্রয় বাবদ দেনা আছে ' . $totalInvoiceDue . ' Tk *** </p>
+                                <p><b>Wallet Balance: ' . number_format(abs($supplier->wallet), 1) . ' TK</b> ' . $message . ' ' . abs($supplier->wallet) . ' Tk **** </p>
+                                <p><b>Total Due: ' . number_format($balance + $totalInvoiceDue, 2) . ' TK </b> </p>
                             ');
                             }
                         }),

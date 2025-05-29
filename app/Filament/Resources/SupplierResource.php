@@ -88,7 +88,7 @@ class SupplierResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(Supplier::query()->latest()->withSum('purchases', 'payable')->withSum('purchases', 'paid')->withSum('purchases', 'due'))
+            ->query(Supplier::query()->where('is_default', '!=', 1)->latest()->withSum('purchases', 'payable')->withSum('purchases', 'paid')->withSum('purchases', 'due'))
             ->columns([
                 Tables\Columns\TextColumn::make('supplier_name')
                     ->label('Name'),
@@ -125,7 +125,6 @@ class SupplierResource extends Resource
                         }
 
                         return new HtmlString('<span class="text-success"> <b>'.number_format(abs($record->wallet), 1).' TK </b> </span> <br>'.$message);
-
                     })
                     ->searchable(),
 
@@ -138,11 +137,9 @@ class SupplierResource extends Resource
                             $balance = abs($record->wallet);
                         } else {
                             $balance = 0;
-
                         }
 
                         return number_format(abs($balance) + $record->purchases_sum_due ?: 0, 2).' TK';
-
                     }),
             ])
             ->filters([

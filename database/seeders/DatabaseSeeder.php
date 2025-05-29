@@ -50,11 +50,21 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => 1,
             'is_default' => 1,
         ]);
-
+        // walk in customer
         DB::table('customers')->insert([
             'customer_name' => 'Walk-in Customer',
             'email' => 'customer@customer.com',
             'phone' => '0000000000',
+            'tenant_id' => 1,
+            'is_default' => 1,
+        ]);
+
+        // default supplier
+        DB::table('suppliers')->insert([
+            'supplier_name' => 'Default Supplier',
+            'email' => 'supplier@supplier.com',
+            'phone' => '0000000000',
+            'address' => 'Default Address',
             'tenant_id' => 1,
             'is_default' => 1,
         ]);
@@ -140,6 +150,36 @@ class DatabaseSeeder extends Seeder
         DB::table('products')->where('id', 1)->update([
             'total_purchase_cost' => $single_unit_purchase_price * $qty,
             'total_opening_stock' => $qty,
+        ]);
+
+        DB::table('purchases')->insert([
+            'billno' => 1,
+            'supplier_id' => 1,
+            'purchase_date' => today(),
+            'payable' => $single_unit_purchase_price * $qty,
+            'paid' => $single_unit_purchase_price * $qty,
+            'due' => 0,
+            'note' => '',
+            'is_purchase' => 0,
+            'tenant_id' => 1,
+            'created_by' => 1,
+            'created_at' => now(),
+
+        ]);
+
+        DB::table('purchase_items')->insert([
+            'purchase_id' => 1,
+            'product_id' => $model->id,
+            'rate' => 11,
+            'total_rate' => 605,
+            'main_unit_qty' => 55,
+            // 'sub_unit_qty' => $model->sub_unit_qty,
+            'total_qty' => 55,
+            'total_in_text' => $qty_in_text,
+            'available_qty' => $qty,
+            'tenant_id' => 1,
+            'created_by' => 1,
+            'created_at' => now(),
         ]);
 
         // customer

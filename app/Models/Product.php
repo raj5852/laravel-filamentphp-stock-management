@@ -57,6 +57,34 @@ class Product extends Model
             $model->total_purchase_cost = $single_unit_purchase_price * $qty;
             $model->total_opening_stock = $qty;
             $model->save();
+
+            if ($model->total_opening_stock > 0) {
+
+                $supplier = Supplier::where('is_default', 1)->first();
+                $billno = Purchase::count() + 1;
+
+                $purchase = Purchase::create([
+                    'billno' => $billno,
+                    'supplier_id' => $supplier->id,
+                    'purchase_date' => today(),
+                    'payable' => $model->total_purchase_cost,
+                    'paid' => $model->total_purchase_cost,
+                    'due' => 0,
+                    'note' => '',
+                    'is_purchase' => 0,
+                ]);
+
+                $purchase->purchaseitems()->create([
+                    'product_id' => $model->id,
+                    'rate' => $model->purchase_cost ?: 0,
+                    'total_rate' => $model->total_purchase_cost ?: 0,
+                    'main_unit_qty' => $model->main_unit_qty,
+                    'sub_unit_qty' => $model->sub_unit_qty,
+                    'total_qty' => $model->total_opening_stock,
+                    'total_in_text' => $qty_in_text,
+                    'available_qty' => $qty,
+                ]);
+            }
         });
 
         static::updating(function ($model) {

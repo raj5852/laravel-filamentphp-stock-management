@@ -134,7 +134,7 @@ class PurchaseResource extends Resource
                 SelectFilter::make('supplier_id')
                     ->label('Supplier')
                     ->placeholder('Select Supplier')
-                    ->options(Supplier::query()->pluck('supplier_name', 'id'))
+                    ->options(Supplier::query()->where('is_default', '!=', 1)->pluck('supplier_name', 'id'))
                     ->searchable(),
 
                 Filter::make('product_id')
@@ -294,9 +294,14 @@ class PurchaseResource extends Resource
                             Notification::make()->success()->title('Deleted Successfully')->send();
                         }),
                 ])->dropdown(true)
+
                     ->label('Actions')
                     ->button()
                     ->size('sm')
+                    ->hidden(function ($record) {
+                        // dd($record);
+                        return $record->is_purchase == 0;
+                    })
                     ->icon('fas-gears'),
             ])
             ->bulkActions([
