@@ -4,6 +4,7 @@ use App\Http\Controllers\SuperAdmin\LoginController;
 use App\Http\Middleware\SuperAdminMiddleware;
 use App\Models\History;
 use App\Models\Product;
+use App\Models\Setting;
 use App\Models\Supplier;
 use Illuminate\Support\Facades\Route;
 
@@ -33,4 +34,9 @@ Route::get('demo', function () {
     //     ->where('customer_id', '!=', '')
     //     ->withWhereHas('account')
     //     ->get();
+
+    $setting = Setting::query()->first();
+    $low_stock_quantity = $setting->low_stock_quantity;
+
+    return Product::query()->whereRelation('productdetails', 'available_stock', '>=', $low_stock_quantity)->with('productdetails')->get();
 });

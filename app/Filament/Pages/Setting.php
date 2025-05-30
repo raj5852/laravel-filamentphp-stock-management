@@ -145,11 +145,12 @@ class Setting extends Page implements HasForms
                     TextInput::make('low_stock_quantity')
                         ->label('Low Stock Quantity')
                         ->numeric()
-                        ->minValue(1)
+                        ->minValue(0)
                         ->required()
+                        ->maxValue(999999999999)
                         ->placeholder('Enter low stock quantity')
-                        ->helperText('Product quantity threshold for low stock alert')
-                ])
+                        ->helperText('Product quantity threshold for low stock alert'),
+                ]),
         ];
     }
 
