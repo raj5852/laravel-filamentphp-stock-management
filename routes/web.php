@@ -3,11 +3,8 @@
 use App\Http\Controllers\SuperAdmin\LoginController;
 use App\Http\Middleware\SuperAdminMiddleware;
 use App\Models\History;
-use App\Models\Order;
 use App\Models\Product;
-use App\Models\Purchase;
 use App\Models\Supplier;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -27,14 +24,10 @@ Route::get('demo', function () {
     //     ->having('sale_amount', '>', 0)
     //     ->get();
 
-
-
     // return History::query()
     //     ->where('supplier_id', '!=', '')
     //     ->withWhereHas('account')
     //     ->get();
-
-
 
     // return History::query()
     //     ->where('customer_id', '!=', '')

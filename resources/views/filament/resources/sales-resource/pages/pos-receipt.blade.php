@@ -20,11 +20,7 @@
                 <!-- Company info -->
                 <div class="flex flex-col md:flex-row justify-center md:justify-between mb-6">
                     <div class="flex flex-col items-center">
-                        {{-- <div class="bg-[#3498db] text-white px-3 py-1 mb-1">
-                        <span class="font-bold">SOFT</span>
-                        <span class="bg-white text-[#3498db] px-2 py-0.5 font-bold">GHOR</span>
-                    </div>
-                    <p class="text-xs text-gray-600 !text-black">Digital Solution Provider</p> --}}
+
                         <h2 class="font-bold mt-1 !text-black">{{ $setting['company_name'] }}</h2>
                     </div>
                     <div class="md:max-w-[250px] text-center md:text-left">

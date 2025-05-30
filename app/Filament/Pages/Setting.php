@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Enums\InvoiceLogoType;
 use App\Models\Setting as ModelsSetting;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\ColorPicker;
@@ -37,7 +38,9 @@ class Setting extends Page implements HasForms
 
     public $file = [];  // Change from public $file; to public $file = [];
 
-    public $invoice_logo_type;
+    public $invoice_logo_type = InvoiceLogoType::LOGO;
+
+    public $low_stock_quantity;
 
     public function mount(): void
     {
@@ -47,8 +50,9 @@ class Setting extends Page implements HasForms
             $this->email_address = $setting->email_address;
             $this->phone = $setting->phone;
             $this->address = $setting->address;
+            $this->invoice_logo_type = $setting->invoice_logo_type;
+            $this->low_stock_quantity = $setting->low_stock_quantity;
 
-            // Properly handle existing logo
             if ($setting->logo) {
                 $this->file = $setting->logo;
                 $this->form->fill([
@@ -57,6 +61,8 @@ class Setting extends Page implements HasForms
                     'email_address' => $this->email_address,
                     'phone' => $this->phone,
                     'address' => $this->address,
+                    'invoice_logo_type' => $this->invoice_logo_type,
+                    'low_stock_quantity' => $this->low_stock_quantity,
                 ]);
             }
         }
@@ -126,18 +132,24 @@ class Setting extends Page implements HasForms
 
             Card::make('Invoice Settings')
                 ->schema([
-
                     Radio::make('invoice_logo_type')
                         ->label('Invoice Logo Type')
                         ->inline()
                         ->inlineLabel(false)
-                        ->options([
-                            'logo' => 'Logo',
-                            'name' => 'Name',
-                            'both' => 'Both',
-                        ])
-                ])
+                        ->options(InvoiceLogoType::class)
+                        ->default(InvoiceLogoType::LOGO),
+                ]),
 
+            Card::make('Other Settings')
+                ->schema([
+                    TextInput::make('low_stock_quantity')
+                        ->label('Low Stock Quantity')
+                        ->numeric()
+                        ->minValue(1)
+                        ->required()
+                        ->placeholder('Enter low stock quantity')
+                        ->helperText('Product quantity threshold for low stock alert')
+                ])
         ];
     }
 
@@ -146,7 +158,7 @@ class Setting extends Page implements HasForms
         $data = $this->form->getState();
 
         // Handle the file upload
-        if (isset($data['file']) && !empty($data['file'])) {
+        if (isset($data['file']) && ! empty($data['file'])) {
             $data['logo'] = is_array($data['file']) ? $data['file'][0] : $data['file'];
         }
         unset($data['file']);

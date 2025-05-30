@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\InvoiceLogoType;
 use App\Models\Scopes\TenantScope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Model;
@@ -28,4 +29,8 @@ class Setting extends Model
             $model->updated_by = $user->id;
         });
     }
+
+    protected $casts = [
+        'invoice_logo_type' => InvoiceLogoType::class,
+    ];
 }
