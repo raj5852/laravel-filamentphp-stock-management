@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->string('address')->nullable();
 
+            $table->string('logo')->nullable();
+
             $table->foreignId('tenant_id')->nullable();
             $table->foreignId('created_by')->nullable();
             $table->foreignId('updated_by')->nullable();
