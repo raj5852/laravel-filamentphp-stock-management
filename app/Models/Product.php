@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\HistoryTypeEnum;
 use App\Models\Scopes\TenantScope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Model;
@@ -83,6 +84,24 @@ class Product extends Model
                     'total_qty' => $model->total_opening_stock,
                     'total_in_text' => $qty_in_text,
                     'available_qty' => $qty,
+                ]);
+
+                $payment = Payment::create([
+                    'supplier_id' => $supplier->id,
+                    'payment_date' => today(),
+                    'payment_type' => 'Cash Pay',
+                    'note' => '',
+                    'is_wallet_payment' => 0,
+                ]);
+
+                History::create([
+                    'date' => today(),
+                    'amount' => $model->total_purchase_cost ?: 0,
+                    'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
+                    'note' => '',
+                    'purchase_id' => $purchase->id,
+                    'supplier_id' => $supplier->id,
+                    'payment_id' => $payment->id,
                 ]);
             }
         });

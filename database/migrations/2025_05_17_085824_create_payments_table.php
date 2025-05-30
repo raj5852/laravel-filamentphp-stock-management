@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignIdFor(Customer::class)->nullable();
             $table->foreignIdFor(Supplier::class)->nullable();
             $table->date('payment_date');
+            $table->boolean('is_wallet_payment')->default(1);
 
             $table->string('payment_type');
 

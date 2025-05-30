@@ -58,4 +58,9 @@ class History extends Model
     {
         return $this->belongsTo(Supplier::class);
     }
+
+    public function payment()
+    {
+        return $this->belongsTo(Payment::class);
+    }
 }

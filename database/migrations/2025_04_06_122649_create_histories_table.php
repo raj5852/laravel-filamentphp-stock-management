@@ -21,7 +21,7 @@ return new class extends Migration
     {
         Schema::create('histories', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Account::class);
+            $table->foreignIdFor(Account::class)->nullable();
             $table->foreignIdFor(Owner::class)->nullable();
             $table->foreignIdFor(Purchase::class)->nullable();
             $table->foreignIdFor(Order::class)->nullable();

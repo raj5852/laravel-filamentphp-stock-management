@@ -15,4 +15,5 @@ class TopProductFilter extends Page
     protected static ?string $title = 'Top Selling Products';
 
     protected static ?string $navigationLabel = 'Top Product';
+    protected static ?int $navigationSort = 10;
 }

@@ -11,4 +11,5 @@ class CustomerDueReport extends Page
     protected static string $view = 'filament.pages.customer-due-report';
 
     protected static ?string $navigationGroup = 'Reports';
+    protected static ?int $navigationSort = 6;
 }

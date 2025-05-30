@@ -11,4 +11,5 @@ class ProfitLossReport extends Page
     protected static string $view = 'filament.pages.profit-loss-report';
 
     protected static ?string $navigationGroup = 'Reports';
+    protected static ?int $navigationSort = 1;
 }

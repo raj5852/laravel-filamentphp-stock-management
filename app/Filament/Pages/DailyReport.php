@@ -11,4 +11,5 @@ class DailyReport extends Page
     protected static string $view = 'filament.pages.daily-report';
 
     protected static ?string $navigationGroup = 'Reports';
+    protected static ?int $navigationSort = 5;
 }

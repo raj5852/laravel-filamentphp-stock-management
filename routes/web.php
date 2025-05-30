@@ -2,10 +2,7 @@
 
 use App\Http\Controllers\SuperAdmin\LoginController;
 use App\Http\Middleware\SuperAdminMiddleware;
-use App\Models\History;
 use App\Models\Product;
-use App\Models\Setting;
-use App\Models\Supplier;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -17,26 +14,23 @@ Route::middleware(SuperAdminMiddleware::class)->prefix('superadmin')->name('supe
 
 Route::get('demo', function () {
 
-    // return  $top_sale_product =  Product::query()
-    //     ->withSum('orderitems as sold', 'total_qty')
-    //     ->withCount('orderitems as no_of_sales')
-    //     ->withSum('orderitems as sale_amount', 'total_rate')
-    //     ->orderBy('sale_amount', 'desc')
-    //     ->having('sale_amount', '>', 0)
-    //     ->get();
-
-    // return History::query()
-    //     ->where('supplier_id', '!=', '')
-    //     ->withWhereHas('account')
-    //     ->get();
-
-    // return History::query()
-    //     ->where('customer_id', '!=', '')
-    //     ->withWhereHas('account')
-    //     ->get();
-
-    $setting = Setting::query()->first();
-    $low_stock_quantity = $setting->low_stock_quantity;
-
-    return Product::query()->whereRelation('productdetails', 'available_stock', '>=', $low_stock_quantity)->with('productdetails')->get();
+    echo Product::query()
+        ->withSum(['orderitems as quantity' => function ($query) {
+            $query->whereHas('order', function ($query) {
+                $query->whereBetween('order_date', ['2025-05-31', '2025-05-31']);
+            });
+        }], 'total_qty')
+        ->withCount(['orderitems as total_sale' => function ($query) {
+            $query->whereHas('order', function ($query) {
+                $query->whereBetween('order_date', ['2025-05-31', '2025-05-31']);
+            });
+        }])
+        ->withSum(['orderitems as sale_amount' => function ($query) {
+            $query->whereHas('order', function ($query) {
+                $query->whereBetween('order_date', ['2025-05-31', '2025-05-31']);
+            });
+        }], 'total_rate')
+        ->orderBy('quantity', 'desc')
+        ->having('quantity', '>', 0)
+        ->get();
 });

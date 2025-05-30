@@ -28,7 +28,9 @@ class LowStockReport extends Page implements HasForms, HasTable
     protected static ?string $navigationIcon = 'fas-triangle-exclamation';
 
     protected static string $view = 'filament.pages.low-stock-report';
+
     protected static ?string $navigationGroup = 'Reports';
+    protected static ?int $navigationSort = 8;
 
 
     public function mount()
