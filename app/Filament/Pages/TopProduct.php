@@ -38,7 +38,7 @@ class TopProduct extends Page implements HasForms, HasTable
                 Product::withoutGlobalScope(TenantScope::class)
                     ->join('product_details', 'products.id', '=', 'product_details.product_id')
                     ->select('products.*', 'product_details.sold_in_text')
-                    ->where('products.tenant_id', auth()->id())
+                    ->where('products.tenant_id', auth()->user()->tenant_id)
                     ->orderBy('product_details.sold', 'desc')
             )
             ->columns([

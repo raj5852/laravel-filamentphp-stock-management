@@ -75,10 +75,10 @@ class ProfitLossReport extends Component implements HasForms
         $startDate = \Carbon\Carbon::parse($this->start_date)->endOfMonth()->toDateString();
         $endDate = \Carbon\Carbon::parse($this->end_date)->endOfMonth()->toDateString();
 
-        $authId = auth()->id();
+        $tenantId = auth()->user()->tenant_id;
         $orderitems = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->where('order_items.tenant_id', $authId)
+            ->where('order_items.tenant_id', $tenantId)
             ->whereBetween('orders.order_date', [$startDate, $endDate])
             ->select(
                 DB::raw('YEAR(orders.order_date) as year'),

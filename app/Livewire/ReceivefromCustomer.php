@@ -7,6 +7,8 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Tables\Columns\Summarizers\Average;
+use Filament\Tables\Columns\Summarizers\Range;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -15,6 +17,7 @@ use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
 use Livewire\Component;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Columns\Summarizers\Sum;
 
 class ReceivefromCustomer extends Component implements HasForms, HasTable
 {
@@ -57,7 +60,9 @@ class ReceivefromCustomer extends Component implements HasForms, HasTable
                 TextColumn::make('payment.payment_date')->date()->label('Payment Date'),
                 TextColumn::make('amount')->label('Amount')->getStateUsing(function ($record) {
                     return number_format($record->amount, 2, '.', '');
-                }),
+                })->summarize(
+                    Sum::make()->formatStateUsing(fn($state) => number_format($state, 2, '.', '') . ' Tk')->label('Total')
+                ),
             ])
 
             ->filters($this->setFilter(), layout: FiltersLayout::AboveContent)

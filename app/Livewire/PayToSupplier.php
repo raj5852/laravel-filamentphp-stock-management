@@ -6,6 +6,7 @@ use App\Models\History;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -55,7 +56,10 @@ class PayToSupplier extends Component implements HasForms, HasTable
                 TextColumn::make('payment.payment_date')->date()->label('Payment Date'),
                 TextColumn::make('amount')->label('Amount')->getStateUsing(function ($record) {
                     return number_format($record->amount, 2, '.', '');
-                }),
+                })
+                    ->summarize(
+                        Sum::make()->formatStateUsing(fn($state) => number_format($state, 2, '.', '') . ' Tk')->label('Total')
+                    ),
             ])
             ->filtersFormColumns(2)
 

@@ -51,7 +51,7 @@ class AccountResource extends Resource
 
     public static function table(Table $table): Table
     {
-        $userId = auth()->user()->id;
+        $userId = auth()->user()->tenant_id;
         $ownerOptions = Owner::query()->pluck('name', 'id');
 
         return $table
@@ -127,14 +127,12 @@ class AccountResource extends Resource
                             $owner = Owner::find($data['owner']);
                             $owner->increment('invested', $data['amount']);
                             $owner->increment('balance', $data['amount']);
-
                         });
 
                         Notification::make()
                             ->title('Balance Added Successfully')
                             ->success()
                             ->send();
-
                     })
                     ->modalSubmitActionLabel('Add Balance')
                     ->modalWidth('md'),
@@ -193,14 +191,12 @@ class AccountResource extends Resource
                             $owner = Owner::find($data['owner']);
                             $owner->increment('withdrawn', $data['amount']);
                             $owner->decrement('balance', $data['amount']);
-
                         });
 
                         Notification::make()
                             ->title('Balance Withdraw Successfully')
                             ->success()
                             ->send();
-
                     })
                     ->modalSubmitActionLabel('Withdraw Balance')
                     ->modalWidth('md'),
@@ -213,42 +209,42 @@ class AccountResource extends Resource
                     ->outlined()
                     ->color('warning')
                     ->modalHeading('Transfer Balance')
-                    ->form(function (Account $account) use ($userId) {
-                        return [
+                    ->form(
+                        function (Account $account) use ($userId) {
+                            return [
 
-                            Forms\Components\Select::make('to_account')
-                                ->required()
-                                ->rules([
-                                    'required',
-                                    Rule::exists('accounts', 'id')->where('tenant_id', $userId)
-                                        ->whereNot('id', $account->id),
-                                ])
-                                ->options(Account::query()->where('tenant_id', $userId)->whereNot('id', $account->id)->pluck('name', 'id')),
+                                Forms\Components\Select::make('to_account')
+                                    ->required()
+                                    ->rules([
+                                        'required',
+                                        Rule::exists('accounts', 'id')->where('tenant_id', $userId)
+                                            ->whereNot('id', $account->id),
+                                    ])
+                                    ->options(Account::query()->where('tenant_id', $userId)->whereNot('id', $account->id)->pluck('name', 'id')),
 
-                            Forms\Components\TextInput::make('amount')
-                                ->label('Amount')
-                                ->numeric()
-                                ->required()
-                                ->minValue(0)
-                                ->rules([
-                                    'required',
-                                    'numeric',
-                                    'min:0',
-                                    'max:9999999999',
-                                ])
-                                ->prefix('৳'),
+                                Forms\Components\TextInput::make('amount')
+                                    ->label('Amount')
+                                    ->numeric()
+                                    ->required()
+                                    ->minValue(0)
+                                    ->rules([
+                                        'required',
+                                        'numeric',
+                                        'min:0',
+                                        'max:9999999999',
+                                    ])
+                                    ->prefix('৳'),
 
-                            Forms\Components\Textarea::make('note')
-                                ->rules([
-                                    'string',
-                                    'max:5000',
+                                Forms\Components\Textarea::make('note')
+                                    ->rules([
+                                        'string',
+                                        'max:5000',
 
-                                ])
-                                ->label('Note'),
+                                    ])
+                                    ->label('Note'),
 
-                        ];
-
-                    }
+                            ];
+                        }
                     )
 
                     ->modalCancelActionLabel('Close')
@@ -274,14 +270,12 @@ class AccountResource extends Resource
                                 'type' => HistoryTypeEnum::RECEIVED->value,
                                 'note' => $data['note'],
                             ]);
-
                         });
 
                         Notification::make()
                             ->title('Balance Transfer Successfully')
                             ->success()
                             ->send();
-
                     })
                     ->modalCancelAction(false)
                     ->modalSubmitActionLabel('Transfer')
@@ -292,7 +286,7 @@ class AccountResource extends Resource
                     ->button()
                     ->size('sm')
                     ->color('success')
-                    ->url(fn (Account $record) => route('filament.admin.resources.accounts.history', ['record' => $record->id])),
+                    ->url(fn(Account $record) => route('filament.admin.resources.accounts.history', ['record' => $record->id])),
 
             ])
             ->bulkActions([

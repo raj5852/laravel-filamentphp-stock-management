@@ -60,6 +60,7 @@ class SalesAndRevenueOverview extends ChartWidget
 
         // Retrieve the receivable (sales) and profit (revenue) data for the last 30 days grouped by date
         $orders = \DB::table('orders')
+            ->where('tenant_id', auth()->user()->tenant_id)
             ->selectRaw('DATE(order_date) as order_date, SUM(receivable) as total_receivable, SUM(profit) as total_profit')
             ->whereBetween('order_date', [$startDate, $endDate])
             ->groupBy('order_date')
