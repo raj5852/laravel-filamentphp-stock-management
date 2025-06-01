@@ -4,20 +4,17 @@ namespace App\Livewire;
 
 use App\Models\History;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Tables\Columns\Summarizers\Average;
-use Filament\Tables\Columns\Summarizers\Range;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
 use Livewire\Component;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Columns\Summarizers\Sum;
 
 class ReceivefromCustomer extends Component implements HasForms, HasTable
 {
@@ -27,8 +24,6 @@ class ReceivefromCustomer extends Component implements HasForms, HasTable
     public $startDate;
 
     public $endDate;
-
-
 
     public $isFilter = true;
 
@@ -61,7 +56,7 @@ class ReceivefromCustomer extends Component implements HasForms, HasTable
                 TextColumn::make('amount')->label('Amount')->getStateUsing(function ($record) {
                     return number_format($record->amount, 2, '.', '');
                 })->summarize(
-                    Sum::make()->formatStateUsing(fn($state) => number_format($state, 2, '.', '') . ' Tk')->label('Total')
+                    Sum::make()->formatStateUsing(fn ($state) => number_format($state, 2, '.', '').' Tk')->label('Total')
                 ),
             ])
 
@@ -71,13 +66,12 @@ class ReceivefromCustomer extends Component implements HasForms, HasTable
             ->paginated([10, 25, 50, 100]);
     }
 
-
-
-    function setFilter()
+    public function setFilter()
     {
         if ($this->isFilter == true) {
             return [];
         }
+
         return [
             Filter::make('startDate')
                 ->label('')
@@ -85,7 +79,7 @@ class ReceivefromCustomer extends Component implements HasForms, HasTable
                     DatePicker::make('startDateFilter')
                         ->label('')
                         ->placeholder('Select Start Date')
-                        ->native(false)
+                        ->native(false),
                 ])
                 ->query(function ($query, array $data) {
                     if (isset($data['startDateFilter'])) {
@@ -100,7 +94,7 @@ class ReceivefromCustomer extends Component implements HasForms, HasTable
                     DatePicker::make('endDate')
                         ->label('')
                         ->placeholder('Select End Date')
-                        ->native(false)
+                        ->native(false),
                 ])
                 ->query(function ($query, array $data) {
                     if (isset($data['endDate'])) {

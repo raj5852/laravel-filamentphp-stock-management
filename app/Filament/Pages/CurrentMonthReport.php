@@ -12,8 +12,8 @@ class CurrentMonthReport extends Page
     protected static string $view = 'filament.pages.current-month-report';
 
     protected static ?string $navigationGroup = 'Reports';
-    protected static ?int $navigationSort = 3;
 
+    protected static ?int $navigationSort = 3;
 
     protected function getHeaderWidgets(): array
     {

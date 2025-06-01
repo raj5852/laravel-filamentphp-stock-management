@@ -2,11 +2,11 @@
 
 namespace App;
 
-enum UserTypeEnum: int
+enum UserTypeEnum: string
 {
-    case USERROLE = 0;
-    case USER = 1;
-    case SUPERADMIN = 2;
+    case USERROLE = '0';
+    case USER = '1';
+    case SUPERADMIN = '2';
 
     public static function toArray(): array
     {

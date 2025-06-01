@@ -58,7 +58,7 @@ class PayToSupplier extends Component implements HasForms, HasTable
                     return number_format($record->amount, 2, '.', '');
                 })
                     ->summarize(
-                        Sum::make()->formatStateUsing(fn($state) => number_format($state, 2, '.', '') . ' Tk')->label('Total')
+                        Sum::make()->formatStateUsing(fn ($state) => number_format($state, 2, '.', '').' Tk')->label('Total')
                     ),
             ])
             ->filtersFormColumns(2)
@@ -66,11 +66,12 @@ class PayToSupplier extends Component implements HasForms, HasTable
             ->paginated([10, 25, 50, 100]);
     }
 
-    function setFilter()
+    public function setFilter()
     {
         if ($this->isFilter == true) {
             return [];
         }
+
         return [
             Filter::make('startDate')
                 ->label('')
@@ -78,7 +79,7 @@ class PayToSupplier extends Component implements HasForms, HasTable
                     DatePicker::make('startDateFilter')
                         ->label('')
                         ->placeholder('Select Start Date')
-                        ->native(false)
+                        ->native(false),
                 ])
                 ->query(function ($query, array $data) {
                     if (isset($data['startDateFilter'])) {
@@ -93,7 +94,7 @@ class PayToSupplier extends Component implements HasForms, HasTable
                     DatePicker::make('endDate')
                         ->label('')
                         ->placeholder('Select End Date')
-                        ->native(false)
+                        ->native(false),
                 ])
                 ->query(function ($query, array $data) {
                     if (isset($data['endDate'])) {

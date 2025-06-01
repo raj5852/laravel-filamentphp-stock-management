@@ -12,11 +12,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasRoles, Notifiable;
 
     public function canAccessPanel(Panel $panel): bool
     {
@@ -67,12 +68,24 @@ class User extends Authenticatable implements FilamentUser
         parent::boot();
 
         static::creating(function ($user) {
-            $user->expires_at = now()->addMonths(intval($user->expires_at));
+            $loginUser = auth()->user();
+            if ($loginUser->type == UserTypeEnum::USER) {
+                $user->expires_at = $loginUser->expires_at;
+            } else {
+                $user->expires_at = now()->addMonths(intval($user->expires_at));
+            }
         });
 
         static::created(function ($user) {
+            $loginUser = auth()->user();
+
             if ($user->tenant_id == '') {
-                $user->tenant_id = $user->id;
+                if ($loginUser->type == UserTypeEnum::USER) {
+                    $user->tenant_id = $loginUser->tenant_id;
+                } else {
+                    $user->tenant_id = $loginUser->tenant_id;
+                }
+
                 $user->email_verified_at = now();
                 $user->save();
             }

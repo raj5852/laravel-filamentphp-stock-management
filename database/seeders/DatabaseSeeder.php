@@ -199,5 +199,9 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => 1,
             'wallet' => 0,
         ]);
+
+        $this->call([
+            PermissionSeeder::class,
+        ]);
     }
 }

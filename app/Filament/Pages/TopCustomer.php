@@ -11,5 +11,6 @@ class TopCustomer extends Page
     protected static string $view = 'filament.pages.top-customer';
 
     protected static ?string $navigationGroup = 'Reports';
+
     protected static ?int $navigationSort = 9;
 }

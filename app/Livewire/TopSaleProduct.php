@@ -84,28 +84,29 @@ class TopSaleProduct extends Component implements HasForms, HasTable
                 TextColumn::make('product_name')->label('Product Name'),
                 TextColumn::make('quantity')->label('Quantity')
                     ->summarize(
-                        Sum::make()->formatStateUsing(fn($state) => $state)->label('Qty')
+                        Sum::make()->formatStateUsing(fn ($state) => $state)->label('Qty')
                     ),
                 TextColumn::make('total_sale')->label('Total Sale')
                     ->summarize(
-                        Sum::make()->formatStateUsing(fn($state) => $state)->label('Total')
+                        Sum::make()->formatStateUsing(fn ($state) => $state)->label('Total')
                     ),
                 TextColumn::make('sale_amount')->label('Sale Amount')->getStateUsing(function ($record) {
-                    return number_format($record->sale_amount, 2, '.', '') . ' TK';
+                    return number_format($record->sale_amount, 2, '.', '').' TK';
                 })
                     ->summarize(
-                        Sum::make()->formatStateUsing(fn($state) => number_format($state, 2, '.', '') . ' TK')->label('Total')
+                        Sum::make()->formatStateUsing(fn ($state) => number_format($state, 2, '.', '').' TK')->label('Total')
                     ),
 
             ])
             ->paginated([10, 25, 50, 100]);
     }
 
-    function setFilter()
+    public function setFilter()
     {
         if ($this->isFilter == true) {
             return [];
         }
+
         return [
             Filter::make('start_date')
                 ->label('')
@@ -113,7 +114,7 @@ class TopSaleProduct extends Component implements HasForms, HasTable
                     DatePicker::make('start_date')
                         ->label('')
                         ->placeholder('Select Start Date')
-                        ->native(false)
+                        ->native(false),
                 ]),
             Filter::make('end_date')
                 ->label('')
@@ -121,8 +122,8 @@ class TopSaleProduct extends Component implements HasForms, HasTable
                     DatePicker::make('end_date')
                         ->label('')
                         ->placeholder('Select End Date')
-                        ->native(false)
-                ])
+                        ->native(false),
+                ]),
 
         ];
     }

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->integer('tenant_id')->nullable();
-            $table->enum('type', UserTypeEnum::toArray())->comment('1=user,2=superadmin,0=roleuser');
+            $table->enum('type', UserTypeEnum::toArray())->default(UserTypeEnum::USERROLE)->comment('1=user,2=superadmin,0=roleuser');
             $table->date('expires_at')->nullable();
             $table->timestamps();
         });

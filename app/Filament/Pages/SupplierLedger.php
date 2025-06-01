@@ -11,5 +11,6 @@ class SupplierLedger extends Page
     protected static string $view = 'filament.pages.supplier-ledger';
 
     protected static ?string $navigationGroup = 'Reports';
+
     protected static ?int $navigationSort = 15;
 }

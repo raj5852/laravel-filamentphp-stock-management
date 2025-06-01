@@ -8,6 +8,7 @@ use App\UserTypeEnum;
 use Filament\Forms;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -46,6 +47,12 @@ class UserResource extends Resource
                         ->hidden(fn (string $context) => $context === 'edit')
                         ->maxLength(255),
 
+                    Select::make('type')
+                        ->required()
+                        ->options([
+                            UserTypeEnum::USER->value => 'User',
+                        ])
+                        ->default(UserTypeEnum::USER->value),
                     TextInput::make('expires_at')
                         ->numeric()
                         ->label('Add Month')
