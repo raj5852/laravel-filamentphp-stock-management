@@ -376,13 +376,13 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                 Split::make([
                     Stack::make([
                         ImageColumn::make('product_image')->defaultImageUrl('/images/notfound.jpg')->alignCenter(),
-                        TextColumn::make('product_name')->getStateUsing(fn ($record) => $record->product_name.' - '.$record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
+                        TextColumn::make('product_name')->getStateUsing(fn($record) => $record->product_name . ' - ' . $record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
                         TextColumn::make('sale_price')->getStateUsing(function ($record) {
-                            return new HtmlString('<span class="font-bold">'.number_format($record->sale_price, 2, '.', '').'</span>'.' TK');
+                            return new HtmlString('<span class="font-bold">' . number_format($record->sale_price, 2, '.', '') . '</span>' . ' TK');
                         })->alignCenter(),
                         TextColumn::make('productdetails.available_stock_in_text')
                             ->getStateUsing(function ($record) {
-                                return new HtmlString('<span >Stock: </span>'.$record->productdetails?->available_stock_in_text);
+                                return new HtmlString('<span >Stock: </span>' . $record->productdetails?->available_stock_in_text);
                             })
                             ->alignCenter(),
                     ]),
@@ -481,7 +481,8 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                             ->required(),
 
                         TextInput::make('pay_amount')
-                            ->debounce()
+                            // ->live()
+                            ->live(onBlur: false, debounce: 500)
                             ->label('Pay Amount')
                             ->numeric()
                             ->placeholder('Amount')
@@ -506,7 +507,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
             ])
             ->modalButton('Order')
             ->modalCancelAction(false)
-            ->modalWidth('md')
+            // ->modalWidth('md')
             ->action(function (array $data) {
 
                 $totalProduct = count($this->products);
