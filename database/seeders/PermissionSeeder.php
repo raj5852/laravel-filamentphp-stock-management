@@ -17,8 +17,6 @@ class PermissionSeeder extends Seeder
         // Reset cached roles and permissions
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-
-
         // Create permissions
         $permissions = [
             'dashboard',
@@ -65,9 +63,6 @@ class PermissionSeeder extends Seeder
 
         // Assign all permissions to the role
         $role->syncPermissions(Permission::all());
-
-
-
 
         // create roles and assign existing permissions
         // $role1 = Role::create(['name' => 'writer']);

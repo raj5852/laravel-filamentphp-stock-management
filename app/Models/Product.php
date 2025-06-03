@@ -131,6 +131,17 @@ class Product extends Model
             if (Storage::disk('public')->exists($product->product_image ?? '')) {
                 Storage::disk('public')->delete($product->product_image ?? '');
             }
+
+            if ($product->total_opening_stock) {
+                $purcahseItem = PurchaseItem::where('product_id', $product->id)->first();
+                $purcahse = $purcahseItem->purchase;
+
+                if ($purcahse) {
+                    History::where('purchase_id', $purcahse?->id)->delete();
+                }
+                $purcahseItem->delete();
+                $purcahse->delete();
+            }
         });
     }
 

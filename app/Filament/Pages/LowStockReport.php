@@ -59,7 +59,7 @@ class LowStockReport extends Page implements HasForms, HasTable
                 TextColumn::make('productdetails.available_stock_in_text')->label('Available Stock'),
                 TextColumn::make('productdetails.single_unit_sale_price')
                     ->getStateUsing(function ($record) {
-                        return number_format($record->productdetails?->single_unit_sale_price * $record->productdetails?->available_stock, 2, '.', '') . ' TK';
+                        return number_format($record->productdetails?->single_unit_sale_price * $record->productdetails?->available_stock, 2, '.', '').' TK';
                     })
                     ->label('Sell Value'),
 
@@ -78,7 +78,7 @@ class LowStockReport extends Page implements HasForms, HasTable
                         ->query(function ($query, array $data) {
                             return $query->when(
                                 $data['product_id'],
-                                fn($query, $term) => $query->where('id', $term)
+                                fn ($query, $term) => $query->where('id', $term)
                             );
                         }),
 
@@ -93,7 +93,7 @@ class LowStockReport extends Page implements HasForms, HasTable
                         ->query(function ($query, array $data) {
                             return $query->when(
                                 $data['product_code'],
-                                fn($query, $term) => $query->where('product_code', $term)
+                                fn ($query, $term) => $query->where('product_code', $term)
                             );
                         }),
                     Filter::make('product_name')
@@ -107,7 +107,7 @@ class LowStockReport extends Page implements HasForms, HasTable
                         ->query(function ($query, array $data) {
                             return $query->when(
                                 $data['product_name'],
-                                fn($query, $term) => $query->where('product_name', 'like', "%{$term}%")
+                                fn ($query, $term) => $query->where('product_name', 'like', "%{$term}%")
                             );
                         }),
 
@@ -123,7 +123,7 @@ class LowStockReport extends Page implements HasForms, HasTable
                         ->query(function ($query, array $data) {
                             return $query->when(
                                 $data['category_id'],
-                                fn($query, $term) => $query->where('category_id', $term)
+                                fn ($query, $term) => $query->where('category_id', $term)
                             );
                         }),
                 ],

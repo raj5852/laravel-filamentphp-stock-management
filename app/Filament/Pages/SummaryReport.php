@@ -20,7 +20,6 @@ class SummaryReport extends Page
         return auth()->user()->can('summary report');
     }
 
-
     protected function getHeaderWidgets(): array
     {
         return [

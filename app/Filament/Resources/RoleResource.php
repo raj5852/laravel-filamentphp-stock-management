@@ -13,16 +13,16 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Table;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
 
 class RoleResource extends Resource
 {
     protected static ?string $model = Role::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-finger-print';
-    protected static ?string $navigationGroup = 'Setting & Customize';
 
+    protected static ?string $navigationGroup = 'Setting & Customize';
 
     public static function form(Form $form): Form
     {
@@ -53,7 +53,7 @@ class RoleResource extends Resource
                                     $selectedPermissionsCount = $record->permissions->count();
                                     $set('select_all', $selectedPermissionsCount === $permissionCount);
                                 }
-                            })
+                            }),
                     ])->columns(2),
 
                     CheckboxList::make('permissions')
@@ -63,6 +63,7 @@ class RoleResource extends Resource
                         ->columns(3)
                         ->helperText('Select permissions for this role')
                         ->reactive()
+                        ->required()
                         ->afterStateUpdated(function ($state, callable $set) use ($permissionCount) {
                             if (is_array($state) && count($state) === $permissionCount) {
                                 $set('select_all', true);

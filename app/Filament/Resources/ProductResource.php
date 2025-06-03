@@ -6,6 +6,7 @@ use App\Filament\Resources\ProductResource\Pages;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Purchase;
 use App\Models\Setting;
 use App\Models\Unit;
 use Filament\Forms;
@@ -361,7 +362,14 @@ class ProductResource extends Resource
                         ->before(function ($record, $action) {
 
                             $damage = $record->damages()->exists();
-                            $purchase = $record->purchaseitems()->exists();
+                            $productid = $record->id;
+
+                            $purchase = Purchase::where('is_purchase', 1)
+                                ->whereHas('purchaseitems', function ($query) use ($productid) {
+                                    $query->where('product_id', $productid);
+                                })->exists();
+
+                            $record->purchaseitems()->exists();
                             $orderitems = $record->orderitems()->exists();
                             if ($damage || $purchase || $orderitems) {
                                 Notification::make()
@@ -371,6 +379,7 @@ class ProductResource extends Resource
                                 $action->cancel();
                             }
                         }),
+
                     // sell-history
 
                 ])

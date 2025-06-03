@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Models\Scopes\TenantScope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
-use Illuminate\Database\Eloquent\Model;
 use Spatie\Permission\Models\Role as ModelsRole;
 
 #[ScopedBy(TenantScope::class)]

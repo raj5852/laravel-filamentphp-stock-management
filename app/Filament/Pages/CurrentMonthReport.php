@@ -20,7 +20,6 @@ class CurrentMonthReport extends Page
         return auth()->user()->can('current month report');
     }
 
-
     protected function getHeaderWidgets(): array
     {
         return [

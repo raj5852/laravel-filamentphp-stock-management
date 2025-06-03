@@ -38,7 +38,6 @@ class CategoryWiseReport extends Page implements HasForms, HasTable
         return auth()->user()->can('category wise report');
     }
 
-
     public function table(Table $table): Table
     {
         return $table
@@ -97,16 +96,16 @@ class CategoryWiseReport extends Page implements HasForms, HasTable
 
                 TextColumn::make('name')->label('Category Name'),
                 TextColumn::make('total_sales_quantity')
-                    ->getStateUsing(fn($record) => $record->total_sales_quantity ?: 0)
+                    ->getStateUsing(fn ($record) => $record->total_sales_quantity ?: 0)
                     ->label('Total Sales Quantity'),
 
                 TextColumn::make('purchase_quantity')
-                    ->getStateUsing(fn($record) => ($record->purchase_quantity ?: 0))
+                    ->getStateUsing(fn ($record) => ($record->purchase_quantity ?: 0))
                     ->label('Total Purchase Quantity'),
 
-                TextColumn::make('total_sales_amount')->getStateUsing(fn($record) => number_format($record->total_sales_amount, 2) . ' Tk')->label('Total Sales Amount'),
-                TextColumn::make('purchase_amount')->getStateUsing(fn($record) => number_format(($record->purchase_amount ?: 0), 2) . ' Tk')->label('Total Purchase Amount'),
-                TextColumn::make('id')->label('Profit')->getStateUsing(fn($record) => number_format($record->total_sales_amount - (($record->purchase_amount ?: 0)), 2)),
+                TextColumn::make('total_sales_amount')->getStateUsing(fn ($record) => number_format($record->total_sales_amount, 2).' Tk')->label('Total Sales Amount'),
+                TextColumn::make('purchase_amount')->getStateUsing(fn ($record) => number_format(($record->purchase_amount ?: 0), 2).' Tk')->label('Total Purchase Amount'),
+                TextColumn::make('id')->label('Profit')->getStateUsing(fn ($record) => number_format($record->total_sales_amount - (($record->purchase_amount ?: 0)), 2)),
 
             ])
             ->filters([
@@ -122,7 +121,7 @@ class CategoryWiseReport extends Page implements HasForms, HasTable
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['category_id'],
-                            fn($query, $term) => $query->where('id', $term)
+                            fn ($query, $term) => $query->where('id', $term)
                         );
                     }),
                 Filter::make('brand_id')
@@ -137,9 +136,9 @@ class CategoryWiseReport extends Page implements HasForms, HasTable
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['brand_id'],
-                            fn($query, $term) => $query->whereHas(
+                            fn ($query, $term) => $query->whereHas(
                                 'products',
-                                fn($query) => $query->where('brand_id', $term)
+                                fn ($query) => $query->where('brand_id', $term)
                             )
                         );
                     }),
