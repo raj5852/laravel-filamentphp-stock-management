@@ -15,6 +15,12 @@ class SummaryReport extends Page
 
     protected static ?int $navigationSort = 4;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('summary report');
+    }
+
+
     protected function getHeaderWidgets(): array
     {
         return [

@@ -10,15 +10,19 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
+    protected static ?string $navigationGroup = 'Setting & Customize';
+
 
     public static function form(Form $form): Form
     {
@@ -32,15 +36,16 @@ class UserResource extends Resource
                     Forms\Components\TextInput::make('email')
                         ->email()
                         ->placeholder('Email')
+                        ->unique(ignoreRecord: true)
                         ->required()
                         ->maxLength(255),
 
                     Forms\Components\TextInput::make('password')
                         ->password()
-                        ->required(fn ($livewire) => $livewire instanceof Pages\CreateUser)
+                        ->required(fn($livewire) => $livewire instanceof Pages\CreateUser)
                         ->minLength(6)
-                        ->dehydrated(fn ($state) => filled($state))
-                        ->dehydrateStateUsing(fn ($state) => Hash::make($state))
+                        ->dehydrated(fn($state) => filled($state))
+                        ->dehydrateStateUsing(fn($state) => Hash::make($state))
                         ->placeholder('Password')
                         ->maxLength(255),
 
@@ -48,14 +53,12 @@ class UserResource extends Resource
                     Select::make('roles')
                         ->label('Role')
                         ->multiple()
-                        ->relationship('roles', 'name')
+                        ->relationship('roles', 'name', fn($query) => $query->where('tenant_id', auth()->user()->tenant_id))
                         ->preload()
                         ->searchable()
-                        ->required(), // Added required validation
-
-                    // Forms\Components\TextInput::make('type')
-                    //     ->required(),
-                    // Forms\Components\DatePicker::make('expires_at'),
+                        // ->rules(['required', 'array', 'min:1', Rule::exists('roles', 'id')->where('tenant_id', auth()->user()->tenant_id)])
+                        ->required(),
+                    // ->rules(['required', 'array', 'min:1', Rule::exists('roles', 'id')->where(fn ($query) => $query->where('tenant_id', auth()->user()->tenant_id))])
                 ])
                     ->columns(2),
 
@@ -79,9 +82,7 @@ class UserResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('email_verified_at')
-                    ->dateTime()
-                    ->sortable(),
+
                 // Add this new column to display roles
                 Tables\Columns\TextColumn::make('roles.name')
                     ->badge()
@@ -96,12 +97,14 @@ class UserResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+                // Tables\Actions\BulkActionGroup::make([
+                //     Tables\Actions\DeleteBulkAction::make(),
+                // ]),
+            ])
+            ->paginated([10, 25, 50, 100]);
     }
 
     public static function getRelations(): array
@@ -116,7 +119,7 @@ class UserResource extends Resource
         return [
             'index' => Pages\ListUsers::route('/'),
             'create' => Pages\CreateUser::route('/create'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
+            // 'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }
 }

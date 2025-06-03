@@ -42,6 +42,11 @@ class Setting extends Page implements HasForms
 
     public $low_stock_quantity;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('settings');
+    }
+
     public function mount(): void
     {
         $setting = ModelsSetting::query()->first();

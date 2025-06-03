@@ -13,4 +13,9 @@ class CustomerDueReport extends Page
     protected static ?string $navigationGroup = 'Reports';
 
     protected static ?int $navigationSort = 6;
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('customer due report');
+    }
 }

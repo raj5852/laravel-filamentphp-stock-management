@@ -13,4 +13,9 @@ class DailyReport extends Page
     protected static ?string $navigationGroup = 'Reports';
 
     protected static ?int $navigationSort = 5;
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('daily report');
+    }
 }

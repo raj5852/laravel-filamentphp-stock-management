@@ -17,4 +17,9 @@ class TopProductFilter extends Page
     protected static ?string $navigationLabel = 'Top Product';
 
     protected static ?int $navigationSort = 10;
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('top selling products');
+    }
 }

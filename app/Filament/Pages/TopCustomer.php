@@ -13,4 +13,9 @@ class TopCustomer extends Page
     protected static ?string $navigationGroup = 'Reports';
 
     protected static ?int $navigationSort = 9;
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('top customer');
+    }
 }

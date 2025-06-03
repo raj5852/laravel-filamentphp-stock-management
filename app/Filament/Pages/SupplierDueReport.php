@@ -13,4 +13,9 @@ class SupplierDueReport extends Page
     protected static ?string $navigationGroup = 'Reports';
 
     protected static ?int $navigationSort = 7;
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('supplier due report');
+    }
 }

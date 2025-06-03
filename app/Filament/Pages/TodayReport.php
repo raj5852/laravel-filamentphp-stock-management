@@ -15,6 +15,11 @@ class TodayReport extends Page
 
     protected static ?int $navigationSort = 2;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('today report');
+    }
+
     protected function getHeaderWidgets(): array
     {
         return [

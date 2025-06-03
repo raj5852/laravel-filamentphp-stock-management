@@ -30,6 +30,12 @@ class PurchaseReport extends Page implements HasForms, HasTable
 
     protected static ?int $navigationSort = 13;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('purchase report');
+    }
+
+
     public function table(Table $table): Table
     {
         return $table
@@ -40,7 +46,7 @@ class PurchaseReport extends Page implements HasForms, HasTable
                 TextColumn::make('purchase.billno')
                     ->label('Purchase No')
                     ->getStateUsing(function ($record) {
-                        return new HtmlString("<div><a href='".route('filament.admin.resources.purchases.index', ['billno' => $record->purchase->billno])."' class='text-indigo-500 hover:underline'>Purchase#{$record->purchase->billno}</a></div>");
+                        return new HtmlString("<div><a href='" . route('filament.admin.resources.purchases.index', ['billno' => $record->purchase->billno]) . "' class='text-indigo-500 hover:underline'>Purchase#{$record->purchase->billno}</a></div>");
                     })
                     ->html(),
 
@@ -51,10 +57,10 @@ class PurchaseReport extends Page implements HasForms, HasTable
                     ->label('Quantity'),
 
                 TextColumn::make('rate')
-                    ->getStateUsing(fn ($record) => number_format($record->rate, 2).' Tk')
+                    ->getStateUsing(fn($record) => number_format($record->rate, 2) . ' Tk')
                     ->label('Unit Price'),
                 TextColumn::make('total_rate')
-                    ->getStateUsing(fn ($record) => number_format($record->total_rate, 2).' Tk')
+                    ->getStateUsing(fn($record) => number_format($record->total_rate, 2) . ' Tk')
                     ->label('Subtotal'),
 
             ])
@@ -71,7 +77,7 @@ class PurchaseReport extends Page implements HasForms, HasTable
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['product_id'],
-                            fn ($query, $term) => $query->where('product_id', $term)
+                            fn($query, $term) => $query->where('product_id', $term)
                         );
                     }),
                 Filter::make('start_date')
@@ -85,7 +91,7 @@ class PurchaseReport extends Page implements HasForms, HasTable
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['start_date'],
-                            fn ($query, $term) => $query->whereHas('purchase', fn ($query) => $query->where('purchase_date', '>=', $term))
+                            fn($query, $term) => $query->whereHas('purchase', fn($query) => $query->where('purchase_date', '>=', $term))
                         );
                     }),
                 Filter::make('end_date')
@@ -99,7 +105,7 @@ class PurchaseReport extends Page implements HasForms, HasTable
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['end_date'],
-                            fn ($query, $term) => $query->whereHas('purchase', fn ($query) => $query->where('purchase_date', '<=', $term))
+                            fn($query, $term) => $query->whereHas('purchase', fn($query) => $query->where('purchase_date', '<=', $term))
                         );
                     }),
 

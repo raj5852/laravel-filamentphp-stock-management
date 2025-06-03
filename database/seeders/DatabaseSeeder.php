@@ -5,12 +5,14 @@ namespace Database\Seeders;
 use App\HistoryTypeEnum;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Role;
 use App\Models\Unit;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role as ModelsRole;
 
 class DatabaseSeeder extends Seeder
 {
@@ -19,6 +21,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+
+        $this->call([
+            PermissionSeeder::class,
+        ]);
 
         // user
         DB::table('users')->insert([
@@ -31,6 +37,11 @@ class DatabaseSeeder extends Seeder
             'type' => '1',
             'expires_at' => now()->addYears(5),
         ]);
+
+        $role1 = ModelsRole::first();
+
+        $user = User::first();
+        $user->assignRole($role1);
 
         // superadmin
         $user = DB::table('users')->insert([
@@ -198,10 +209,6 @@ class DatabaseSeeder extends Seeder
             'phone' => '0000000001',
             'tenant_id' => 1,
             'wallet' => 0,
-        ]);
-
-        $this->call([
-            PermissionSeeder::class,
         ]);
     }
 }
