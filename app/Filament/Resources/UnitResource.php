@@ -43,7 +43,7 @@ class UnitResource extends Resource
 
                 Forms\Components\Select::make('related_to_unit')
                     ->options(Unit::query()->pluck('unit_name', 'id'))
-                    ->required(fn(Get $get): bool => ($get('operator') != '') || ($get('related_by_value') != ''))
+                    ->required(fn (Get $get): bool => ($get('operator') != '') || ($get('related_by_value') != ''))
                     ->rules(
                         Rule::exists('units', 'id')->where('tenant_id', auth()->user()->tenant_id)
                     )
@@ -58,11 +58,11 @@ class UnitResource extends Resource
                         'min:0',
                         'string',
                     ])
-                    ->required(fn(Get $get): bool => ($get('related_to_unit') != '') || ($get('related_by_value') != ''))
+                    ->required(fn (Get $get): bool => ($get('related_to_unit') != '') || ($get('related_by_value') != ''))
                     ->live(),
 
                 Forms\Components\TextInput::make('related_by_value')
-                    ->required(fn(Get $get): bool => ($get('related_to_unit') != '') || ($get('operator') != ''))
+                    ->required(fn (Get $get): bool => ($get('related_to_unit') != '') || ($get('operator') != ''))
                     ->numeric()
                     ->rules([
                         'min:0',
@@ -73,7 +73,7 @@ class UnitResource extends Resource
 
                 Forms\Components\Placeholder::make('preview')
                     ->content(function ($get) {
-                        $unit_name = '1' . $get('unit_name');
+                        $unit_name = '1'.$get('unit_name');
 
                         $related_to_unit = $get('related_to_unit');
                         $operator = $get('operator');
@@ -118,7 +118,7 @@ class UnitResource extends Resource
                     ->getStateUsing(function ($record) {
                         $relatedTo = $record->relatedTo?->unit_name;
                         if ($relatedTo != '') {
-                            return $record->unit_name . ' = 1 ' . $relatedTo . ' ' . $record->operator . ' ' . $record->related_by_value;
+                            return $record->unit_name.' = 1 '.$relatedTo.' '.$record->operator.' '.$record->related_by_value;
                         }
                     }),
 
