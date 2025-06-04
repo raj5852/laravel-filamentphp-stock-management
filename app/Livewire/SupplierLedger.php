@@ -40,7 +40,7 @@ class SupplierLedger extends Component implements HasForms
                 Card::make([
                     Select::make('supplier_id')
                         ->label('Supplier')
-                        ->options(Supplier::query()->pluck('supplier_name', 'id'))
+                        ->options(Supplier::query()->where('is_default', '!=', 1)->pluck('supplier_name', 'id'))
                         ->searchable()
                         ->required(),
                     DatePicker::make('start_date')
@@ -83,26 +83,7 @@ class SupplierLedger extends Component implements HasForms
         }
         $tenantId = auth()->user()->tenant_id;
         $supplierId = $this->supplier_id;
-        Supplier::findOrFail($supplierId);
-
-        // $datas = DB::table('purchases')
-        //     ->where('tenant_id', $tenantId)
-        //     ->where('supplier_id', $supplierId)
-        //     ->when($this->start_date != null && $this->end_date != null, function ($query) {
-        //         return $query->whereBetween('purchase_date', [$this->start_date, $this->end_date]);
-        //     })
-        //     ->select('id', 'purchase_date as date', 'payable as amount', 'total_amount', 'created_at', DB::raw('"purchase" as type'), 'billno as particulars')
-        //     ->union(
-        //         DB::table('histories')
-        //             ->where('tenant_id', $tenantId)
-        //             ->where('supplier_id', $supplierId)
-        //             ->when($this->start_date != null && $this->end_date != null, function ($query) {
-        //                 return $query->whereBetween('date', [$this->start_date, $this->end_date]);
-        //             })
-        //             ->select('id', 'date', 'amount', 'total_amount', 'created_at', DB::raw('"history" as type'), DB::raw('"Paid to Supplier" as particulars'))
-        //     )
-        //     ->orderBy('created_at', 'asc')
-        //     ->get();
+        Supplier::query()->where('is_default', '!=', 1)->findOrFail($supplierId);
 
         $datas = DB::table('purchases')
             ->where('tenant_id', $tenantId)

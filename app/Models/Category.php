@@ -33,7 +33,6 @@ class Category extends Model
                     Storage::disk('public')->delete($originalImage);
                 }
             }
-
         });
 
         static::deleting(function ($category) {
@@ -46,5 +45,20 @@ class Category extends Model
     public function products()
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function orderItems()
+    {
+        return $this->hasManyThrough(OrderItem::class, Product::class)->withoutGlobalScope(TenantScope::class);
+    }
+
+    public function purchaseItems()
+    {
+        return $this->hasManyThrough(PurchaseItem::class, Product::class)->withoutGlobalScope(TenantScope::class);
+    }
+
+    public function productDetails()
+    {
+        return $this->hasManyThrough(ProductDetail::class, Product::class)->withoutGlobalScope(TenantScope::class);
     }
 }

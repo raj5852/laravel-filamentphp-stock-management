@@ -12,8 +12,10 @@ class ListSales extends ListRecords
 
     protected function getHeaderWidgets(): array
     {
+        $dinamicTime = today();
+
         return [
-            SalesOverview::class,
+            SalesOverview::make(['date' => $dinamicTime]),
         ];
     }
 }

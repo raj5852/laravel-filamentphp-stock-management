@@ -75,7 +75,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
             Card::make([
                 Select::make('supplier_id')
                     ->label('Supplier')
-                    ->options(Supplier::query()->pluck('supplier_name', 'id'))
+                    ->options(Supplier::query()->where('is_default', '!=', 1)->pluck('supplier_name', 'id'))
                     ->searchable()
                     ->live()
                     ->rules([
@@ -121,7 +121,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                             ])
                             ->required(),
                         TextInput::make('opening_receivable')
-                            ->hidden(fn (string $context) => $context === 'edit')
+                            ->hidden(fn(string $context) => $context === 'edit')
                             ->rules([
                                 'numeric',
                                 'min:0',
@@ -131,7 +131,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                             ->numeric()
                             ->minValue(0),
                         TextInput::make('opening_payable')
-                            ->hidden(fn (string $context) => $context === 'edit')
+                            ->hidden(fn(string $context) => $context === 'edit')
                             ->rules([
                                 'numeric',
                                 'min:0',
@@ -319,7 +319,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                             ->required(),
 
                         TextInput::make('pay_amount')
-                            ->debounce()
+                            ->live(onBlur: false, debounce: 500)
                             ->label('Pay Amount')
                             ->numeric()
                             ->placeholder('Pay Amount...')

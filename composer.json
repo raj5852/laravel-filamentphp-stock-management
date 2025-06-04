@@ -14,7 +14,8 @@
         "laravel/tinker": "^2.9",
         "milon/barcode": "^12.0",
         "owenvoke/blade-fontawesome": "^2.9",
-        "simplesoftwareio/simple-qrcode": "^4.2"
+        "simplesoftwareio/simple-qrcode": "^4.2",
+        "spatie/laravel-permission": "^6.19"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.15",

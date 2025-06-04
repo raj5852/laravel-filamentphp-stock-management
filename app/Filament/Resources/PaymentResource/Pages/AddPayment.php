@@ -113,7 +113,7 @@ class AddPayment extends Page implements HasForms
                         ->live()
                         ->options(function ($get) {
                             if ($get('account_type') == 'supplier') {
-                                return Supplier::query()->latest()->pluck('supplier_name', 'id');
+                                return Supplier::query()->where('is_default', '!=', 1)->latest()->pluck('supplier_name', 'id');
                             } elseif ($get('account_type') == 'customer') {
                                 return Customer::query()->where('is_default', '!=', 1)->latest()->pluck('customer_name', 'id');
                             }

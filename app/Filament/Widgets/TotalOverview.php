@@ -4,7 +4,6 @@ namespace App\Filament\Widgets;
 
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
 use App\Models\Purchase;
 use EightyNine\FilamentAdvancedWidget\AdvancedStatsOverviewWidget\Stat;
 // use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -26,7 +25,6 @@ class TotalOverview extends BaseWidget
         $total_sold_purchase_cost = OrderItem::query()
             ->whereHas('order')
             ->sum('purchase_cost');
-        $purchaseInProduct = Product::query()->sum('total_purchase_cost');
 
         return [
 
@@ -34,7 +32,7 @@ class TotalOverview extends BaseWidget
                 ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')
                 ->iconColor('dark'),
-            Stat::make('Total Purchased ', 'TK '.number_format($totalPurchased + $purchaseInProduct, 1))
+            Stat::make('Total Purchased ', 'TK '.number_format($totalPurchased, 1))
                 ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')
                 ->iconColor('dark'),

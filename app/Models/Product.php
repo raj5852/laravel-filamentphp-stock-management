@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\HistoryTypeEnum;
 use App\Models\Scopes\TenantScope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Model;
@@ -55,7 +56,54 @@ class Product extends Model
             ]);
 
             $model->total_purchase_cost = $single_unit_purchase_price * $qty;
+            $model->total_opening_stock = $qty;
             $model->save();
+
+            if ($model->total_opening_stock > 0) {
+
+                $supplier = Supplier::where('is_default', 1)->first();
+                $billno = Purchase::count() + 1;
+
+                $purchase = Purchase::create([
+                    'billno' => $billno,
+                    'supplier_id' => $supplier->id,
+                    'purchase_date' => today(),
+                    'payable' => $model->total_purchase_cost,
+                    'paid' => $model->total_purchase_cost,
+                    'due' => 0,
+                    'note' => '',
+                    'is_purchase' => 0,
+                ]);
+
+                $purchase->purchaseitems()->create([
+                    'product_id' => $model->id,
+                    'rate' => $model->purchase_cost ?: 0,
+                    'total_rate' => $model->total_purchase_cost ?: 0,
+                    'main_unit_qty' => $model->main_unit_qty,
+                    'sub_unit_qty' => $model->sub_unit_qty,
+                    'total_qty' => $model->total_opening_stock,
+                    'total_in_text' => $qty_in_text,
+                    'available_qty' => $qty,
+                ]);
+
+                $payment = Payment::create([
+                    'supplier_id' => $supplier->id,
+                    'payment_date' => today(),
+                    'payment_type' => 'Cash Pay',
+                    'note' => '',
+                    'is_wallet_payment' => 0,
+                ]);
+
+                History::create([
+                    'date' => today(),
+                    'amount' => $model->total_purchase_cost ?: 0,
+                    'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
+                    'note' => '',
+                    'purchase_id' => $purchase->id,
+                    'supplier_id' => $supplier->id,
+                    'payment_id' => $payment->id,
+                ]);
+            }
         });
 
         static::updating(function ($model) {
@@ -69,7 +117,6 @@ class Product extends Model
                     Storage::disk('public')->delete($originalImage);
                 }
             }
-
         });
 
         static::updated(function ($model) {
@@ -84,8 +131,18 @@ class Product extends Model
             if (Storage::disk('public')->exists($product->product_image ?? '')) {
                 Storage::disk('public')->delete($product->product_image ?? '');
             }
-        });
 
+            if ($product->total_opening_stock) {
+                $purcahseItem = PurchaseItem::where('product_id', $product->id)->first();
+                $purcahse = $purcahseItem->purchase;
+
+                if ($purcahse) {
+                    History::where('purchase_id', $purcahse?->id)->delete();
+                }
+                $purcahseItem->delete();
+                $purcahse->delete();
+            }
+        });
     }
 
     public function category()
@@ -100,7 +157,9 @@ class Product extends Model
 
     public function productdetails()
     {
-        return $this->hasOne(ProductDetail::class, 'product_id')->withDefault([]);
+        return $this->hasOne(ProductDetail::class, 'product_id')->withDefault([
+            'sold' => 0,
+        ]);
     }
 
     public function unit()

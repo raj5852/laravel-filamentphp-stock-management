@@ -4,6 +4,7 @@ namespace App\Filament\Resources\SupplierResource\Pages;
 
 use App\Filament\Resources\SupplierResource;
 use App\Filament\Resources\SupplierResource\Widgets\SupplierStats;
+use App\Models\Supplier;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -22,6 +23,7 @@ class Report extends Page
 
     public function mount(int|string $record): void
     {
+        Supplier::query()->where('is_default', '!=', 1)->findOrFail($record);
         $this->record = $this->resolveRecord($record);
         static::$title = $this->record->supplier_name;
     }

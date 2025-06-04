@@ -20,7 +20,7 @@ class PurchaseInvoice extends Page
 
     public function mount(int|string $record): void
     {
-
+        Purchase::query()->where('is_purchase', 1)->findOrFail($record);
         $this->record = $this->resolveRecord($record);
     }
 

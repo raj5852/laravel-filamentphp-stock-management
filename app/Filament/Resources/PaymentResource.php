@@ -89,7 +89,6 @@ class PaymentResource extends Resource
                            </table>
                            ');
                         }
-
                     }),
 
                 TextColumn::make('payment_date')->date(),
@@ -122,7 +121,9 @@ class PaymentResource extends Resource
                             ->placeholder('Start Date'),
                     ])
                     ->query(function ($query, array $data) {
-                        return $query->when($data['start_date'], fn ($query, $term) => $query->where('payment_date', '>=', $term)
+                        return $query->when(
+                            $data['start_date'],
+                            fn ($query, $term) => $query->where('payment_date', '>=', $term)
                         );
                     }),
                 Filter::make('end_date')
@@ -134,7 +135,9 @@ class PaymentResource extends Resource
                             ->placeholder('End Date'),
                     ])
                     ->query(function ($query, array $data) {
-                        return $query->when($data['end_date'], fn ($query, $term) => $query->where('payment_date', '<=', $term)
+                        return $query->when(
+                            $data['end_date'],
+                            fn ($query, $term) => $query->where('payment_date', '<=', $term)
                         );
                     }),
 
@@ -166,7 +169,6 @@ class PaymentResource extends Resource
                                 $purchase = $history->purchase;
                                 $purchase->decrement('paid', $history->amount);
                                 $purchase->increment('due', $history->amount);
-
                             }
 
                             if ($history->is_wallet_transaction === 1) {
@@ -193,7 +195,9 @@ class PaymentResource extends Resource
 
                             $history->delete();
                         }
-
+                    })
+                    ->hidden(function ($record) {
+                        return $record->is_wallet_payment == 0;
                     }),
             ])
             ->bulkActions([

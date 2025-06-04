@@ -11,4 +11,11 @@ class SupplierLedger extends Page
     protected static string $view = 'filament.pages.supplier-ledger';
 
     protected static ?string $navigationGroup = 'Reports';
+
+    protected static ?int $navigationSort = 15;
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can('supplier ledger');
+    }
 }

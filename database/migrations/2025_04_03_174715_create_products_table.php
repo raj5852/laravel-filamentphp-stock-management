@@ -26,6 +26,7 @@ return new class extends Migration
             $table->integer('second_opening_stock')->nullable();
             $table->float('sale_price');
             $table->float('purchase_cost');
+            $table->float('total_opening_stock')->nullable()->default(0);
 
             $table->float('total_purchase_cost')->nullable()->default(0);
 

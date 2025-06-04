@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\InvoiceLogoType;
 use App\Models\Scopes\TenantScope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 #[ScopedBy(TenantScope::class)]
 class Setting extends Model
@@ -26,6 +28,18 @@ class Setting extends Model
         static::updating(function ($model) {
             $user = auth()->user();
             $model->updated_by = $user->id;
+
+            if ($model->isDirty('logo')) {
+                $originalImage = $model->getOriginal('logo');
+
+                if ($originalImage && Storage::disk('public')->exists($originalImage)) {
+                    Storage::disk('public')->delete($originalImage);
+                }
+            }
         });
     }
+
+    protected $casts = [
+        'invoice_logo_type' => InvoiceLogoType::class,
+    ];
 }

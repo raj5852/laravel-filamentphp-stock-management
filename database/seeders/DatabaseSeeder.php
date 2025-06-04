@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role as ModelsRole;
 
 class DatabaseSeeder extends Seeder
 {
@@ -19,6 +20,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+
+        $this->call([
+            PermissionSeeder::class,
+        ]);
 
         // user
         DB::table('users')->insert([
@@ -31,6 +36,11 @@ class DatabaseSeeder extends Seeder
             'type' => '1',
             'expires_at' => now()->addYears(5),
         ]);
+
+        $role1 = ModelsRole::first();
+
+        $user = User::first();
+        $user->assignRole($role1);
 
         // superadmin
         $user = DB::table('users')->insert([
@@ -50,11 +60,21 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => 1,
             'is_default' => 1,
         ]);
-
+        // walk in customer
         DB::table('customers')->insert([
             'customer_name' => 'Walk-in Customer',
             'email' => 'customer@customer.com',
             'phone' => '0000000000',
+            'tenant_id' => 1,
+            'is_default' => 1,
+        ]);
+
+        // default supplier
+        DB::table('suppliers')->insert([
+            'supplier_name' => 'Default Supplier',
+            'email' => 'supplier@supplier.com',
+            'phone' => '0000000000',
+            'address' => 'Default Address',
             'tenant_id' => 1,
             'is_default' => 1,
         ]);
@@ -90,56 +110,87 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // product
-        DB::table('products')->insert([
-            'product_name' => 'Product',
-            'product_code' => '0000001',
-            'category_id' => 1,
-            'unit_id' => 1,
-            'first_opening_stock' => 55,
-            'sale_price' => 22,
-            'purchase_cost' => 11,
-            'total_purchase_cost' => 605,
-            'tenant_id' => 1,
-            'created_by' => 1,
-            'created_at' => now(),
-        ]);
+        // DB::table('products')->insert([
+        //     'product_name' => 'Product',
+        //     'product_code' => '0000001',
+        //     'category_id' => 1,
+        //     'unit_id' => 1,
+        //     'first_opening_stock' => 55,
+        //     'sale_price' => 22,
+        //     'purchase_cost' => 11,
+        //     'total_purchase_cost' => 605,
+        //     'tenant_id' => 1,
+        //     'created_by' => 1,
+        //     'created_at' => now(),
+        // ]);
 
-        $model = DB::table('products')->first();
+        // $model = DB::table('products')->first();
 
-        $qty = getTotalStock($model->id, $model->first_opening_stock, $model->second_opening_stock);
-        $qty_in_text = getTotalStockInText($model->id, $qty);
+        // $qty = getTotalStock($model->id, $model->first_opening_stock, $model->second_opening_stock);
+        // $qty_in_text = getTotalStockInText($model->id, $qty);
 
-        $empty_qty = 0;
-        $empty_qty_in_text = getTotalStockInText($model->id, $empty_qty);
-        $single_unit_purchase_price = singleUnitPurchasePrice($model->id);
+        // $empty_qty = 0;
+        // $empty_qty_in_text = getTotalStockInText($model->id, $empty_qty);
+        // $single_unit_purchase_price = singleUnitPurchasePrice($model->id);
 
-        DB::table('product_details')->insert([
-            'product_id' => $model->id,
-            'single_unit_sale_price' => singleUnitSalePrice($model->id),
-            'single_unit_purchase_price' => $single_unit_purchase_price,
+        // DB::table('product_details')->insert([
+        //     'product_id' => $model->id,
+        //     'single_unit_sale_price' => singleUnitSalePrice($model->id),
+        //     'single_unit_purchase_price' => $single_unit_purchase_price,
 
-            'purchased' => $qty,
-            'purchased_in_text' => $qty_in_text,
+        //     'purchased' => $qty,
+        //     'purchased_in_text' => $qty_in_text,
 
-            'sold' => $empty_qty,
-            'sold_in_text' => $empty_qty_in_text,
+        //     'sold' => $empty_qty,
+        //     'sold_in_text' => $empty_qty_in_text,
 
-            'damaged' => $empty_qty,
-            'damaged_in_text' => $empty_qty_in_text,
+        //     'damaged' => $empty_qty,
+        //     'damaged_in_text' => $empty_qty_in_text,
 
-            'returned' => $empty_qty,
-            'returned_in_text' => $empty_qty_in_text,
+        //     'returned' => $empty_qty,
+        //     'returned_in_text' => $empty_qty_in_text,
 
-            'available_stock' => $qty,
-            'available_stock_in_text' => $qty_in_text,
-            'tenant_id' => 1,
-            'created_by' => 1,
-            'created_at' => now(),
-        ]);
+        //     'available_stock' => $qty,
+        //     'available_stock_in_text' => $qty_in_text,
+        //     'tenant_id' => 1,
+        //     'created_by' => 1,
+        //     'created_at' => now(),
+        // ]);
 
-        DB::table('products')->where('id', 1)->update([
-            'total_purchase_cost' => $single_unit_purchase_price * $qty,
-        ]);
+        // DB::table('products')->where('id', 1)->update([
+        //     'total_purchase_cost' => $single_unit_purchase_price * $qty,
+        //     'total_opening_stock' => $qty,
+        // ]);
+
+        // DB::table('purchases')->insert([
+        //     'billno' => 1,
+        //     'supplier_id' => 1,
+        //     'purchase_date' => today(),
+        //     'payable' => $single_unit_purchase_price * $qty,
+        //     'paid' => $single_unit_purchase_price * $qty,
+        //     'due' => 0,
+        //     'note' => '',
+        //     'is_purchase' => 0,
+        //     'tenant_id' => 1,
+        //     'created_by' => 1,
+        //     'created_at' => now(),
+
+        // ]);
+
+        // DB::table('purchase_items')->insert([
+        //     'purchase_id' => 1,
+        //     'product_id' => $model->id,
+        //     'rate' => 11,
+        //     'total_rate' => 605,
+        //     'main_unit_qty' => 55,
+        //     // 'sub_unit_qty' => $model->sub_unit_qty,
+        //     'total_qty' => 55,
+        //     'total_in_text' => $qty_in_text,
+        //     'available_qty' => $qty,
+        //     'tenant_id' => 1,
+        //     'created_by' => 1,
+        //     'created_at' => now(),
+        // ]);
 
         // customer
         DB::table('customers')->insert([
