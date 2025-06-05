@@ -3,16 +3,14 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
+use Filament\Facades\Filament;
 
 class LoginController extends Controller
 {
     public function loginToUser($id)
     {
-        Auth::logout();
-        Auth::login(User::find($id));
+        Filament::auth()->logout();
 
-        return redirect('/');
+        return to_route('test', ['id' => $id]);
     }
 }

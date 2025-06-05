@@ -56,7 +56,7 @@ class ReceiveFromCustomer extends Component implements HasForms, HasTable
                 TextColumn::make('amount')->label('Amount')->getStateUsing(function ($record) {
                     return number_format($record->amount, 2, '.', '');
                 })->summarize(
-                    Sum::make()->formatStateUsing(fn($state) => number_format($state, 2, '.', '') . ' Tk')->label('Total')
+                    Sum::make()->formatStateUsing(fn ($state) => number_format($state, 2, '.', '').' Tk')->label('Total')
                 ),
             ])
 
