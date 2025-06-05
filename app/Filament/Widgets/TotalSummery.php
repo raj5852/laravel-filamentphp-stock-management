@@ -20,7 +20,7 @@ class TotalSummery extends BaseWidget
     {
 
         $total_customer = Customer::where('is_default', '!=', 1)->count();
-        $total_supplier = Supplier::count();
+        $total_supplier = Supplier::where('is_default', '!=', 1)->count();
         $total_invoice = Order::count();
         $total_product = Product::count();
 
