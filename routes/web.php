@@ -13,4 +13,5 @@ Route::middleware(SuperAdminMiddleware::class)->prefix('superadmin')->name('supe
     // Route::get('/login-to-user/{id}', [LoginController::class, 'loginToUser'])->name('login-to-user');
 });
 
-Route::get('redirect-to-user/{password}/{email}', [UserController::class, 'redirectToUser'])->name('redirecttouser');
+Route::get('redirect-to-user/{email}', [UserController::class, 'redirectToUser'])->name('redirecttouser');
+// Route::get('demo', function () {});

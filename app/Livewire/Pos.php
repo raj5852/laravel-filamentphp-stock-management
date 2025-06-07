@@ -14,6 +14,7 @@ use Filament\Actions\Action as LivewireAction;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\Actions\Action;
+use Filament\Forms\Components\Card;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
@@ -376,13 +377,13 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                 Split::make([
                     Stack::make([
                         ImageColumn::make('product_image')->defaultImageUrl('/images/notfound.jpg')->alignCenter(),
-                        TextColumn::make('product_name')->getStateUsing(fn ($record) => $record->product_name.' - '.$record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
+                        TextColumn::make('product_name')->getStateUsing(fn($record) => $record->product_name . ' - ' . $record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
                         TextColumn::make('sale_price')->getStateUsing(function ($record) {
-                            return new HtmlString('<span class="font-bold">'.number_format($record->sale_price, 2, '.', '').'</span>'.' TK');
+                            return new HtmlString('<span class="font-bold">' . number_format($record->sale_price, 2, '.', '') . '</span>' . ' TK');
                         })->alignCenter(),
                         TextColumn::make('productdetails.available_stock_in_text')
                             ->getStateUsing(function ($record) {
-                                return new HtmlString('<span >Stock: </span>'.$record->productdetails?->available_stock_in_text);
+                                return new HtmlString('<span >Stock: </span>' . $record->productdetails?->available_stock_in_text);
                             })
                             ->alignCenter(),
                     ]),
@@ -430,9 +431,25 @@ class Pos extends Component implements HasActions, HasForms, HasTable
             ->paginated([12]);
     }
 
-    public function totalDue($pay_amount = 0)
+    public function totalDue($pay_amount = 0, $getDiscount = 0)
     {
-        return number_format($this->getGrandTotalProperty() - ($pay_amount ?: 0), 2, '.', '');
+
+        $mainbalance = $this->getGrandTotalProperty();
+
+        $val = $getDiscount;
+
+        if (preg_match('/^\d+(\.\d+)?%$/', $val)) {
+            // If $val is a percentage
+            $percentage = floatval(rtrim($val, '%')); // Remove the % sign and convert to float
+            $discount = ($mainbalance * $percentage) / 100;
+            $result = $mainbalance - $discount;
+        } else {
+            // If $val is a direct number
+            $subtraction = floatval($val); // Convert to float
+            $result = $mainbalance - $subtraction;
+        }
+
+        return number_format($result - ($pay_amount ?: 0), 2, '.', '');
     }
 
     public function paymentAction()
@@ -441,33 +458,72 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
         return LivewireAction::make('Payment')
             ->form([
+
+                Card::make([
+
+
+                    Grid::make(2)
+                        ->schema([
+                            TextInput::make('paying_items')
+                                ->label('Paying Items:')
+                                ->numeric()
+                                ->disabled()
+                                ->default(collect($this->products)->count()),
+                            TextInput::make('total_receivable')
+                                ->label('Total Receivable:')
+                                ->disabled()
+                                ->default(function () {
+                                    return number_format($this->getGrandTotalProperty(), 2);
+                                }),
+                        ]),
+                    Grid::make(2)
+                        ->schema([
+                            TextInput::make('after_discount')
+                                ->label('After Discount')
+                                ->disabled()
+                                ->default(function () {
+                                    return number_format($this->getGrandTotalProperty(), 2);
+                                }),
+                            TextInput::make('due')
+                                ->label('Due')
+                                ->disabled()
+                                ->default(function () {
+                                    return number_format($this->totalDue(), 2);
+                                }),
+                        ]),
+
+                ]),
+
+                /////////
                 Grid::make(2)
                     ->schema([
-                        TextInput::make('paying_items')
-                            ->label('Paying Items:')
-                            ->numeric()
-                            ->disabled()
-                            ->default(collect($this->products)->count()),
-                        TextInput::make('total_receivable')
-                            ->label('Total Receivable:')
-                            ->disabled()
-                            ->default(function () {
-                                return number_format($this->getGrandTotalProperty(), 2);
+                        TextInput::make('discount')
+                            ->live(onBlur: false, debounce: 500)
+                            ->label('Discount')
+                            ->numeric(false)
+                            ->placeholder('0%')
+                            ->rules(['nullable', 'regex:/^(\d+|\d+%)$/']) // Laravel server-side validation
+                            ->afterStateUpdated(function ($set, $get, $state) {
+                                $set('pay_amount', null);
+
+                                $total = $this->totalDue($get('pay_amount'), $state);
+
+                                $set('pay_amount', null);
+                                $set('due', $total);
+                                $set('after_discount', $total);
                             }),
+
+                        Textarea::make('note')
+                            ->label('Note')
+                            ->rules([
+                                'nullable',
+                                'max:5000',
+                            ])
+                            ->placeholder('Enter Note (Optional)'),
+
                     ]),
-                TextInput::make('due')
-                    ->label('Due')
-                    ->disabled()
-                    ->default(function () {
-                        return number_format($this->totalDue(), 2);
-                    }),
-                Textarea::make('note')
-                    ->label('Note')
-                    ->rules([
-                        'nullable',
-                        'max:5000',
-                    ])
-                    ->placeholder('Enter Note (Optional)'),
+
+
                 Grid::make(2)
                     ->schema([
 
@@ -481,14 +537,13 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                             ->required(),
 
                         TextInput::make('pay_amount')
-                            // ->live()
                             ->live(onBlur: false, debounce: 500)
                             ->label('Pay Amount')
                             ->numeric()
                             ->placeholder('Amount')
                             ->rules(['nullable', 'numeric', 'min:0', 'max:9999999999'])
                             ->afterStateUpdated(function ($set, $get, $state) {
-                                $set('due', $this->totalDue($state));
+                                $set('due', $this->totalDue($state, $get('discount')));
                             })
                             ->suffixAction(
                                 Action::make('paid')
@@ -498,8 +553,8 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                                     ->button()
                                     ->action(function ($set, $get) {
 
-                                        $totalPayable = $this->getGrandTotalProperty();
-                                        $set('pay_amount', number_format($totalPayable, 2, '.', ''));
+                                        // $totalPayable = $this->getGrandTotalProperty();
+                                        $set('pay_amount', number_format($get('due'), 2, '.', ''));
                                         $set('due', 0);
                                     })
                             ),
@@ -562,7 +617,9 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
                     return;
                 }
-                $due = number_format($this->totalDue($data['pay_amount']), 2, '.', '');
+                $due = number_format($this->totalDue($data['pay_amount'], $data['discount']), 2, '.', '');
+
+
 
                 if ($customer->is_default == 1 && $due != 0) {
                     Notification::make()
@@ -572,9 +629,13 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
                     return;
                 }
-                // dd($due, $data['pay_amount']);
-                $receable = number_format($this->getGrandTotalProperty(), 2, '.', '');
-                if ($receable < $data['pay_amount']) {
+
+                $total_no_discount = number_format($this->getGrandTotalProperty(), 2, '.', '');
+
+                $receable = $this->totalDue(0, $data['discount']);
+
+
+                if ($due < 0) {
                     Notification::make()
                         ->danger()
                         ->title('Paid amount is greater than due amount')
@@ -598,6 +659,8 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                             'paid' => $paid,
                             'due' => $due,
                             'note' => $data['note'],
+                            'discount' => $data['discount'],
+                            'total_no_discount' => $total_no_discount,
                         ]);
 
                         foreach ($this->products as $product) {

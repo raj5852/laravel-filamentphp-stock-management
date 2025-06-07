@@ -118,8 +118,27 @@
                                         class="whitespace-nowrap border border-gray-200 p-2 text-right font-semibold !text-black">
                                         Total :</td>
                                     <td class="whitespace-nowrap border border-gray-200 p-2 text-right !text-black">
-                                        {{ number_format($order->receivable, 2) }} Tk</td>
+                                        {{ number_format($order->total_no_discount, 2) }} Tk</td>
                                 </tr>
+
+                                <tr>
+                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td
+                                        class="whitespace-nowrap border border-gray-200 p-2 text-right font-semibold !text-black">
+                                        Discount :</td>
+                                    <td class="whitespace-nowrap border border-gray-200 p-2 text-right !text-black">
+                                        {{ is_numeric($order->discount) ? $order->discount . ' TK' : $order->discount ?? 0 . ' Tk' }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td
+                                        class="whitespace-nowrap border border-gray-200 p-2 text-right font-semibold !text-black">
+                                        Grand Total :</td>
+                                    <td class="whitespace-nowrap border border-gray-200 p-2 text-right !text-black">
+                                        {{ $order->receivable }} Tk</td>
+                                </tr>
+
                                 <tr>
                                     <td colspan="3" class="border border-gray-200"></td>
                                     <td class="border border-gray-200 p-2 text-right font-semibold !text-black">Total

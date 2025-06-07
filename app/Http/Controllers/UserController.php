@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
-    public function redirectToUser($password, $email)
+    public function redirectToUser($email)
     {
-        $user = DB::table('users')->where('password', $password)->where('email', $email)->first();
+        $user = DB::table('users')->where('password', request('password'))->where('email', $email)->first();
         if ($user) {
             Filament::auth()->loginUsingId($user->id);
         }
