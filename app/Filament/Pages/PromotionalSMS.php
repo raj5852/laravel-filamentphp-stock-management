@@ -3,14 +3,13 @@
 namespace App\Filament\Pages;
 
 use App\Models\Customer;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
-use Filament\Pages\Page;
-use Filament\Forms\Components\Actions\Action;
 use Filament\Notifications\Notification;
+use Filament\Pages\Page;
 
 class PromotionalSMS extends Page
 {
@@ -22,6 +21,8 @@ class PromotionalSMS extends Page
 
     protected static ?string $slug = 'promotional-s-m-s';
 
+    protected static ?string $navigationGroup = 'Promotion';
+
     public static function canAccess(): bool
     {
         return false;
@@ -32,11 +33,11 @@ class PromotionalSMS extends Page
         return 'Send Promotional SMS';
     }
 
-
     public $customer_ids = [];
+
     public $message = '';
 
-    function form(Form $form): Form
+    public function form(Form $form): Form
     {
         return $form
             ->schema([
@@ -61,7 +62,7 @@ class PromotionalSMS extends Page
                         ->label('SMS Body')
                         ->placeholder('Write your message here...')
                         ->required(),
-                ])
+                ]),
             ]);
     }
 
@@ -80,8 +81,8 @@ class PromotionalSMS extends Page
 
         // Show success notification
         Notification::make()
-            ->title('SMS sent successfully')
-            ->success()
+            ->title('Not available in demo version')
+            ->danger()
             ->send();
 
         // Reset the form

@@ -35,6 +35,7 @@ class AdminPanelProvider extends PanelProvider
                 'Sale & Purchase',
                 'Product Information',
                 'Expenses & Payment',
+                'Promotion',
                 'Peoples',
                 'Reports',
                 'Setting & Customize',

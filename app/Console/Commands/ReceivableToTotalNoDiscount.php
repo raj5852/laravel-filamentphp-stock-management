@@ -2,9 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Order;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class ReceivableToTotalNoDiscount extends Command
 {
@@ -27,13 +28,27 @@ class ReceivableToTotalNoDiscount extends Command
      */
     public function handle()
     {
-        $orders =  DB::table('orders')->get();
+        $orders = DB::table('orders')->get();
         foreach ($orders as $order) {
             DB::table('orders')
                 ->where('id', $order->id)
                 ->update([
-                    'total_no_discount' => $order->receivable
+                    'total_no_discount' => $order->receivable,
                 ]);
         }
+
+        $permissions = [
+            'expenses',
+            'expense categories',
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission]);
+        }
+
+        $role = Role::firstOrCreate(['name' => 'main_user', 'tenant_id' => 0]);
+
+        // Assign all permissions to the role
+        $role->syncPermissions(Permission::all());
     }
 }

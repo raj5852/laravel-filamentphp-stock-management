@@ -38,7 +38,7 @@ class User extends Authenticatable implements FilamentUser
         'is_admin',
         'type',
         'expires_at',
-        'sms_count'
+        'sms_count',
     ];
 
     /**

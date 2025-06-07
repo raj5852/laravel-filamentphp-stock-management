@@ -44,7 +44,7 @@ class UserResource extends Resource
                     Forms\Components\TextInput::make('password')
                         ->password()
                         ->placeholder('Password')
-                        ->hidden(fn(string $context) => $context === 'edit')
+                        ->hidden(fn (string $context) => $context === 'edit')
                         ->maxLength(255),
 
                     Select::make('type')
@@ -56,14 +56,14 @@ class UserResource extends Resource
                     TextInput::make('expires_at')
                         ->numeric()
                         ->label('Add Month')
-                        ->hidden(fn(string $context) => $context === 'edit')
+                        ->hidden(fn (string $context) => $context === 'edit')
                         ->minValue(1),
 
                     TextInput::make('sms_count')
                         ->label('SMS Count'),
 
                     DatePicker::make('expires_at')
-                        ->hidden(fn(string $context) => $context === 'create')
+                        ->hidden(fn (string $context) => $context === 'create')
                         ->required()
                         ->native(false),
 
@@ -90,7 +90,7 @@ class UserResource extends Resource
                     })
                     ->html()
                     ->copyableState(function ($record) {
-                        return config('app.url') . '/redirect-to-user/'  . $record->email . '?password=' . $record->password;
+                        return config('app.url').'/redirect-to-user/'.$record->email.'?password='.$record->password;
                     }),
 
                 Tables\Columns\TextColumn::make('expires_at')

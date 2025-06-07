@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Expense;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
@@ -33,6 +34,12 @@ class ReportOverview extends BaseWidget
             })
             ->sum('receivable');
 
+        $expense = Expense::query()
+            ->when($this->isFilter, function ($q) {
+                $q->whereBetween('date', [$this->startDate, $this->endDate]);
+            })
+            ->sum('amount');
+
         $purchaseCost = OrderItem::query()
             ->when($this->isFilter, function ($q) {
                 $q->whereHas('order', function ($query) {
@@ -46,6 +53,7 @@ class ReportOverview extends BaseWidget
         return [
             Stat::make('Sale Amount', number_format($sale_amount, 2).' TK'),
             Stat::make('Purchase Cost', number_format($purchaseCost, 2).' TK'),
+            Stat::make('Expense', number_format($expense, 2).' TK'),
             Stat::make('Sell Profit', number_format($sell_profit, 2).' TK'),
         ];
     }
