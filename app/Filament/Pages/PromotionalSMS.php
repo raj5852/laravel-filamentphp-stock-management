@@ -25,7 +25,8 @@ class PromotionalSMS extends Page
 
     public static function canAccess(): bool
     {
-        return false;
+        // return false;
+        return true;
     }
 
     public function getHeading(): string
