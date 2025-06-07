@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\Expense;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Purchase;
@@ -26,6 +27,8 @@ class TotalOverview extends BaseWidget
             ->whereHas('order')
             ->sum('purchase_cost');
 
+        $totalExpense = Expense::query()->sum('amount');
+
         return [
 
             Stat::make('Total Sold ', 'TK '.number_format($totalSold, 1))
@@ -33,6 +36,11 @@ class TotalOverview extends BaseWidget
                 ->iconBackgroundColor('success')
                 ->iconColor('dark'),
             Stat::make('Total Purchased ', 'TK '.number_format($totalPurchased, 1))
+                ->icon('heroicon-o-banknotes')
+                ->iconBackgroundColor('success')
+                ->iconColor('dark'),
+
+            Stat::make('Total Expense ', 'TK '.number_format($totalExpense, 1))
                 ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')
                 ->iconColor('dark'),

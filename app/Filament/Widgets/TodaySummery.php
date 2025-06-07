@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\Expense;
 use App\Models\Order;
 use App\Models\OrderItem;
 use EightyNine\FilamentAdvancedWidget\AdvancedStatsOverviewWidget\Stat;
@@ -23,6 +24,8 @@ class TodaySummery extends BaseWidget
             })
             ->sum('purchase_cost');
 
+        $todayExpense = Expense::where('date', $today)->sum('amount');
+
         return [
             Stat::make('Today Sold', 'TK '.number_format($today_sold, 1))
                 ->icon('heroicon-o-banknotes')
@@ -31,6 +34,12 @@ class TodaySummery extends BaseWidget
                 ->iconColor('success'),
 
             Stat::make('Today Sold - Purchase Cost', 'TK '.number_format($today_sold_purchase_cost, 1))
+                ->icon('heroicon-o-banknotes')
+                ->iconBackgroundColor('success')
+                ->descriptionColor('success')
+                ->iconColor('success'),
+
+            Stat::make('Today Expense', 'TK '.number_format($todayExpense, 1))
                 ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')
                 ->descriptionColor('success')

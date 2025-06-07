@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Expense;
 use App\Models\Order;
 use App\Models\Purchase;
 use Filament\Forms\Components\Card;
@@ -79,16 +80,30 @@ class DailyReport extends Component implements HasForms
             ->get()
             ->keyBy('date');
 
-        // Step 4: Combine into final report
-        $results = $dates->map(function ($date) use ($orders, $purchases) {
+        // Step 4: Get expense data
+        $expenses = Expense::query()
+            ->selectRaw('DATE(date) as date, SUM(amount) as expense_amount')
+            ->whereBetween('date', [$start, $end])
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+
+        // Step 5: Combine into final report
+        $results = $dates->map(function ($date) use ($orders, $purchases, $expenses) {
             $order = $orders[$date] ?? null;
             $purchase = $purchases[$date] ?? null;
+            $expense = $expenses[$date] ?? null;
+
+            $grossProfit = $order->profit ?? 0;
+            $expenseAmount = $expense->expense_amount ?? 0;
 
             return [
                 'date' => $date,
                 'sell_amount' => $order->sell_amount ?? 0,
                 'purchase_amount' => $purchase->purchase_amount ?? 0,
-                'profit' => $order->profit ?? 0,
+                'profit' => $grossProfit,
+                'expense_amount' => $expenseAmount,
+                'net_profit' => ($order->sell_amount ?? 0) - ($expenseAmount + ($purchase->purchase_amount ?? 0)),
             ];
         });
 

@@ -47,7 +47,7 @@ class LowStockReport extends Page implements HasForms, HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query(Product::query()->whereRelation('productdetails', 'available_stock', '>=', $this->low_stock_quantity)->with('productdetails', 'category:id,name'))
+            ->query(Product::query()->whereRelation('productdetails', 'available_stock', '<=', $this->low_stock_quantity)->with('productdetails', 'category:id,name'))
             ->columns([
 
                 ImageColumn::make('product_image')->label('Image')->defaultImageUrl('/images/notfound.jpg'),

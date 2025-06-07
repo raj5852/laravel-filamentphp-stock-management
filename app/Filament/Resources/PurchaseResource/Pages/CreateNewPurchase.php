@@ -467,7 +467,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                             $account = Account::find($data['account_id']);
                             $account->decrement('current_balance', $data['pay_amount']);
                             $account->histories()->create([
-                                'date' => $this->purchase_date,
+                                'date' => today(),
                                 'amount' => $data['pay_amount'],
                                 'type' => HistoryTypeEnum::SPENT_OR_WITHDRAW->value,
                                 'note' => '',

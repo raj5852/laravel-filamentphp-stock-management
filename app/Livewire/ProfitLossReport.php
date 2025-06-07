@@ -76,6 +76,23 @@ class ProfitLossReport extends Component implements HasForms
         $endDate = \Carbon\Carbon::parse($this->end_date)->endOfMonth()->toDateString();
 
         $tenantId = auth()->user()->tenant_id;
+
+        // First, get the expenses by year and month
+        $expenses = DB::table('expenses')
+            ->where('tenant_id', $tenantId)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->select(
+                DB::raw('YEAR(date) as year'),
+                DB::raw('MONTH(date) as month'),
+                DB::raw('SUM(amount) as total_expenses')
+            )
+            ->groupBy('year', 'month')
+            ->get()
+            ->keyBy(function ($item) {
+                return $item->year.'-'.$item->month;
+            });
+
+        // Then get the order data
         $orderitems = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->where('order_items.tenant_id', $tenantId)
@@ -84,14 +101,20 @@ class ProfitLossReport extends Component implements HasForms
                 DB::raw('YEAR(orders.order_date) as year'),
                 DB::raw('MONTH(orders.order_date) as month'),
                 DB::raw('SUM(orders.receivable) as sales'),
-
                 DB::raw('SUM(order_items.purchase_cost) as cost_of_goods_sold'),
-                DB::raw('SUM(orders.profit) as 	gross_profit'),
+                DB::raw('SUM(orders.profit) as gross_profit')
             )
             ->groupBy('year', 'month')
             ->orderBy('year', 'asc')
             ->orderBy('month', 'asc')
             ->get();
+
+        // Add expenses and calculate net profit
+        foreach ($orderitems as $item) {
+            $key = $item->year.'-'.$item->month;
+            $item->expenses = isset($expenses[$key]) ? $expenses[$key]->total_expenses : 0;
+            $item->net_profit = $item->gross_profit - $item->expenses;
+        }
 
         return view('livewire.profit-loss-report', compact('orderitems'));
     }

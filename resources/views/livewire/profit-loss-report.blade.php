@@ -65,6 +65,17 @@
                                         </span>
                                     </span>
                                 </th>
+                                <!-- Add a new column header for Expenses after Gross Profit -->
+                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 "
+                                    style=";">
+                                    <span
+                                        class="group flex w-full items-center gap-x-1 whitespace-nowrap justify-start">
+                                        <span
+                                            class="fi-ta-header-cell-label text-sm font-semibold text-gray-950 dark:text-white">
+                                            Expenses
+                                        </span>
+                                    </span>
+                                </th>
                                 <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 "
                                     style=";">
                                     <span
@@ -200,31 +211,49 @@
                                         </div>
                                     </td>
 
+                                    <!-- In the loop, add a new cell for expenses before the Net Profit cell -->
                                     <td
                                         class="fi-ta-cell p-0 first-of-type:ps-1 last-of-type:pe-1 sm:first-of-type:ps-3 sm:last-of-type:pe-3 ">
                                         <div class="fi-ta-col-wrp">
                                             <div
                                                 class="flex w-full disabled:pointer-events-none justify-start text-start">
                                                 <div class="fi-ta-text grid w-full gap-y-1 px-3 py-4">
-
-
                                                     <div class="flex ">
                                                         <div class="flex max-w-max" style="">
                                                             <div
                                                                 class="fi-ta-text-item inline-flex items-center gap-1.5  ">
-
                                                                 <span
                                                                     class="fi-ta-text-item-label text-sm leading-6 text-gray-950 dark:text-white  "
                                                                     style="">
-                                                                    {{ number_format($data->gross_profit, 2) }}
+                                                                    {{ number_format($data->expenses, 2) }}
                                                                 </span>
-
                                                             </div>
                                                         </div>
-
                                                     </div>
                                                 </div>
+                                            </div>
+                                        </div>
+                                    </td>
 
+                                    <td
+                                        class="fi-ta-cell p-0 first-of-type:ps-1 last-of-type:pe-1 sm:first-of-type:ps-3 sm:last-of-type:pe-3 ">
+                                        <div class="fi-ta-col-wrp">
+                                            <div
+                                                class="flex w-full disabled:pointer-events-none justify-start text-start">
+                                                <div class="fi-ta-text grid w-full gap-y-1 px-3 py-4">
+                                                    <div class="flex ">
+                                                        <div class="flex max-w-max" style="">
+                                                            <div
+                                                                class="fi-ta-text-item inline-flex items-center gap-1.5  ">
+                                                                <span
+                                                                    class="fi-ta-text-item-label text-sm leading-6 text-gray-950 dark:text-white  "
+                                                                    style="">
+                                                                    {{ number_format($data->net_profit, 2) }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </td>

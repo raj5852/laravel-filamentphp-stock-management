@@ -4,22 +4,40 @@
         $end_date = Carbon\Carbon::today();
     @endphp
     <div class="grid gap-4 grid-cols-1 md:grid-cols-2">
+
         <div class="space-y-2">
-            @livewire('receive-from-customer', [
+            @livewire('top-sale-product', [
                 'startDate' => $start_date,
                 'endDate' => $end_date,
             ])
         </div>
 
-        @livewire('pay-to-supplier', [
+        @livewire('expense-report', [
             'startDate' => $start_date,
             'endDate' => $end_date,
         ])
     </div>
 
-    @livewire('top-sale-product', [
-        'startDate' => $start_date,
-        'endDate' => $end_date,
-    ])
+
+    <div class="grid gap-4 grid-cols-1 md:grid-cols-2">
+        <div class="space-y-2">
+
+
+            @livewire('pay-to-supplier', [
+                'startDate' => $start_date,
+                'endDate' => $end_date,
+            ])
+        </div>
+
+        @livewire('receive-from-customer', [
+            'startDate' => $start_date,
+            'endDate' => $end_date,
+        ])
+
+
+    </div>
+
+
+
 
 </x-filament-panels::page>

@@ -98,6 +98,8 @@ class TopSaleProduct extends Component implements HasForms, HasTable
                     ),
 
             ])
+            ->filtersFormColumns(2)
+
             ->paginated([10, 25, 50, 100]);
     }
 
