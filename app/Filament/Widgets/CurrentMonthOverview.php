@@ -53,7 +53,7 @@ class CurrentMonthOverview extends BaseWidget
                 ->descriptionColor('success')
                 ->iconColor('warning'),
 
-            Stat::make('Profit '.$currentMonthYear, 'TK '.number_format($soldInCurrentMonth - $current_month_sold_purchase_cost, 1))
+            Stat::make('Profit1 '.$currentMonthYear, 'TK '.number_format($soldInCurrentMonth - ($current_month_sold_purchase_cost + $expenseInCurrentMonth), 1))
                 ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')
                 ->descriptionColor('success')

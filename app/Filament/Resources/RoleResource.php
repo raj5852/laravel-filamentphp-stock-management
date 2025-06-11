@@ -9,6 +9,7 @@ use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\DeleteAction;
@@ -96,7 +97,25 @@ class RoleResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                DeleteAction::make(),
+                DeleteAction::make()
+                    ->before(function ($record, $action) {
+
+
+
+
+                        $count = DB::table('model_has_roles')
+                            ->where('role_id', $record->id)
+                            ->where('model_type', 'App\\Models\\User')
+                            ->count();
+
+                        if ($count > 0) {
+                            Notification::make()
+                                ->title("You can't delete it.")
+                                ->danger()
+                                ->send();
+                            $action->cancel();
+                        }
+                    }),
             ])
             ->bulkActions([
                 // Tables\Actions\BulkActionGroup::make([

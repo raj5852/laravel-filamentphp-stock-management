@@ -3,6 +3,8 @@
 namespace App\Filament\Pages;
 
 use App\Models\Customer;
+use App\Models\User;
+use App\Services\SmsService;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\Select;
@@ -25,7 +27,7 @@ class PromotionalSMS extends Page
 
     public static function canAccess(): bool
     {
-        return false;
+        return true;
     }
 
     public function getHeading(): string
@@ -61,7 +63,9 @@ class PromotionalSMS extends Page
                     Textarea::make('message')
                         ->label('SMS Body')
                         ->placeholder('Write your message here...')
-                        ->required(),
+                        ->required()
+                        ->helperText(fn($state): string => 'SMS count: ' . (empty($state) ? '0' : ceil(strlen($state) / 160)))
+                        ->reactive(),
                 ]),
             ]);
     }
@@ -70,22 +74,36 @@ class PromotionalSMS extends Page
     {
         // Validate the form data
         $data = $this->form->getState();
+        $message = $data['message'];
 
-        // Process the SMS sending
-        // This is where you would integrate with your SMS service
-        // For example:
-        // $customers = Customer::whereIn('id', $data['customer_ids'])->get();
-        // foreach ($customers as $customer) {
-        //     // Send SMS to customer->phone with $data['message']
-        // }
+        $user = User::find(auth()->user()->tenant_id);
+        $userSms = $user->sms_count;
 
-        // Show success notification
-        Notification::make()
-            ->title('Not available in demo version')
-            ->danger()
-            ->send();
 
-        // Reset the form
-        $this->reset(['customer_ids', 'message']);
+        $totalSms =  ceil(strlen($message) / 160);
+        $totalUser = count($data['customer_ids']);
+        $grandTotal = $totalSms * $totalUser;
+
+        if ($userSms < $grandTotal) {
+            Notification::make()
+                ->title('SMS Limit Exceeded')
+                ->danger()
+                ->send();
+            return;
+        } else {
+            $numbers = Customer::query()->whereIn('id', $data['customer_ids'])->pluck('phone')->implode(',');
+
+            SmsService::sendSms($numbers, $message);
+
+            $user->decrement('sms_count', $grandTotal);
+
+            // Show a success notification
+            Notification::make()
+                ->title('SMS Sent Successfully')
+                ->success()
+                ->send();
+            // Reset the form
+            $this->reset(['customer_ids', 'message']);
+        }
     }
 }

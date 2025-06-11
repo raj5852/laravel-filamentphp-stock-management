@@ -9,7 +9,10 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
+use App\Models\Setting;
+use App\Models\User;
 use App\Services\ExpensePurchase;
+use App\Services\SmsService;
 use Filament\Actions\Action as LivewireAction;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -20,6 +23,7 @@ use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
@@ -35,10 +39,12 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\HtmlString;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Illuminate\Support\Str;
 
 class Pos extends Component implements HasActions, HasForms, HasTable
 {
@@ -377,13 +383,13 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                 Split::make([
                     Stack::make([
                         ImageColumn::make('product_image')->defaultImageUrl('/images/notfound.jpg')->alignCenter(),
-                        TextColumn::make('product_name')->getStateUsing(fn ($record) => $record->product_name.' - '.$record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
+                        TextColumn::make('product_name')->getStateUsing(fn($record) => $record->product_name . ' - ' . $record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
                         TextColumn::make('sale_price')->getStateUsing(function ($record) {
-                            return new HtmlString('<span class="font-bold">'.number_format($record->sale_price, 2, '.', '').'</span>'.' TK');
+                            return new HtmlString('<span class="font-bold">' . number_format($record->sale_price, 2, '.', '') . '</span>' . ' TK');
                         })->alignCenter(),
                         TextColumn::make('productdetails.available_stock_in_text')
                             ->getStateUsing(function ($record) {
-                                return new HtmlString('<span >Stock: </span>'.$record->productdetails?->available_stock_in_text);
+                                return new HtmlString('<span >Stock: </span>' . $record->productdetails?->available_stock_in_text);
                             })
                             ->alignCenter(),
                     ]),
@@ -550,12 +556,15 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                                     ->icon('heroicon-s-check-circle')
                                     ->button()
                                     ->action(function ($set, $get) {
+                                        $bal_without_comma = str_replace(',', '', ($get('after_discount') ?: 0));
 
-                                        // $totalPayable = $this->getGrandTotalProperty();
-                                        $set('pay_amount', number_format($get('due'), 2, '.', ''));
+                                        $set('pay_amount', number_format($bal_without_comma, 2, '.', ''));
                                         $set('due', 0);
                                     })
                             ),
+
+                        Toggle::make('send_sms')
+                            ->label('Send SMS'),
                     ]),
             ])
             ->modalButton('Order')
@@ -730,9 +739,58 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
                         $this->customer_id = null;
 
+                        if ($data['send_sms'] && ($customer->is_default != 1)) {
+                            // $smsCount = User::where('tenant_id', auth()->user()->tenant_id)->first()?->sms_count ?? 0;
+
+                            $setting = Setting::first();
+                            $message = $setting->order_sms;
+
+                            $user = User::find(auth()->user()->tenant_id);
+                            $userSms = $user->sms_count;
+
+
+                            $customer_name = $customer->customer_name;
+                            $amount = $receable;
+                            $order_date = $order->order_date;
+                            $bill_no = $order->invoiceno;
+                            $company_name = $setting->company_name;
+
+                            $replacements = [
+                                '{customer_name}' => $customer_name,
+                                '{amount}' => $amount,
+                                '{order_date}' => $order_date,
+                                '{bill_no}' => $bill_no,
+                                '{company_name}' => $company_name,
+                            ];
+
+                            foreach ($replacements as $key => $value) {
+                                if (Str::contains($message, $key)) {
+                                    $message = str_replace($key, $value, $message);
+                                }
+                            }
+
+                            $finalMessage = $message;
+
+                            $totalSms =  ceil(strlen($finalMessage) / 160);
+
+                            if ($totalSms <= $userSms) {
+                                $data =  SmsService::sendSms($customer->phone, $finalMessage);
+
+                                $user->decrement('sms_count', $totalSms);
+                            } else {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('SMS Limit Exceeded')
+                                    ->send();
+                            }
+                        }
+
                         DB::commit();
                     } catch (\Exception $e) {
                         DB::rollBack();
+
+                        // Log the exception
+                        Log::error($e);
 
                         // Handle exception
                         Notification::make()

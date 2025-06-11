@@ -7,12 +7,15 @@ use App\Models\Setting as ModelsSetting;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Support\HtmlString;
 
 class Setting extends Page implements HasForms
 {
@@ -42,6 +45,8 @@ class Setting extends Page implements HasForms
 
     public $low_stock_quantity;
 
+    public $order_sms;
+
     public static function canAccess(): bool
     {
         return auth()->user()->can('settings');
@@ -57,6 +62,8 @@ class Setting extends Page implements HasForms
             $this->address = $setting->address;
             $this->invoice_logo_type = $setting->invoice_logo_type;
             $this->low_stock_quantity = $setting->low_stock_quantity;
+            $this->order_sms = $setting->order_sms;
+
 
             if ($setting->logo) {
                 $this->file = $setting->logo;
@@ -68,6 +75,7 @@ class Setting extends Page implements HasForms
                     'address' => $this->address,
                     'invoice_logo_type' => $this->invoice_logo_type,
                     'low_stock_quantity' => $this->low_stock_quantity,
+                    'order_sms' => $this->order_sms,
                 ]);
             }
         }
@@ -143,6 +151,28 @@ class Setting extends Page implements HasForms
                         ->inlineLabel(false)
                         ->options(InvoiceLogoType::class)
                         ->default(InvoiceLogoType::LOGO),
+                ]),
+
+            Card::make('Order SMS Settings')
+                ->schema([
+                    Placeholder::make('')
+                        ->content(new HtmlString('
+                        <div class="">
+                          <p><b>Customer Name: </b> {customer_name}</p>
+                          <p><b>Total Order Amount:</b> {amount} </p>
+                          <p><b>Bill No: </b> {bill_no}</p>
+                          <p><b>Order Date:</b> {order_date}</p>
+                          <p><b>Company Name:</b> {company_name}</p>
+                        </div>
+                      ')),
+                    Textarea::make('order_sms')
+                        ->label('Order SMS')
+                        ->placeholder('Write your message here...')
+                        ->reactive()
+                        ->rows(5)
+
+                        ->required()
+                        ->helperText(fn($state): string => 'Estimated SMS count: ' . (empty($state) ? '0' : ceil(strlen($state) / 160)))
                 ]),
 
             Card::make('Other Settings')
