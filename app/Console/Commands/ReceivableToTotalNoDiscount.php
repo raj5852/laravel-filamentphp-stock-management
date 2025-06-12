@@ -28,18 +28,22 @@ class ReceivableToTotalNoDiscount extends Command
      */
     public function handle()
     {
-        $orders = DB::table('orders')->get();
-        foreach ($orders as $order) {
-            DB::table('orders')
-                ->where('id', $order->id)
+        $settings = DB::table('settings')->get();
+        foreach ($settings as $setting) {
+            DB::table('settings')
+                ->where('id', $setting->id)
                 ->update([
-                    'total_no_discount' => $order->receivable,
+                    'order_sms' => 'Dear Customer,
+
+Order #{bill_no} for Tk {amount} has been completed.
+Thanks for your order.
+
+{company_name}',
                 ]);
         }
 
         $permissions = [
-            'expenses',
-            'expense categories',
+            'promotional_sms',
         ];
 
         foreach ($permissions as $permission) {

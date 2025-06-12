@@ -60,6 +60,10 @@ class UserResource extends Resource
                         ->minValue(1),
 
                     TextInput::make('sms_count')
+                        ->default(0)
+                        ->required()
+                        ->numeric()
+                        ->minValue(0)
                         ->label('SMS Count'),
 
                     DatePicker::make('expires_at')
