@@ -27,7 +27,7 @@ class PromotionalSMS extends Page
 
     public static function canAccess(): bool
     {
-        return true;
+        return auth()->user()->can('promotional_sms');
     }
 
     public function getHeading(): string
@@ -79,8 +79,7 @@ class PromotionalSMS extends Page
         $user = User::find(auth()->user()->tenant_id);
         $userSms = $user->sms_count;
 
-
-        $totalSms =  ceil(strlen($message) / 160);
+        $totalSms = ceil(strlen($message) / 160);
         $totalUser = count($data['customer_ids']);
         $grandTotal = $totalSms * $totalUser;
 
@@ -89,6 +88,7 @@ class PromotionalSMS extends Page
                 ->title('SMS Limit Exceeded')
                 ->danger()
                 ->send();
+
             return;
         } else {
             $numbers = Customer::query()->whereIn('id', $data['customer_ids'])->pluck('phone')->implode(',');

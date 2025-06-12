@@ -64,7 +64,6 @@ class Setting extends Page implements HasForms
             $this->low_stock_quantity = $setting->low_stock_quantity;
             $this->order_sms = $setting->order_sms;
 
-
             if ($setting->logo) {
                 $this->file = $setting->logo;
                 $this->form->fill([
@@ -172,7 +171,7 @@ class Setting extends Page implements HasForms
                         ->rows(5)
 
                         ->required()
-                        ->helperText(fn($state): string => 'Estimated SMS count: ' . (empty($state) ? '0' : ceil(strlen($state) / 160)))
+                        ->helperText(fn ($state): string => 'Estimated SMS count: '.(empty($state) ? '0' : ceil(strlen($state) / 160))),
                 ]),
 
             Card::make('Other Settings')

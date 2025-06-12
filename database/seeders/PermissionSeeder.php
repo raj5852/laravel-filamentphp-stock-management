@@ -34,6 +34,7 @@ class PermissionSeeder extends Seeder
             'expenses',
             'expense categories',
             'payments',
+            'promotional_sms',
             'customers',
             'suppliers',
             'profit loss report',

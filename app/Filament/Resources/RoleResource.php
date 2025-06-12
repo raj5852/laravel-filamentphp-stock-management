@@ -100,9 +100,6 @@ class RoleResource extends Resource
                 DeleteAction::make()
                     ->before(function ($record, $action) {
 
-
-
-
                         $count = DB::table('model_has_roles')
                             ->where('role_id', $record->id)
                             ->where('model_type', 'App\\Models\\User')
