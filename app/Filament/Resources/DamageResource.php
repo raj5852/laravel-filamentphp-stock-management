@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\DamageExporter;
 use App\Filament\Resources\DamageResource\Pages;
 use App\Models\Damage;
 use App\Models\Product;
@@ -14,9 +15,11 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
 use Illuminate\Validation\Rule;
@@ -66,16 +69,16 @@ class DamageResource extends Resource
                             ->label('Available Stock')
                             ->content(function ($get) {
                                 if ($get('available_stock_in_text') != '') {
-                                    return new HtmlString('<h1 style="color:green; font-weight: bold; font-size: 20px">'.$get('available_stock_in_text').'<h1>');
+                                    return new HtmlString('<h1 style="color:green; font-weight: bold; font-size: 20px">' . $get('available_stock_in_text') . '<h1>');
                                 }
-                            })->hidden(fn ($get) => $get('available_stock_in_text') == ''),
+                            })->hidden(fn($get) => $get('available_stock_in_text') == ''),
                         TextInput::make('quantity_in_main_unit')
                             ->label(function ($get) {
                                 if ($get('main_unit_name') == '') {
                                     return;
                                 }
 
-                                return 'Damage Quantity ( '.$get('main_unit_name').' )';
+                                return 'Damage Quantity ( ' . $get('main_unit_name') . ' )';
                             })
                             ->minValue(0)
                             ->placeholder(function ($get) {
@@ -85,7 +88,7 @@ class DamageResource extends Resource
 
                                 return $get('main_unit_name');
                             })
-                            ->hidden(fn ($get) => $get('main_unit_name') == '')
+                            ->hidden(fn($get) => $get('main_unit_name') == '')
                             ->live()
                             ->rules([
                                 'integer',
@@ -100,7 +103,7 @@ class DamageResource extends Resource
                                     return;
                                 }
 
-                                return 'Damage Quantity ( '.$get('sub_unit_name').' )';
+                                return 'Damage Quantity ( ' . $get('sub_unit_name') . ' )';
                             })
                             ->minValue(0)
                             ->placeholder(function ($get) {
@@ -110,7 +113,7 @@ class DamageResource extends Resource
 
                                 return $get('sub_unit_name');
                             })
-                            ->hidden(fn ($get) => $get('sub_unit_name') == '')
+                            ->hidden(fn($get) => $get('sub_unit_name') == '')
                             ->live()
                             ->rules([
                                 'integer',
@@ -188,6 +191,23 @@ class DamageResource extends Resource
 
                         }
                     }),
+
+                ExportAction::make()
+                    ->label('Export ')
+                    ->icon('fas-download')
+                    ->columnMapping(false)
+                    ->exporter(DamageExporter::class)
+                    ->modifyQueryUsing(function (Builder $query, array $data) {
+                        return $query
+                            ->when(
+                                $data['filter']['product_id'] ?? null,
+                                fn ($query, $productId) => $query->where('product_id', $productId)
+                            )
+                            ->when(
+                                $data['filter']['id'] ?? null,
+                                fn ($query, $id) => $query->where('id', $id)
+                            );
+                    }),
             ])
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('#'),
@@ -196,9 +216,10 @@ class DamageResource extends Resource
                     ->extraAttributes(['class' => 'max-w-[250px] whitespace-normal']),
                 Tables\Columns\TextColumn::make('date')
                     ->date(),
-                Tables\Columns\TextColumn::make('total_in_text'),
+                Tables\Columns\TextColumn::make('total_in_text')->label('Total Damage'),
                 Tables\Columns\TextColumn::make('note'),
             ])
+
             ->filters([
                 Filter::make('product_id')
                     ->label('')
@@ -210,7 +231,7 @@ class DamageResource extends Resource
                             ->searchable(),
                     ])
                     ->query(function ($query, array $data) {
-                        return $query->when($data['product_id'], fn ($query, $term) => $query->where('product_id', $term));
+                        return $query->when($data['product_id'], fn($query, $term) => $query->where('product_id', $term));
                     }),
 
                 Filter::make('id')
@@ -224,7 +245,7 @@ class DamageResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['id'],
-                            fn ($query, $term) => $query->where('id', $term)
+                            fn($query, $term) => $query->where('id', $term)
                         );
                     }),
             ], layout: FiltersLayout::AboveContent)

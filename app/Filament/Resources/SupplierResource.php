@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\SupplierExporter;
 use App\Filament\Resources\SupplierResource\Pages;
 use App\Models\Supplier;
 use Filament\Actions\Action;
@@ -11,7 +12,9 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 
 class SupplierResource extends Resource
@@ -65,7 +68,7 @@ class SupplierResource extends Resource
                     ])
                     ->required(),
                 Forms\Components\TextInput::make('opening_receivable')
-                    ->hidden(fn (string $context) => $context === 'edit')
+                    ->hidden(fn(string $context) => $context === 'edit')
                     ->rules([
                         'numeric',
                         'min:0',
@@ -74,7 +77,7 @@ class SupplierResource extends Resource
                     ->numeric()
                     ->minValue(0),
                 Forms\Components\TextInput::make('opening_payable')
-                    ->hidden(fn (string $context) => $context === 'edit')
+                    ->hidden(fn(string $context) => $context === 'edit')
                     ->rules([
                         'numeric',
                         'min:0',
@@ -99,19 +102,19 @@ class SupplierResource extends Resource
                     ->label('Payable')
                     ->default(0)
                     ->formatStateUsing(function ($state) {
-                        return number_format($state ?: 0, 2, '.', '').' TK';
+                        return number_format($state ?: 0, 2, '.', '') . ' TK';
                     }),
                 Tables\Columns\TextColumn::make('purchases_sum_paid')
                     ->label('Paid')
                     ->default(0)
                     ->formatStateUsing(function ($state) {
-                        return number_format($state ?: 0, 2, '.', '').' TK';
+                        return number_format($state ?: 0, 2, '.', '') . ' TK';
                     }),
                 Tables\Columns\TextColumn::make('purchases_sum_due')
                     ->label('Due')
                     ->default(0)
                     ->formatStateUsing(function ($state) {
-                        return number_format($state ?: 0, 2, '.', '').' TK';
+                        return number_format($state ?: 0, 2, '.', '') . ' TK';
                     }),
                 Tables\Columns\TextColumn::make('opening_receivable')
                     ->label('Wallet Balance')
@@ -124,7 +127,7 @@ class SupplierResource extends Resource
                             $message = '<span >**সাপ্লাইয়ার আপনাকে  </span> <br> <span >দিয়েছে</span>';
                         }
 
-                        return new HtmlString('<span class="text-success"> <b>'.number_format(abs($record->wallet), 1).' TK </b> </span> <br>'.$message);
+                        return new HtmlString('<span class="text-success"> <b>' . number_format(abs($record->wallet), 1) . ' TK </b> </span> <br>' . $message);
                     })
                     ->searchable(),
 
@@ -139,11 +142,26 @@ class SupplierResource extends Resource
                             $balance = 0;
                         }
 
-                        return number_format(abs($balance) + $record->purchases_sum_due ?: 0, 2).' TK';
+                        return number_format(abs($balance) + $record->purchases_sum_due ?: 0, 2) . ' TK';
                     }),
             ])
             ->filters([
                 //
+            ])
+            ->headerActions([
+                ExportAction::make()
+                    ->label('Export')
+                    ->icon('fas-download')
+                    ->exporter(SupplierExporter::class)
+                    ->columnMapping(false)
+                    ->modifyQueryUsing(function (Builder $query) {
+                        $query->where('is_default', '!=', 1)
+                            ->latest()
+                            ->withSum('purchases', 'payable')
+                            ->withSum('purchases', 'paid')
+                            ->withSum('purchases', 'due');
+                    })
+
             ])
             ->actions([
                 ActionGroup::make([
@@ -152,17 +170,17 @@ class SupplierResource extends Resource
                     Action::make('report')
                         ->label('Report')
                         ->icon('fas-flag')
-                        ->url(fn (Supplier $record): string => route('filament.admin.resources.suppliers.report', $record)),
+                        ->url(fn(Supplier $record): string => route('filament.admin.resources.suppliers.report', $record)),
 
                     Action::make('ledger')
                         ->label('Ledger')
                         ->icon('fas-book')
-                        ->url(fn (Supplier $record): string => route('filament.admin.pages.supplier-ledger', ['supplier_id' => $record->id])),
+                        ->url(fn(Supplier $record): string => route('filament.admin.pages.supplier-ledger', ['supplier_id' => $record->id])),
 
                     Action::make('list')
                         ->label('Purchase List')
                         ->icon('fas-list')
-                        ->url(fn (Supplier $record): string => route('filament.admin.resources.purchases.index', ['tableFilters[supplier_id][value]' => $record->id])),
+                        ->url(fn(Supplier $record): string => route('filament.admin.resources.purchases.index', ['tableFilters[supplier_id][value]' => $record->id])),
 
                     Tables\Actions\DeleteAction::make()
                         ->before(function ($record, $action) {

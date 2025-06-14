@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\PaymentExporter;
 use App\Filament\Resources\PaymentResource\Pages;
 use App\HistoryTypeEnum;
 use App\Models\Customer;
@@ -11,11 +12,13 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 
 class PaymentResource extends Resource
@@ -53,7 +56,19 @@ class PaymentResource extends Resource
                 Tables\Actions\Action::make('payment')
                     ->label('Add Payment')
                     ->icon('heroicon-o-plus')
-                    ->url(fn (): string => route('filament.admin.resources.payments.add-payment')),
+                    ->url(fn(): string => route('filament.admin.resources.payments.add-payment')),
+                ExportAction::make()
+                    ->label('Export')
+                    ->icon('fas-download')
+                    ->columnMapping(false)
+                    ->exporter(PaymentExporter::class)
+                    ->modifyQueryUsing(function (Builder $query) {
+                        // Add withSum to ensure the amount is included in the export
+                        $query->whereHas('histories')
+                              ->withSum('histories', 'amount')
+                              ->with(['customer', 'supplier'])
+                              ->latest('id');
+                    }),
             ])
             ->query(Payment::query()->whereHas('histories')->withSum('histories', 'amount')->with('customer', 'supplier')->latest('id'))
             ->columns([
@@ -65,11 +80,11 @@ class PaymentResource extends Resource
                             <table class="w-1/2 border-collapse border border-gray-200 dark:border-gray-700 text-sm font-sans">
                                <tr>
                                    <td class="px-4 py-2 font-bold text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">Customer Name:</td>
-                                   <td class="px-4 py-2 text-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">'.$record->customer->customer_name.'</td>
+                                   <td class="px-4 py-2 text-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">' . $record->customer->customer_name . '</td>
                                </tr>
                                <tr>
                                    <td class="px-4 py-2 font-bold text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">Phone:</td>
-                                   <td class="px-4 py-2 text-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">'.$record->customer->phone.'</td>
+                                   <td class="px-4 py-2 text-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">' . $record->customer->phone . '</td>
                                </tr>
                            </table>
                            ');
@@ -80,11 +95,11 @@ class PaymentResource extends Resource
                             <table class="w-1/2 border-collapse border border-gray-200 dark:border-gray-700 text-sm font-sans">
                                <tr>
                                    <td class="px-4 py-2 font-bold text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">Supplier Name:</td>
-                                   <td class="px-4 py-2 text-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">'.$record->supplier->supplier_name.'</td>
+                                   <td class="px-4 py-2 text-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">' . $record->supplier->supplier_name . '</td>
                                </tr>
                                <tr>
                                    <td class="px-4 py-2 font-bold text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">Phone:</td>
-                                   <td class="px-4 py-2 text-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">'.$record->supplier->phone.'</td>
+                                   <td class="px-4 py-2 text-gray-800 dark:text-gray-300 border border-gray-200 dark:border-gray-700">' . $record->supplier->phone . '</td>
                                </tr>
                            </table>
                            ');
@@ -123,7 +138,7 @@ class PaymentResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['start_date'],
-                            fn ($query, $term) => $query->where('payment_date', '>=', $term)
+                            fn($query, $term) => $query->where('payment_date', '>=', $term)
                         );
                     }),
                 Filter::make('end_date')
@@ -137,7 +152,7 @@ class PaymentResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['end_date'],
-                            fn ($query, $term) => $query->where('payment_date', '<=', $term)
+                            fn($query, $term) => $query->where('payment_date', '<=', $term)
                         );
                     }),
 

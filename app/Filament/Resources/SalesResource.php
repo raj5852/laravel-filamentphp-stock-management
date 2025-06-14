@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\SalesExporter;
 use App\Filament\Resources\SalesResource\Pages;
 use App\HistoryTypeEnum;
 use App\Models\Account;
@@ -18,11 +19,13 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
@@ -59,13 +62,6 @@ class SalesResource extends Resource
                 ])
                 ->withSum('orderitems', 'purchase_cost')
                 ->latest())
-            ->headerActions([
-                Action::make('print')
-                    ->label('Print')
-                    ->icon('heroicon-s-printer')
-                    ->url(route('filament.admin.resources.sales.index').'?print=true', true)
-                    ->openUrlInNewTab(),
-            ])
             ->columns([
                 TextColumn::make('invoiceno'),
                 TextColumn::make('customer.customer_name'),
@@ -80,30 +76,75 @@ class SalesResource extends Resource
                         })->toArray();
 
                         // Format as a list (ul > li)
-                        return '<ul class="list-disc pl-5 space-y-2">'.implode('', array_map(fn ($item) => "<li class='max-w-[300px] whitespace-normal'>{$item}</li>", $items)).'</ul>';
+                        return '<ul class="list-disc pl-5 space-y-2">' . implode('', array_map(fn($item) => "<li class='max-w-[300px] whitespace-normal'>{$item}</li>", $items)) . '</ul>';
                     })
                     ->html(),
                 TextColumn::make('order_date')->label('Date')->date(),
                 TextColumn::make('receivable')->formatStateUsing(function ($state) {
-                    return number_format($state ?: 0, 2).' TK';
+                    return number_format($state ?: 0, 2) . ' TK';
                 }),
                 TextColumn::make('paid')->formatStateUsing(function ($state) {
-                    return number_format($state ?: 0, 2).' TK';
+                    return number_format($state ?: 0, 2) . ' TK';
                 }),
                 TextColumn::make('due')->formatStateUsing(function ($state) {
-                    return number_format($state ?: 0, 2).' TK';
+                    return number_format($state ?: 0, 2) . ' TK';
                 }),
                 TextColumn::make('orderitems_sum_purchase_cost')->label('Purchase Cost')->formatStateUsing(function ($state) {
-                    return number_format($state ?: 0, 2).' TK';
+                    return number_format($state ?: 0, 2) . ' TK';
                 }),
                 TextColumn::make('Profit')->default(function (Order $record) {
                     $profit = $record['receivable'] - $record['orderitems_sum_purchase_cost'];
 
-                    return number_format($profit, 2).' Tk';
+                    return number_format($profit, 2) . ' Tk';
                 }),
                 TextColumn::make('Status')->default(function (Order $record) {
                     return $record['receivable'] == $record['paid'] ? 'Paid' : 'Unpaid';
                 }),
+            ])
+            ->headerActions([
+                ExportAction::make()
+                    ->exporter(SalesExporter::class)
+                    ->columnMapping(false)
+                    ->label('Export')
+                    ->icon('fas-download')
+                    ->modifyQueryUsing(function (Builder $query) {
+                        // Get the current filter values from the request
+                        $invoiceNo = request('tableFilters.invoiceno.invoiceno');
+                        $startDate = request('tableFilters.start_date.start_date');
+                        $endDate = request('tableFilters.end_date.end_date');
+                        $customerId = request('tableFilters.customer_id');
+                        $productId = request('tableFilters.product_id.product_id');
+                        
+                        // Apply the same filters as in the table
+                        if ($invoiceNo) {
+                            $query->where('invoiceno', $invoiceNo);
+                        }
+                        
+                        if ($startDate) {
+                            $query->where('order_date', '>=', $startDate);
+                        }
+                        
+                        if ($endDate) {
+                            $query->where('order_date', '<=', $endDate);
+                        }
+                        
+                        if ($customerId) {
+                            $query->where('customer_id', $customerId);
+                        }
+                        
+                        if ($productId) {
+                            $query->whereHas('orderitems', function ($query) use ($productId) {
+                                $query->where('product_id', $productId);
+                            });
+                        }
+                        
+                        // Include the same relationships and calculations as in the table query
+                        $query->with([
+                            'orderitems:id,product_id,order_id',
+                            'orderitems.product:id,product_name,product_code',
+                            'customer:id,customer_name'
+                        ])->withSum('orderitems', 'purchase_cost');
+                    }),
             ])
             ->filters([
                 Filter::make('invoiceno')
@@ -118,7 +159,7 @@ class SalesResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['invoiceno'],
-                            fn ($query, $term) => $query->where('invoiceno', $term)
+                            fn($query, $term) => $query->where('invoiceno', $term)
                         );
                     }),
                 Filter::make('start_date')
@@ -132,7 +173,7 @@ class SalesResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['start_date'],
-                            fn ($query, $term) => $query->where('order_date', '>=', $term)
+                            fn($query, $term) => $query->where('order_date', '>=', $term)
                         );
                     }),
                 Filter::make('end_date')
@@ -146,7 +187,7 @@ class SalesResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['end_date'],
-                            fn ($query, $term) => $query->where('order_date', '<=', $term)
+                            fn($query, $term) => $query->where('order_date', '<=', $term)
                         );
                     }),
 
@@ -169,7 +210,7 @@ class SalesResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['product_id'],
-                            fn ($query, $term) => $query->whereHas('orderitems', function ($query) use ($term) {
+                            fn($query, $term) => $query->whereHas('orderitems', function ($query) use ($term) {
                                 $query->where('product_id', $term);
                             })
                         );
@@ -184,12 +225,12 @@ class SalesResource extends Resource
                     Action::make('Invoice')
                         ->label('Invoice')
                         ->icon('heroicon-s-printer')
-                        ->url(fn (Order $record) => route('filament.admin.resources.sales.pos-receipt', ['record' => $record->id])),
+                        ->url(fn(Order $record) => route('filament.admin.resources.sales.pos-receipt', ['record' => $record->id])),
 
                     Action::make('Show')
                         ->label('Show')
                         ->icon('heroicon-s-computer-desktop')
-                        ->url(fn (Order $record) => route('filament.admin.resources.sales.pos-show', ['record' => $record->id])),
+                        ->url(fn(Order $record) => route('filament.admin.resources.sales.pos-show', ['record' => $record->id])),
 
                     Action::make('add_payment')
                         ->label('Add Payment')
@@ -218,7 +259,7 @@ class SalesResource extends Resource
                                     'min:0',
                                     'max:9999999999',
                                 ])
-                                ->default(fn (Order $record) => $record->due)
+                                ->default(fn(Order $record) => $record->due)
                                 ->required(),
                             Textarea::make('note')
                                 ->label('Note'),
