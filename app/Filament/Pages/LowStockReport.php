@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Exports\LowStockReportExporter;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Setting;
@@ -10,6 +11,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -17,6 +19,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class LowStockReport extends Page implements HasForms, HasTable
 {
@@ -131,6 +134,18 @@ class LowStockReport extends Page implements HasForms, HasTable
             )
             ->actions([
                 // ...
+            ])
+            ->headerActions([
+                ExportAction::make()
+                    ->label('Export')
+                    ->icon('fas-download')
+                    ->modalHeading('Export Low Stock Report')
+                    ->columnMapping(false)
+                    ->exporter(LowStockReportExporter::class)
+                    ->modifyQueryUsing(function (Builder $query) {
+                        return $query->whereRelation('productdetails', 'available_stock', '<=', $this->low_stock_quantity)
+                            ->with('productdetails', 'category:id,name');
+                    }),
             ])
             ->bulkActions([
                 // ...

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Exports\PurcahseReportExporter;
 use App\Models\Product as ModelsProduct;
 use App\Models\PurchaseItem;
 use Filament\Forms\Components\DatePicker;
@@ -9,12 +10,14 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 
 class PurchaseReport extends Page implements HasForms, HasTable
@@ -45,7 +48,7 @@ class PurchaseReport extends Page implements HasForms, HasTable
                 TextColumn::make('purchase.billno')
                     ->label('Purchase No')
                     ->getStateUsing(function ($record) {
-                        return new HtmlString("<div><a href='".route('filament.admin.resources.purchases.index', ['billno' => $record->purchase->billno])."' class='text-indigo-500 hover:underline'>Purchase#{$record->purchase->billno}</a></div>");
+                        return new HtmlString("<div><a href='" . route('filament.admin.resources.purchases.index', ['billno' => $record->purchase->billno]) . "' class='text-indigo-500 hover:underline'>Purchase#{$record->purchase->billno}</a></div>");
                     })
                     ->html(),
 
@@ -56,10 +59,10 @@ class PurchaseReport extends Page implements HasForms, HasTable
                     ->label('Quantity'),
 
                 TextColumn::make('rate')
-                    ->getStateUsing(fn ($record) => number_format($record->rate, 2).' Tk')
+                    ->getStateUsing(fn($record) => number_format($record->rate, 2) . ' Tk')
                     ->label('Unit Price'),
                 TextColumn::make('total_rate')
-                    ->getStateUsing(fn ($record) => number_format($record->total_rate, 2).' Tk')
+                    ->getStateUsing(fn($record) => number_format($record->total_rate, 2) . ' Tk')
                     ->label('Subtotal'),
 
             ])
@@ -76,7 +79,7 @@ class PurchaseReport extends Page implements HasForms, HasTable
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['product_id'],
-                            fn ($query, $term) => $query->where('product_id', $term)
+                            fn($query, $term) => $query->where('product_id', $term)
                         );
                     }),
                 Filter::make('start_date')
@@ -90,7 +93,7 @@ class PurchaseReport extends Page implements HasForms, HasTable
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['start_date'],
-                            fn ($query, $term) => $query->whereHas('purchase', fn ($query) => $query->where('purchase_date', '>=', $term))
+                            fn($query, $term) => $query->whereHas('purchase', fn($query) => $query->where('purchase_date', '>=', $term))
                         );
                     }),
                 Filter::make('end_date')
@@ -104,13 +107,25 @@ class PurchaseReport extends Page implements HasForms, HasTable
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['end_date'],
-                            fn ($query, $term) => $query->whereHas('purchase', fn ($query) => $query->where('purchase_date', '<=', $term))
+                            fn($query, $term) => $query->whereHas('purchase', fn($query) => $query->where('purchase_date', '<=', $term))
                         );
                     }),
 
             ], layout: FiltersLayout::AboveContent)
             ->actions([
                 // ...
+            ])
+            ->headerActions([
+                ExportAction::make()
+                    ->label('Export')
+                    ->icon('fas-download')
+                    ->columnMapping(false)
+                    ->exporter(PurcahseReportExporter::class)
+                    ->modalHeading('Export Purchase Report')
+                    ->modifyQueryUsing(function (Builder $query) {
+                        return $query->with(['purchase', 'product']);
+                    })
+
             ])
             ->bulkActions([
                 // ...

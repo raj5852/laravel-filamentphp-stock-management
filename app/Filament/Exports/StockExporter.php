@@ -28,11 +28,11 @@ class StockExporter extends Exporter
 
             ExportColumn::make('sale_price')
                 ->label('Sale Price')
-                ->formatStateUsing(fn($state) => number_format($state, 2, '.', '') . ' Tk'),
+                ->formatStateUsing(fn ($state) => number_format($state, 2, '.', '').' Tk'),
 
             ExportColumn::make('purchase_cost')
                 ->label('Purchase Cost')
-                ->formatStateUsing(fn($state) => number_format($state, 2, '.', '') . ' Tk'),
+                ->formatStateUsing(fn ($state) => number_format($state, 2, '.', '').' Tk'),
 
             ExportColumn::make('productdetails.purchased_in_text')
                 ->label('Purchased'),
@@ -53,14 +53,16 @@ class StockExporter extends Exporter
                 ->label('Sale Value')
                 ->getStateUsing(function (Product $record) {
                     $val = ($record->productdetails?->single_unit_sale_price ?: 0) * ($record->productdetails?->available_stock ?: 0);
-                    return number_format($val, 2, '.', '') . ' Tk';
+
+                    return number_format($val, 2, '.', '').' Tk';
                 }),
 
             ExportColumn::make('purchase_value')
                 ->label('Purchase Value')
                 ->getStateUsing(function (Product $record) {
                     $val = ($record->productdetails?->single_unit_purchase_price ?: 0) * ($record->productdetails?->available_stock ?: 0);
-                    return number_format($val, 2, '.', '') . ' Tk';
+
+                    return number_format($val, 2, '.', '').' Tk';
                 }),
 
         ];
@@ -68,10 +70,10 @@ class StockExporter extends Exporter
 
     public static function getCompletedNotificationBody(Export $export): string
     {
-        $body = 'Your stock export has completed and ' . number_format($export->successful_rows) . ' ' . str('row')->plural($export->successful_rows) . ' exported.';
+        $body = 'Your stock export has completed and '.number_format($export->successful_rows).' '.str('row')->plural($export->successful_rows).' exported.';
 
         if ($failedRowsCount = $export->getFailedRowsCount()) {
-            $body .= ' ' . number_format($failedRowsCount) . ' ' . str('row')->plural($failedRowsCount) . ' failed to export.';
+            $body .= ' '.number_format($failedRowsCount).' '.str('row')->plural($failedRowsCount).' failed to export.';
         }
 
         return $body;
