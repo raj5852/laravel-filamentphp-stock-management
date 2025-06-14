@@ -59,6 +59,13 @@ class SalesResource extends Resource
                 ])
                 ->withSum('orderitems', 'purchase_cost')
                 ->latest())
+            ->headerActions([
+                Action::make('print')
+                    ->label('Print')
+                    ->icon('heroicon-s-printer')
+                    ->url(route('filament.admin.resources.sales.index').'?print=true', true)
+                    ->openUrlInNewTab(),
+            ])
             ->columns([
                 TextColumn::make('invoiceno'),
                 TextColumn::make('customer.customer_name'),

@@ -88,6 +88,12 @@ class DatabaseSeeder extends Seeder
         // setting
         DB::table('settings')->insert([
             'tenant_id' => 1,
+            'order_sms' => 'Dear Customer,
+
+Order #{bill_no} for Tk {amount} has been completed.
+Thanks for your order.
+
+{company_name}',
         ]);
 
         DB::table('accounts')->insert([

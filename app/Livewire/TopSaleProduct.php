@@ -2,10 +2,12 @@
 
 namespace App\Livewire;
 
+use App\Filament\Exports\TopSaleProductExporter;
 use App\Models\Product;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -13,6 +15,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 use Livewire\Component;
 
@@ -91,7 +94,7 @@ class TopSaleProduct extends Component implements HasForms, HasTable
                         Sum::make()->formatStateUsing(fn ($state) => $state)->label('Total')
                     ),
                 TextColumn::make('sale_amount')->label('Sale Amount')->getStateUsing(function ($record) {
-                    return number_format($record->sale_amount, 2, '.', '').' TK';
+                    return 'TK '.number_format($record->sale_amount, 2, '.', '');
                 })
                     ->summarize(
                         Sum::make()->formatStateUsing(fn ($state) => number_format($state, 2, '.', '').' TK')->label('Total')
@@ -99,6 +102,23 @@ class TopSaleProduct extends Component implements HasForms, HasTable
 
             ])
             ->filtersFormColumns(2)
+            ->headerActions([
+                ExportAction::make()
+                    ->exporter(TopSaleProductExporter::class)
+                    ->columnMapping(false)
+                    ->modifyQueryUsing(function (Builder $query) {
+                        // Don't add the same columns again, just apply the filters
+                        if ($this->isFilter || $this->defaultFilter) {
+
+                            $query->whereHas('orderitems', function ($subQuery) {
+                                $subQuery->whereHas('order', function ($orderQuery) {
+                                    $orderQuery->whereBetween('order_date', [$this->startDate, $this->endDate]);
+                                });
+                            })
+                                ->having('quantity', '>', 0);
+                        }
+                    }),
+            ])
 
             ->paginated([10, 25, 50, 100]);
     }

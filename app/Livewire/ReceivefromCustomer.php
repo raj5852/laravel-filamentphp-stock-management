@@ -2,10 +2,12 @@
 
 namespace App\Livewire;
 
+use App\Filament\Exports\ReceivefromCustomerExporter;
 use App\Models\History;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -13,6 +15,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 use Livewire\Component;
 
@@ -56,13 +59,30 @@ class ReceiveFromCustomer extends Component implements HasForms, HasTable
                 TextColumn::make('amount')->label('Amount')->getStateUsing(function ($record) {
                     return number_format($record->amount, 2, '.', '');
                 })->summarize(
-                    Sum::make()->formatStateUsing(fn ($state) => number_format($state, 2, '.', '').' Tk')->label('Total')
+                    Sum::make()->formatStateUsing(fn($state) => number_format($state, 2, '.', '') . ' Tk')->label('Total')
                 ),
             ])
 
             ->filters($this->setFilter(), layout: FiltersLayout::AboveContent)
             ->filtersFormColumns(2)
-
+            ->headerActions([
+                ExportAction::make()
+                    ->exporter(ReceivefromCustomerExporter::class)
+                    ->columnMapping(false)
+                    ->label('Export Receive from Customer')
+                    ->modalHeading('Export Receive from Customer')
+                    ->modifyQueryUsing(function (Builder $query) {
+                        $query->where('customer_id', '!=', '')
+                            ->when($this->isFilter, function ($q) {
+                                $q->withwhereHas('payment', function ($subq) {
+                                    $subq->whereBetween('payment_date', [$this->startDate, $this->endDate])
+                                        ->select('id', 'payment_date');
+                                });
+                            })
+                            ->with('customer:id,customer_name')
+                            ->select('id', 'customer_id', 'amount', 'payment_id');
+                    }),
+            ])
             ->paginated([10, 25, 50, 100]);
     }
 

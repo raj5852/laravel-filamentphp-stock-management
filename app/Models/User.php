@@ -106,6 +106,12 @@ class User extends Authenticatable implements FilamentUser
                         'phone' => '1234567890',
                         'address' => 'Your Address',
                         'tenant_id' => $user->tenant_id,
+                        'order_sms' => 'Dear Customer,
+
+Order #{bill_no} for Tk {amount} has been completed.
+Thanks for your order.
+
+{company_name}',
                     ]);
 
                     DB::table('accounts')->insert([

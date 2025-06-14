@@ -64,7 +64,7 @@ class PromotionalSMS extends Page
                         ->label('SMS Body')
                         ->placeholder('Write your message here...')
                         ->required()
-                        ->helperText(fn($state): string => 'SMS count: ' . (empty($state) ? '0' : ceil(strlen($state) / 160)))
+                        ->helperText(fn ($state): string => 'SMS count: '.(empty($state) ? '0' : ceil(strlen($state) / 160)))
                         ->reactive(),
                 ]),
             ]);
