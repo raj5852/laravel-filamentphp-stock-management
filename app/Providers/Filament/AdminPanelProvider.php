@@ -43,7 +43,7 @@ class AdminPanelProvider extends PanelProvider
             ->favicon('/images/favicon.ico')
             ->id('admin')
             ->path('user')
-            ->profile()
+            // ->profile()
             ->login(CustomLogin::class)
             ->colors([
                 'primary' => Color::Lime,
