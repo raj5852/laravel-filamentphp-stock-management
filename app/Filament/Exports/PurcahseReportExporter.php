@@ -2,11 +2,10 @@
 
 namespace App\Filament\Exports;
 
-use App\Models\PurcahseReport;
 use App\Models\PurchaseItem;
+use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
-use Filament\Actions\Exports\ExportColumn;
 
 class PurcahseReportExporter extends Exporter
 {
