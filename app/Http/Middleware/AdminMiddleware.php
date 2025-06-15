@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class AdminMiddleware
@@ -11,12 +12,21 @@ class AdminMiddleware
     /**
      * Handle an incoming request.
      *
+     * @param  \Illuminate\Http\Request  $request
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->check() && auth()->user()->expires_at <= today()) {
-            dd('Time Expired. Please Renew Subscription');
+
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->status == 0) {
+                return response()->view('errors.account-disabled', [], 403);
+            }
+            if ($user->expires_at <= today()) {
+                return response()->view('errors.subscription-expired', [], 403);
+            }
         }
 
         return $next($request);

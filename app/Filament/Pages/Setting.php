@@ -9,6 +9,7 @@ use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -46,7 +47,8 @@ class Setting extends Page implements HasForms
     public $low_stock_quantity;
 
     public $order_sms;
-
+    public $invoice_design;
+    
     public static function canAccess(): bool
     {
         return auth()->user()->can('settings');
@@ -63,6 +65,7 @@ class Setting extends Page implements HasForms
             $this->invoice_logo_type = $setting->invoice_logo_type;
             $this->low_stock_quantity = $setting->low_stock_quantity;
             $this->order_sms = $setting->order_sms;
+            $this->invoice_design = $setting->invoice_design;
 
             if ($setting->logo) {
                 $this->file = $setting->logo;
@@ -75,6 +78,7 @@ class Setting extends Page implements HasForms
                     'invoice_logo_type' => $this->invoice_logo_type,
                     'low_stock_quantity' => $this->low_stock_quantity,
                     'order_sms' => $this->order_sms,
+                    'invoice_design' => $this->invoice_design,
                 ]);
             }
         }
@@ -150,7 +154,19 @@ class Setting extends Page implements HasForms
                         ->inlineLabel(false)
                         ->options(InvoiceLogoType::class)
                         ->default(InvoiceLogoType::LOGO),
-                ]),
+
+                    Select::make('invoice_design')
+                        ->options([
+                            'a4' => 'A4',
+                            'pos_80mm' => 'POS 80mm',
+                        ])
+                        ->default('a4')
+                        ->rules([
+                            'required',
+                            'in:a4,pos_80mm'  // Fixed: removed space after 'in:'
+                        ])
+                        ->required()
+                ])->columns(2),
 
             Card::make('Order SMS Settings')
                 ->schema([
@@ -171,7 +187,7 @@ class Setting extends Page implements HasForms
                         ->rows(5)
 
                         ->required()
-                        ->helperText(fn ($state): string => 'Estimated SMS count: '.(empty($state) ? '0' : ceil(strlen($state) / 160))),
+                        ->helperText(fn($state): string => 'Estimated SMS count: ' . (empty($state) ? '0' : ceil(strlen($state) / 160))),
                 ]),
 
             Card::make('Other Settings')

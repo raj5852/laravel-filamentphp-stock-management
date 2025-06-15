@@ -15,13 +15,28 @@ class PosReceipt extends Page
 
     protected static string $resource = SalesResource::class;
 
-    protected static string $view = 'filament.resources.sales-resource.pages.pos-receipt';
+    // Remove the static view property
+    // protected static string $view = 'filament.resources.sales-resource.pages.pos-receipt';
 
     protected static ?string $title = '';
 
     public function mount(int|string $record): void
     {
         $this->record = $this->resolveRecord($record);
+    }
+
+    // Add this method to dynamically determine the view
+    public function getView(): string
+    {
+        // Default view
+        $setting = Setting::first();
+
+        if ($setting->invoice_design == 'a4') {
+            return 'filament.resources.sales-resource.pages.pos-receipt';
+        } else {
+
+            return 'filament.resources.sales-resource.pages.80mm';
+        }
     }
 
     protected function getViewData(): array

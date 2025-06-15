@@ -1,11 +1,14 @@
 php artisan optimize:clear
 php artisan storage:link
 
-****** composer install --no-dev --optimize-autoloader
 
-php artisan app:receivable-to-total-no-discount
 
 php artisan filament:optimize-clear
 php artisan filament:optimize
 php artisan optimize
 
+
+
+
+
+****** composer install --no-dev --optimize-autoloader
