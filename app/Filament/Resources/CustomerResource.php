@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\CustomerExporter;
 use App\Filament\Resources\CustomerResource\Pages;
 use App\Models\Customer;
 use Filament\Actions\Action;
@@ -11,7 +12,9 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 
 class CustomerResource extends Resource
@@ -106,6 +109,7 @@ class CustomerResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('address')
                     ->label('Address')
+                    ->wrap()
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('orders_sum_receivable')
@@ -156,6 +160,19 @@ class CustomerResource extends Resource
             ])
             ->filters([
                 //
+            ])
+            ->headerActions([
+                ExportAction::make()
+                    ->label('Export')
+                    ->icon('fas-download')
+                    ->columnMapping(false)
+                    ->exporter(CustomerExporter::class)
+                    ->modifyQueryUsing(function (Builder $query) {
+                        $query->where('is_default', '!=', 1)
+                            ->withSum('orders', 'receivable')
+                            ->withSum('orders', 'paid')
+                            ->withSum('orders', 'due');
+                    }),
             ])
             ->actions([
                 ActionGroup::make([

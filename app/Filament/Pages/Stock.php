@@ -2,10 +2,12 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Exports\StockExporter;
 use App\Models\Product;
 use Filament\Actions\Concerns\InteractsWithRecord;
 use Filament\Forms\Components\TextInput;
 use Filament\Pages\Page;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -14,6 +16,7 @@ use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 
 class Stock extends Page implements HasTable
 {
@@ -78,6 +81,46 @@ class Stock extends Page implements HasTable
                         return number_format($val, 2, '.', '').' '.'Tk';
                     }),
 
+            ])
+            ->headerActions([
+                ExportAction::make()
+                    ->exporter(StockExporter::class)
+                    ->label('Export')
+                    ->icon('fas-download')
+                    ->columnMapping(false)
+                    ->modalHeading('Export Stock')
+                    ->modifyQueryUsing(function (Builder $query) {
+                        // Get the current filter values from the request
+                        $productId = request('tableFilters.id');
+                        $productCode = request('tableFilters.product_code.product_code');
+                        $productName = request('tableFilters.product_name.product_name');
+                        $categoryId = request('tableFilters.category_id');
+                        $brandId = request('tableFilters.brand_id');
+
+                        // Apply the same filters as in the table
+                        if ($productId) {
+                            $query->where('id', $productId);
+                        }
+
+                        if ($productCode) {
+                            $query->where('product_code', $productCode);
+                        }
+
+                        if ($productName) {
+                            $query->where('product_name', 'like', '%'.$productName.'%');
+                        }
+
+                        if ($categoryId) {
+                            $query->where('category_id', $categoryId);
+                        }
+
+                        if ($brandId) {
+                            $query->where('brand_id', $brandId);
+                        }
+
+                        // Include the same relationships as in the table query
+                        $query->with(['category', 'productdetails', 'brand', 'unit', 'subunit']);
+                    }),
             ])
             ->filters([
 

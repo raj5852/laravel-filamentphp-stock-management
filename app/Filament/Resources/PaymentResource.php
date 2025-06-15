@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\PaymentExporter;
 use App\Filament\Resources\PaymentResource\Pages;
 use App\HistoryTypeEnum;
 use App\Models\Customer;
@@ -11,11 +12,13 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 
 class PaymentResource extends Resource
@@ -54,6 +57,18 @@ class PaymentResource extends Resource
                     ->label('Add Payment')
                     ->icon('heroicon-o-plus')
                     ->url(fn (): string => route('filament.admin.resources.payments.add-payment')),
+                ExportAction::make()
+                    ->label('Export')
+                    ->icon('fas-download')
+                    ->columnMapping(false)
+                    ->exporter(PaymentExporter::class)
+                    ->modifyQueryUsing(function (Builder $query) {
+                        // Add withSum to ensure the amount is included in the export
+                        $query->whereHas('histories')
+                            ->withSum('histories', 'amount')
+                            ->with(['customer', 'supplier'])
+                            ->latest('id');
+                    }),
             ])
             ->query(Payment::query()->whereHas('histories')->withSum('histories', 'amount')->with('customer', 'supplier')->latest('id'))
             ->columns([

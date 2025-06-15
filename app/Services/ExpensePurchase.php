@@ -40,7 +40,10 @@ class ExpensePurchase
 
         if ($openingAndPurchaseQty[1] != 0) {
 
-            $purchaseItems = $product->purchaseitems()->where('available_qty', '!=', 0)->select('id', 'total_qty', 'available_qty', 'purchase_id', 'product_id')->get();
+            $purchaseItems = $product->purchaseitems()
+                ->where('main_unit_qty', '!=', '')
+                ->Orwhere('sub_unit_qty', '!=', '')
+                ->select('id', 'total_qty', 'available_qty', 'purchase_id', 'product_id')->get();
 
             $initialTotalQty = 0;
             $indexByValue = [];
@@ -66,7 +69,6 @@ class ExpensePurchase
                         'qty_in_text' => getTotalStockInText($item->product_id, $openingAndPurchaseQty[1] - $totalQty),
 
                     ];
-
                 }
 
                 if ($initialTotalQty >= $openingAndPurchaseQty[1]) {
@@ -79,7 +81,6 @@ class ExpensePurchase
             }
 
             return collect($indexByValue)->toArray();
-
         } else {
             return [];
         }

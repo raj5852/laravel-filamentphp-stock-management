@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\SupplierExporter;
 use App\Filament\Resources\SupplierResource\Pages;
 use App\Models\Supplier;
 use Filament\Actions\Action;
@@ -11,7 +12,9 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 
 class SupplierResource extends Resource
@@ -94,7 +97,7 @@ class SupplierResource extends Resource
                     ->label('Name'),
                 Tables\Columns\TextColumn::make('email'),
                 Tables\Columns\TextColumn::make('phone'),
-                Tables\Columns\TextColumn::make('address'),
+                Tables\Columns\TextColumn::make('address')->wrap(),
                 Tables\Columns\TextColumn::make('purchases_sum_payable')
                     ->label('Payable')
                     ->default(0)
@@ -144,6 +147,21 @@ class SupplierResource extends Resource
             ])
             ->filters([
                 //
+            ])
+            ->headerActions([
+                ExportAction::make()
+                    ->label('Export')
+                    ->icon('fas-download')
+                    ->exporter(SupplierExporter::class)
+                    ->columnMapping(false)
+                    ->modifyQueryUsing(function (Builder $query) {
+                        $query->where('is_default', '!=', 1)
+                            ->latest()
+                            ->withSum('purchases', 'payable')
+                            ->withSum('purchases', 'paid')
+                            ->withSum('purchases', 'due');
+                    }),
+
             ])
             ->actions([
                 ActionGroup::make([

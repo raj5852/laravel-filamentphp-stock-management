@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Exports\PurcahseReportExporter;
 use App\Models\Product as ModelsProduct;
 use App\Models\PurchaseItem;
 use Filament\Forms\Components\DatePicker;
@@ -9,12 +10,14 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 
 class PurchaseReport extends Page implements HasForms, HasTable
@@ -111,6 +114,18 @@ class PurchaseReport extends Page implements HasForms, HasTable
             ], layout: FiltersLayout::AboveContent)
             ->actions([
                 // ...
+            ])
+            ->headerActions([
+                ExportAction::make()
+                    ->label('Export')
+                    ->icon('fas-download')
+                    ->columnMapping(false)
+                    ->exporter(PurcahseReportExporter::class)
+                    ->modalHeading('Export Purchase Report')
+                    ->modifyQueryUsing(function (Builder $query) {
+                        return $query->with(['purchase', 'product']);
+                    }),
+
             ])
             ->bulkActions([
                 // ...

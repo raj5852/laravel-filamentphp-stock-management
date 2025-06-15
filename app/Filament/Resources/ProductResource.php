@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\ProductExporter;
 use App\Filament\Resources\ProductResource\Pages;
 use App\Models\Brand;
 use App\Models\Category;
@@ -13,6 +14,7 @@ use Filament\Forms;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
@@ -20,7 +22,12 @@ use Filament\Support\Colors\Color;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\ExportAction;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
@@ -59,9 +66,13 @@ class ProductResource extends Resource
                             ->rules([
                                 'string',
                                 'max:50',
+                                'regex:/^[a-zA-Z0-9]+$/', // Only allow alphanumeric characters (English letters and numbers)
                             ])
-                            ->readOnly(fn (string $context) => $context === 'edit')
-                            ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('tenant_id', auth()->user()->tenant_id)),
+                            ->validationMessages([
+                                'regex' => 'Product code must contain only English letters and numbers',
+                            ])
+                            ->readOnly(fn(string $context) => $context === 'edit')
+                            ->unique(ignoreRecord: true, modifyRuleUsing: fn($rule) => $rule->where('tenant_id', auth()->user()->tenant_id)),
 
                         Forms\Components\Select::make('category_id')
                             ->label('Category')
@@ -170,7 +181,7 @@ class ProductResource extends Resource
                                 }),
                                 'required',
                             ])
-                            ->hidden(fn (string $context) => $context === 'edit')
+                            ->hidden(fn(string $context) => $context === 'edit')
                             ->afterStateUpdated(function ($set) {
                                 $set('sub_unit', null);
                                 $set('first_opening_stock', null);
@@ -197,7 +208,7 @@ class ProductResource extends Resource
                             })
                             ->searchable()
                             ->reactive()
-                            ->hidden(fn (string $context) => $context === 'edit')
+                            ->hidden(fn(string $context) => $context === 'edit')
                             ->afterStateUpdated(function ($set) {
                                 $set('first_opening_stock', null);
                                 $set('second_opening_stock', null);
@@ -246,7 +257,7 @@ class ProductResource extends Resource
 
                                 ])
                                 ->numeric(),
-                        ])->hidden(fn (string $context) => $context === 'edit'),
+                        ])->hidden(fn(string $context) => $context === 'edit'),
 
                     ]),
                 ])->columnSpan(['lg' => 2]),
@@ -325,18 +336,85 @@ class ProductResource extends Resource
 
                 Tables\Columns\TextColumn::make('sale_price')
                     ->label('Price')
-                    ->formatStateUsing(fn ($state) => number_format((float) $state, 2, '.', '')),
+                    ->formatStateUsing(fn($state) => number_format((float) $state, 2, '.', '')),
 
                 Tables\Columns\TextColumn::make('purchase_cost')
                     ->label('Cost')
-                    ->formatStateUsing(fn ($state) => number_format((float) $state, 2, '.', '')),
+                    ->formatStateUsing(fn($state) => number_format((float) $state, 2, '.', '')),
 
                 Tables\Columns\TextColumn::make('product_details')
+                    ->wrap()
                     ->label('Details'),
 
             ])
             ->filters([
-                //
+                Filter::make('product_code')
+                    ->label('')
+                    ->form([
+                        TextInput::make('product_code')
+                            ->label('')
+                            ->autocomplete(false)
+                            ->placeholder('Enter Product Code'),
+                    ])
+                    ->query(function ($query, array $data) {
+                        return $query->when(
+                            $data['product_code'],
+                            fn($query, $term) => $query->where('product_code', 'like', '%' . $term . '%'),
+                        );
+                    }),
+                Filter::make('product_name')
+                    ->label('')
+                    ->form([
+                        TextInput::make('product_name')
+                            ->label('')
+                            ->autocomplete(false)
+                            ->placeholder('Enter Product Name'),
+                    ])
+                    ->query(function ($query, array $data) {
+                        return $query->when(
+                            $data['product_name'],
+                            fn($query, $term) => $query->where('product_name', 'like', '%' . $term . '%'),
+                        );
+                    }),
+                SelectFilter::make('category_id')
+                    ->label(' ')
+                    ->placeholder('Select Category')
+                    ->options(Category::query()->pluck('name', 'id'))
+                    ->searchable(),
+                SelectFilter::make('brand_id')
+                    ->label(' ')
+                    ->placeholder('Select Brand')
+                    ->options(Brand::query()->pluck('brand_name', 'id'))
+                    ->searchable(),
+
+                Filter::make('product_details')
+                    ->label('')
+                    ->form([
+                        TextInput::make('product_details')
+                            ->label('')
+                            ->autocomplete(false)
+                            ->placeholder('Enter Product Details'),
+                    ])
+                    ->query(function ($query, array $data) {
+                        return $query->when(
+                            $data['product_details'],
+                            fn($query, $term) => $query->where('product_details', 'like', '%' . $term . '%'),
+                        );
+                    }),
+
+            ], layout: FiltersLayout::AboveContent)
+            ->filtersFormColumns(4)
+            ->hiddenFilterIndicators()
+            ->headerActions([
+                ExportAction::make()
+                    ->label('Export')
+                    ->icon('fas-download')
+                    ->columnMapping(false)
+                    ->exporter(ProductExporter::class)
+                    ->modifyQueryUsing(function (Builder $query) {
+                        return $query->with(['category', 'brand', 'unit', 'subunit', 'productdetails']);
+                    }),
+
             ])
             ->recordAction('print_qr')
             ->actions([
@@ -346,8 +424,8 @@ class ProductResource extends Resource
                     ->icon('fas-eye')
                     ->button()
                     ->outlined()
-                    ->modalHeading(fn ($record) => $record->product_name) // Dynamic title
-                    ->modalContent(fn ($record) => view('filament.modals.product-details', ['product' => $record->load('category', 'brand', 'productdetails')]))
+                    ->modalHeading(fn($record) => $record->product_name) // Dynamic title
+                    ->modalContent(fn($record) => view('filament.modals.product-details', ['product' => $record->load('category', 'brand', 'productdetails')]))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close'),
 
@@ -357,7 +435,7 @@ class ProductResource extends Resource
                         ->label('Sell History')
                         ->icon('heroicon-s-clock')
                         // clock-rotate-left
-                        ->url(fn (Product $record) => route('filament.admin.resources.products.sell-history', ['record' => $record->id])),
+                        ->url(fn(Product $record) => route('filament.admin.resources.products.sell-history', ['record' => $record->id])),
                     Tables\Actions\DeleteAction::make()
                         ->before(function ($record, $action) {
 
@@ -394,7 +472,7 @@ class ProductResource extends Resource
                     ->icon('fas-qrcode')
                     ->button()
                     ->outlined()
-                    ->modalContent(fn ($record) => view('filament.modals.qr-code', [
+                    ->modalContent(fn($record) => view('filament.modals.qr-code', [
                         'qrCode' => QrCode::size(200)->generate($record->product_code),
                         'record' => $record,
                     ]))
@@ -407,7 +485,7 @@ class ProductResource extends Resource
                     ->icon('fas-barcode')
                     ->button()
                     ->outlined()
-                    ->modalContent(fn ($record) => view('filament.modals.barcode', [
+                    ->modalContent(fn($record) => view('filament.modals.barcode', [
                         'record' => $record,
                         'company_name' => Setting::first()->company_name,
                     ]))
@@ -416,6 +494,7 @@ class ProductResource extends Resource
                     ->modalWidth('sm'),
 
             ])
+
             ->bulkActions([
                 // Tables\Actions\BulkActionGroup::make([
                 //     Tables\Actions\DeleteBulkAction::make(),

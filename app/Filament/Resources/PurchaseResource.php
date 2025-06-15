@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\PurchaseExporter;
 use App\Filament\Resources\PurchaseResource\Pages;
 use App\HistoryTypeEnum;
 use App\Models\Account;
@@ -21,11 +22,13 @@ use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
@@ -47,12 +50,6 @@ class PurchaseResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->headerActions([
-                Tables\Actions\Action::make('Purchase')
-                    ->label('Add Purchase')
-                    ->icon('heroicon-o-plus')
-                    ->url(fn (): string => route('filament.admin.resources.purchases.add-purchase')),
-            ])
             ->query(Purchase::query()->with([
                 'supplier',
                 'purchaseItems:id,product_id,purchase_id',
@@ -91,6 +88,56 @@ class PurchaseResource extends Resource
                     ->summarize(
                         Sum::make()->formatStateUsing(fn ($state) => number_format((float) $state, 2, '.', '').' Tk')->label('Total Due')
                     ),
+
+            ])
+            ->headerActions([
+                Tables\Actions\Action::make('Purchase')
+                    ->label('Add Purchase')
+                    ->icon('heroicon-o-plus')
+                    ->url(fn (): string => route('filament.admin.resources.purchases.add-purchase')),
+                ExportAction::make()
+                    ->exporter(PurchaseExporter::class)
+                    ->label('Export')
+                    ->columnMapping(false)
+                    ->icon('fas-download')
+                    ->modifyQueryUsing(function (Builder $query) {
+                        // Get the current filter values from the request
+                        $billNo = request('tableFilters.billno.billno');
+                        $startDate = request('tableFilters.start_date.start_date');
+                        $endDate = request('tableFilters.end_date.end_date');
+                        $supplierId = request('tableFilters.supplier_id');
+                        $productId = request('tableFilters.product_id.product_id');
+
+                        // Apply the same filters as in the table
+                        if ($billNo) {
+                            $query->where('billno', $billNo);
+                        }
+
+                        if ($startDate) {
+                            $query->where('purchase_date', '>=', $startDate);
+                        }
+
+                        if ($endDate) {
+                            $query->where('purchase_date', '<=', $endDate);
+                        }
+
+                        if ($supplierId) {
+                            $query->where('supplier_id', $supplierId);
+                        }
+
+                        if ($productId) {
+                            $query->whereHas('purchaseItems', function ($query) use ($productId) {
+                                $query->where('product_id', $productId);
+                            });
+                        }
+
+                        // Include the same relationships as in the table query
+                        $query->with([
+                            'supplier',
+                            'purchaseItems:id,product_id,purchase_id',
+                            'purchaseItems.product:id,product_name,product_code',
+                        ]);
+                    }),
 
             ])
             ->filters([

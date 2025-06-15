@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\DamageExporter;
 use App\Filament\Resources\DamageResource\Pages;
 use App\Models\Damage;
 use App\Models\Product;
@@ -14,9 +15,11 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
 use Illuminate\Validation\Rule;
@@ -188,6 +191,23 @@ class DamageResource extends Resource
 
                         }
                     }),
+
+                ExportAction::make()
+                    ->label('Export ')
+                    ->icon('fas-download')
+                    ->columnMapping(false)
+                    ->exporter(DamageExporter::class)
+                    ->modifyQueryUsing(function (Builder $query, array $data) {
+                        return $query
+                            ->when(
+                                $data['filter']['product_id'] ?? null,
+                                fn ($query, $productId) => $query->where('product_id', $productId)
+                            )
+                            ->when(
+                                $data['filter']['id'] ?? null,
+                                fn ($query, $id) => $query->where('id', $id)
+                            );
+                    }),
             ])
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('#'),
@@ -196,9 +216,10 @@ class DamageResource extends Resource
                     ->extraAttributes(['class' => 'max-w-[250px] whitespace-normal']),
                 Tables\Columns\TextColumn::make('date')
                     ->date(),
-                Tables\Columns\TextColumn::make('total_in_text'),
+                Tables\Columns\TextColumn::make('total_in_text')->label('Total Damage'),
                 Tables\Columns\TextColumn::make('note'),
             ])
+
             ->filters([
                 Filter::make('product_id')
                     ->label('')

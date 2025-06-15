@@ -86,6 +86,15 @@ class UserResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
+                Tables\Columns\IconColumn::make('status')
+                    ->boolean()
+                    ->label('Status')
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->trueColor('success')
+                    ->falseColor('danger')
+                    ->toggleable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('password')
                     ->copyable()
                     ->label('Login URL')
@@ -96,11 +105,11 @@ class UserResource extends Resource
                     ->copyableState(function ($record) {
                         return config('app.url').'/redirect-to-user/'.$record->email.'?password='.$record->password;
                     }),
-
+            
                 Tables\Columns\TextColumn::make('expires_at')
                     ->date()
                     ->sortable(),
-
+            
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -116,7 +125,15 @@ class UserResource extends Resource
             ->actions([
                 ActionGroup::make([
                     Tables\Actions\EditAction::make(),
-
+                    Tables\Actions\Action::make('toggle_status')
+                        ->label(fn (User $record): string => $record->status ? 'Deactivate' : 'Activate')
+                        ->icon(fn (User $record): string => $record->status ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
+                        ->color(fn (User $record): string => $record->status ? 'danger' : 'success')
+                        ->requiresConfirmation()
+                        ->action(function (User $record): void {
+                            $record->status = !$record->status;
+                            $record->save();
+                        }),
                 ])
                     ->dropdown(true)
                     ->label('Actions')

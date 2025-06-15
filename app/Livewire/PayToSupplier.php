@@ -2,10 +2,12 @@
 
 namespace App\Livewire;
 
+use App\Filament\Exports\PayToSupplierExporter;
 use App\Models\History;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -13,6 +15,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 use Livewire\Component;
 
@@ -62,7 +65,24 @@ class PayToSupplier extends Component implements HasForms, HasTable
                     ),
             ])
             ->filtersFormColumns(2)
-
+            ->headerActions([
+                ExportAction::make()
+                    ->exporter(PayToSupplierExporter::class)
+                    ->columnMapping(false)
+                    ->label('Export Pay to Supplier')
+                    ->modalHeading('Export Pay to Supplier')
+                    ->modifyQueryUsing(function (Builder $query) {
+                        $query->where('supplier_id', '!=', '')
+                            ->when($this->isFilter, function ($q) {
+                                $q->withwhereHas('payment', function ($subq) {
+                                    $subq->whereBetween('payment_date', [$this->startDate, $this->endDate])
+                                        ->select('id', 'payment_date');
+                                });
+                            })
+                            ->with('supplier:id,supplier_name')
+                            ->select('id', 'supplier_id', 'date', 'amount', 'payment_id');
+                    }),
+            ])
             ->paginated([10, 25, 50, 100]);
     }
 

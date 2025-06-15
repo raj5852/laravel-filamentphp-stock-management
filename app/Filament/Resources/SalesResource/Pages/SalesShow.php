@@ -41,7 +41,7 @@ class SalesShow extends Page
         return [
             'setting' => Setting::query()->first(),
             'customer' => Customer::query()->withSum('orders', 'due')->find($this->record->customer_id),
-            'order' => Order::query()->with('orderitems', 'histories')->find($this->record->id),
+            'order' => Order::query()->with('orderitems', 'histories.payment')->find($this->record->id),
         ];
     }
 
@@ -69,7 +69,7 @@ class SalesShow extends Page
                     ->label('Amount')
                     ->required()
                     ->rules(['required', 'min:0', 'max:9999999999', 'numeric'])
-                    ->default(fn (array $arguments) => $arguments['amount'] ?? 0)
+                    ->default(fn(array $arguments) => $arguments['amount'] ?? 0)
                     ->numeric(),
 
                 Textarea::make('note')

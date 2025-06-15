@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\SalesExporter;
 use App\Filament\Resources\SalesResource\Pages;
 use App\HistoryTypeEnum;
 use App\Models\Account;
@@ -18,11 +19,13 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
@@ -97,6 +100,51 @@ class SalesResource extends Resource
                 TextColumn::make('Status')->default(function (Order $record) {
                     return $record['receivable'] == $record['paid'] ? 'Paid' : 'Unpaid';
                 }),
+            ])
+            ->headerActions([
+                ExportAction::make()
+                    ->exporter(SalesExporter::class)
+                    ->columnMapping(false)
+                    ->label('Export')
+                    ->icon('fas-download')
+                    ->modifyQueryUsing(function (Builder $query) {
+                        // Get the current filter values from the request
+                        $invoiceNo = request('tableFilters.invoiceno.invoiceno');
+                        $startDate = request('tableFilters.start_date.start_date');
+                        $endDate = request('tableFilters.end_date.end_date');
+                        $customerId = request('tableFilters.customer_id');
+                        $productId = request('tableFilters.product_id.product_id');
+
+                        // Apply the same filters as in the table
+                        if ($invoiceNo) {
+                            $query->where('invoiceno', $invoiceNo);
+                        }
+
+                        if ($startDate) {
+                            $query->where('order_date', '>=', $startDate);
+                        }
+
+                        if ($endDate) {
+                            $query->where('order_date', '<=', $endDate);
+                        }
+
+                        if ($customerId) {
+                            $query->where('customer_id', $customerId);
+                        }
+
+                        if ($productId) {
+                            $query->whereHas('orderitems', function ($query) use ($productId) {
+                                $query->where('product_id', $productId);
+                            });
+                        }
+
+                        // Include the same relationships and calculations as in the table query
+                        $query->with([
+                            'orderitems:id,product_id,order_id',
+                            'orderitems.product:id,product_name,product_code',
+                            'customer:id,customer_name',
+                        ])->withSum('orderitems', 'purchase_cost');
+                    }),
             ])
             ->filters([
                 Filter::make('invoiceno')
