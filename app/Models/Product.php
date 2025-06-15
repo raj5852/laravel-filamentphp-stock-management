@@ -25,7 +25,7 @@ class Product extends Model
 
         static::created(function ($model) {
             if ($model->product_code == '') {
-                $model->product_code = '000000'.$model->id;
+                $model->product_code = '000000' . $model->id;
             }
 
             $qty = getTotalStock($model->id, $model->first_opening_stock, $model->second_opening_stock);
@@ -75,12 +75,13 @@ class Product extends Model
                     'is_purchase' => 0,
                 ]);
 
+                // Do not need main_unit_qty and sub_unit_qty in purchaseitems
                 $purchase->purchaseitems()->create([
                     'product_id' => $model->id,
                     'rate' => $model->purchase_cost ?: 0,
                     'total_rate' => $model->total_purchase_cost ?: 0,
-                    'main_unit_qty' => $model->main_unit_qty,
-                    'sub_unit_qty' => $model->sub_unit_qty,
+                    // 'main_unit_qty' => $model->main_unit_qty,
+                    // 'sub_unit_qty' => $model->sub_unit_qty,
                     'total_qty' => $model->total_opening_stock,
                     'total_in_text' => $qty_in_text,
                     'available_qty' => $qty,
