@@ -47,11 +47,11 @@ class TopProduct extends Page implements HasForms, HasTable
             )
             ->columns([
 
-                TextColumn::make('product_name'),
+                TextColumn::make('product_name')->wrap(),
                 TextColumn::make('product_code')->label('Code'),
                 TextColumn::make('sold_in_text')
                     ->getStateUsing(function ($record) {
-                        return new HtmlString('<span style="color:#33cabb" class="font-bold">'.$record->sold_in_text.'</span>');
+                        return new HtmlString('<span style="color:#33cabb" class="font-bold">' . $record->sold_in_text . '</span>');
                     })
                     ->label('Sold'),
 

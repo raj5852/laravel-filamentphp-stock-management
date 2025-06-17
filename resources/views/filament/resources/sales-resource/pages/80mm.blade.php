@@ -293,6 +293,10 @@
                 const style = document.createElement('style');
                 style.innerHTML = `
                 @media print {
+                    @page {
+                        size: 80mm auto;  /* Width 80mm, height auto */
+                        margin: 2mm;
+                    }
                     body * {
                         visibility: hidden;
                     }
@@ -303,7 +307,7 @@
                         position: absolute;
                         left: 0;
                         top: 0;
-                        width: 80mm;
+                        width: 100%;
                         margin: 0;
                         padding: 0;
                     }
