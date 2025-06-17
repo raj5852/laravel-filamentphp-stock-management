@@ -27,6 +27,7 @@ class PermissionSeeder extends Seeder
             'purchases',
             'stock',
             'damages',
+            'racks',
             'units',
             'products',
             'categories',
