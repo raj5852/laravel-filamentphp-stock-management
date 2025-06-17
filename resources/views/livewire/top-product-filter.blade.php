@@ -77,7 +77,7 @@
 
                         </thead>
 
-                        <tbody class="divide-y divide-gray-200 whitespace-nowrap dark:divide-white/5">
+                        <tbody class="divide-y divide-gray-200 dark:divide-white/5">
 
 
                             @forelse ($datas as $data)
@@ -98,7 +98,7 @@
                                                                 class="fi-ta-text-item inline-flex items-center gap-1.5  ">
 
                                                                 <span
-                                                                    class="fi-ta-text-item-label text-sm leading-6 text-gray-950 dark:text-white  "
+                                                                    class="fi-ta-text-item-label text-sm leading-6 text-gray-950 dark:text-white break-words whitespace-normal"
                                                                     style="">
                                                                     {{ $data->product_name }}
                                                                 </span>

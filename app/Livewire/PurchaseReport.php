@@ -38,13 +38,13 @@ class PurchaseReport extends Component implements HasForms, HasTable
                 }),
                 TextColumn::make('purchaseitems_count')->label('Total Item'),
                 TextColumn::make('payable')->label('Total Bill')->getStateUsing(function ($record) {
-                    return number_format($record->payable, 2, '.', '').' Tk';
+                    return number_format($record->payable, 2, '.', '') . ' Tk';
                 }),
                 TextColumn::make('paid')->label('Payed')->getStateUsing(function ($record) {
-                    return number_format($record->paid, 2, '.', '').' TK';
+                    return number_format($record->paid, 2, '.', '') . ' TK';
                 }),
                 TextColumn::make('due')->label('Due')->getStateUsing(function ($record) {
-                    return number_format($record->due, 2, '.', '').' TK';
+                    return number_format($record->due, 2, '.', '') . ' TK';
                 }),
 
             ])
