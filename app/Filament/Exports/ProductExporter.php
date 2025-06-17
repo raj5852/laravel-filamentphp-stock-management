@@ -23,7 +23,8 @@ class ProductExporter extends Exporter
                 ->label('Category'),
             ExportColumn::make('brand.name')
                 ->label('Brand'),
-
+            ExportColumn::make('rack.name')
+                ->label('Rack'),
             ExportColumn::make('sale_price')
                 ->label('Price'),
             ExportColumn::make('purchase_cost')
@@ -36,10 +37,10 @@ class ProductExporter extends Exporter
 
     public static function getCompletedNotificationBody(Export $export): string
     {
-        $body = 'Your product export has completed and '.number_format($export->successful_rows).' '.str('row')->plural($export->successful_rows).' exported.';
+        $body = 'Your product export has completed and ' . number_format($export->successful_rows) . ' ' . str('row')->plural($export->successful_rows) . ' exported.';
 
         if ($failedRowsCount = $export->getFailedRowsCount()) {
-            $body .= ' '.number_format($failedRowsCount).' '.str('row')->plural($failedRowsCount).' failed to export.';
+            $body .= ' ' . number_format($failedRowsCount) . ' ' . str('row')->plural($failedRowsCount) . ' failed to export.';
         }
 
         return $body;

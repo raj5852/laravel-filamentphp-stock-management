@@ -2,6 +2,7 @@
 
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Rack;
 use App\Models\Unit;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -20,6 +21,7 @@ return new class extends Migration
             $table->string('product_code')->nullable();
             $table->foreignIdFor(Category::class);
             $table->foreignIdFor(Brand::class)->nullable();
+            $table->foreignIdFor(Rack::class)->nullable();
             $table->foreignIdFor(Unit::class);
             $table->foreignId('sub_unit')->nullable();
             $table->integer('first_opening_stock')->nullable();

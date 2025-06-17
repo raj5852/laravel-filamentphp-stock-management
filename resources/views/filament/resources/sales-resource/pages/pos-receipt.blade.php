@@ -89,9 +89,11 @@
                                     <th class="border border-gray-200 py-1 px-2 text-left w-10 !text-black">#</th>
                                     <th class="border border-gray-200 py-1 px-2 text-left !text-black w-[45%]">Details
                                     </th>
-                                    <th class="border border-gray-200 py-1 px-2 text-center !text-black w-[15%]">Qty
+                                    <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Rack
                                     </th>
                                     <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Price
+                                    </th>
+                                    <th class="border border-gray-200 py-1 px-2 text-center !text-black w-[15%]">Qty
                                     </th>
                                     <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Net.A
                                     </th>
@@ -105,10 +107,13 @@
                                         </td>
                                         <td class="border border-gray-200 py-0.5 px-2 !text-black">
                                             {{ $item->product->product_name }}</td>
-                                        <td class="border border-gray-200 py-0.5 px-2 text-center !text-black">
-                                            {{ $item->total_in_text }}</td>
+                                        <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
+                                            {{ $item->product?->rack?->rack_name }} </td>
                                         <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
                                             {{ number_format($item->rate, 2) }} Tk</td>
+                                        <td class="border border-gray-200 py-0.5 px-2 text-center !text-black">
+                                            {{ $item->total_in_text }}</td>
+
                                         <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
                                             {{ number_format($item->total_rate, 2) }} Tk</td>
                                     </tr>
@@ -204,7 +209,7 @@
                 </div>
 
                 <!-- Signature section -->
-                <div class="mt-8 pt-4 flex justify-between">
+                {{-- <div class="mt-8 pt-4 flex justify-between">
                     <div class="text-center">
                         <div class="border-t border-gray-400 pt-1 w-32"></div>
                         <p class="text-sm !text-black">Customer Signature</p>
@@ -213,7 +218,7 @@
                         <div class="border-t border-gray-400 pt-1 w-32"></div>
                         <p class="text-sm !text-black">Authorized Signature</p>
                     </div>
-                </div>
+                </div> --}}
 
                 <!-- Footer text -->
                 <div class="mt-6 text-center text-xs text-gray-500">

@@ -48,7 +48,7 @@ class Setting extends Page implements HasForms
 
     public $order_sms;
     public $invoice_design;
-    
+
     public static function canAccess(): bool
     {
         return auth()->user()->can('settings');
@@ -158,7 +158,7 @@ class Setting extends Page implements HasForms
                     Select::make('invoice_design')
                         ->options([
                             'a4' => 'A4',
-                            'pos_80mm' => 'POS 80mm',
+                            // 'pos_80mm' => 'POS 80mm',
                         ])
                         ->default('a4')
                         ->rules([

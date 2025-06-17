@@ -30,6 +30,6 @@ class AppServiceProvider extends ServiceProvider
             Js::make('example-local-script', asset('js/custom-filament.js')),
         ]);
 
-        URL::forceHttps();
+        // URL::forceHttps();
     }
 }

@@ -8,6 +8,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Purchase;
+use App\Models\Rack;
 use App\Models\Setting;
 use App\Models\Unit;
 use Filament\Forms;
@@ -165,6 +166,51 @@ class ProductResource extends Resource
                                     ->send();
 
                                 return $brand->id;
+                            }),
+
+                        Forms\Components\Select::make('rack_id')
+                            ->label('Rack')
+                            ->options(Rack::query()->get(['id', 'rack_name'])->pluck('rack_name', 'id'))
+                            ->placeholder('Select Rack')
+                            ->searchable()
+                            ->createOptionForm([
+                                Forms\Components\TextInput::make('rack_name')
+                                    ->autocomplete(false)
+                                    ->rules([
+                                        'required',
+                                        'string',
+                                        'min:0',
+                                        'max:256',
+                                    ])
+                                    ->placeholder('Brand Name')
+                                    ->required(),
+                            ])
+                            ->createOptionModalHeading('Create a new Rack')
+                            ->rules([
+                                Rule::exists('racks', 'id')->where(function ($query) {
+                                    $query->where('tenant_id', auth()->user()->tenant_id);
+                                }),
+                            ])
+                            ->createOptionAction(function (Forms\Components\Actions\Action $action) {
+                                $action
+                                    ->button()
+                                    ->outlined()
+                                    ->color(Color::Green)
+                                    ->label('Add Rack')
+                                    ->modalCancelAction(false)
+                                    ->modalWidth('md');
+                            })
+                            ->createOptionUsing(function ($data) {
+                                $rack = Rack::create([
+                                    'rack_name' => $data['rack_name'],
+                                ]);
+                                Notification::make()
+                                    ->title('Rack Created')
+                                    ->body('The Rack has been successfully added.')
+                                    ->success()
+                                    ->send();
+
+                                return $rack->id;
                             }),
 
                         Forms\Components\Select::make('unit_id')
@@ -333,6 +379,8 @@ class ProductResource extends Resource
 
                 Tables\Columns\TextColumn::make('brand.brand_name')
                     ->label('Brand'),
+                Tables\Columns\TextColumn::make('rack.rack_name')
+                    ->label('Rack'),
 
                 Tables\Columns\TextColumn::make('sale_price')
                     ->label('Price')
@@ -387,6 +435,12 @@ class ProductResource extends Resource
                     ->options(Brand::query()->pluck('brand_name', 'id'))
                     ->searchable(),
 
+                SelectFilter::make('rack_id')
+                    ->label(' ')
+                    ->placeholder('Select Rack')
+                    ->options(Rack::query()->pluck('rack_name', 'id'))
+                    ->searchable(),
+
                 Filter::make('product_details')
                     ->label('')
                     ->form([
@@ -412,7 +466,7 @@ class ProductResource extends Resource
                     ->columnMapping(false)
                     ->exporter(ProductExporter::class)
                     ->modifyQueryUsing(function (Builder $query) {
-                        return $query->with(['category', 'brand', 'unit', 'subunit', 'productdetails']);
+                        return $query->with(['category', 'brand', 'unit', 'subunit', 'productdetails', 'rack']);
                     }),
 
             ])

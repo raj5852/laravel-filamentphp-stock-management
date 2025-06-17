@@ -187,4 +187,9 @@ class Product extends Model
     {
         return $this->hasMany(OrderItem::class, 'product_id');
     }
+
+    function rack()
+    {
+        return $this->belongsTo(Rack::class);
+    }
 }
