@@ -53,7 +53,16 @@ class Damage extends Model
                     'damaged_in_text' => getTotalStockInText($product->id, ($totalDamageStock - $damage->total_qty)),
                 ]);
 
-                ExpensePurchase::deletePurchaseExpense($damage->purchase_ids);
+                // ExpensePurchase::deletePurchaseExpense($damage->purchase_ids);
+                foreach ($damage->purchase_ids ?? [] as $purchase_id) {
+                    $purchaseItem = PurchaseItem::find($purchase_id['purchase_item_id']);
+
+                    $purchaseItem->increment('available_qty', $purchase_id['qty']);
+
+                    $purchaseItem->update([
+                        'available_purchase_value' => singleUnitPurchasePrice($purchaseItem->product_id, $purchaseItem->rate ?: 0) * $purchaseItem->available_qty,
+                    ]);
+                }
 
                 DB::commit();
             } catch (\Exception $e) {
@@ -63,7 +72,6 @@ class Damage extends Model
 
             }
         });
-
     }
 
     public function product()

@@ -98,10 +98,10 @@ if (! function_exists('singleUnitSalePrice')) {
 
 if (! function_exists('singleUnitPurchasePrice')) {
 
-    function singleUnitPurchasePrice($productId)
+    function singleUnitPurchasePrice($productId, $purchase_cost = null)
     {
         $product = Product::find($productId);
-        $purchasePrice = $product->purchase_cost;
+        $purchasePrice = $purchase_cost == null ? $product->purchase_cost : $purchase_cost;
 
         if ($product->sub_unit == '') {
             return $purchasePrice;

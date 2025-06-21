@@ -10,6 +10,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
+use App\Models\PurchaseItem;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -92,10 +93,10 @@ class SalesResource extends Resource
                 TextColumn::make('orderitems_sum_purchase_cost')->label('Purchase Cost')->formatStateUsing(function ($state) {
                     return number_format($state ?: 0, 2).' TK';
                 }),
-                TextColumn::make('Profit')->default(function (Order $record) {
-                    $profit = $record['receivable'] - $record['orderitems_sum_purchase_cost'];
+                TextColumn::make('Profit')->default(function ($record) {
+                    // $profit = $record['receivable'] - $record['orderitems_sum_purchase_cost'];
 
-                    return number_format($profit, 2).' Tk';
+                    return number_format($record->profit, 2).' Tk';
                 }),
                 TextColumn::make('Status')->default(function (Order $record) {
                     return $record['receivable'] == $record['paid'] ? 'Paid' : 'Unpaid';
@@ -342,6 +343,16 @@ class SalesResource extends Resource
                                     'sold_in_text' => getTotalStockInText($orderitem->product_id, $productDetails->sold),
                                     'available_stock_in_text' => getTotalStockInText($orderitem->product_id, $productDetails->available_stock),
                                 ]);
+
+                                foreach ($orderitem->purchase_ids ?? [] as $purchase_id) {
+                                    $purchaseItem = PurchaseItem::find($purchase_id['purchase_item_id']);
+
+                                    $purchaseItem->increment('available_qty', $purchase_id['qty']);
+
+                                    $purchaseItem->update([
+                                        'available_purchase_value' => singleUnitPurchasePrice($purchaseItem->product_id, $purchaseItem->rate ?: 0) * $purchaseItem->available_qty,
+                                    ]);
+                                }
 
                                 $orderitem->delete();
                             }

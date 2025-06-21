@@ -105,11 +105,11 @@ class UserResource extends Resource
                     ->copyableState(function ($record) {
                         return config('app.url').'/redirect-to-user/'.$record->email.'?password='.$record->password;
                     }),
-            
+
                 Tables\Columns\TextColumn::make('expires_at')
                     ->date()
                     ->sortable(),
-            
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -131,7 +131,7 @@ class UserResource extends Resource
                         ->color(fn (User $record): string => $record->status ? 'danger' : 'success')
                         ->requiresConfirmation()
                         ->action(function (User $record): void {
-                            $record->status = !$record->status;
+                            $record->status = ! $record->status;
                             $record->save();
                         }),
                 ])
