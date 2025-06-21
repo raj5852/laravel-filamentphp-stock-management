@@ -69,7 +69,7 @@ class SalesShow extends Page
                     ->label('Amount')
                     ->required()
                     ->rules(['required', 'min:0', 'max:9999999999', 'numeric'])
-                    ->default(fn(array $arguments) => $arguments['amount'] ?? 0)
+                    ->default(fn (array $arguments) => $arguments['amount'] ?? 0)
                     ->numeric(),
 
                 Textarea::make('note')

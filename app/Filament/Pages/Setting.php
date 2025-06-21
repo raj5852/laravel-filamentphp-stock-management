@@ -47,6 +47,7 @@ class Setting extends Page implements HasForms
     public $low_stock_quantity;
 
     public $order_sms;
+
     public $invoice_design;
 
     public static function canAccess(): bool
@@ -163,9 +164,9 @@ class Setting extends Page implements HasForms
                         ->default('a4')
                         ->rules([
                             'required',
-                            'in:a4,pos_80mm'  // Fixed: removed space after 'in:'
+                            'in:a4,pos_80mm',  // Fixed: removed space after 'in:'
                         ])
-                        ->required()
+                        ->required(),
                 ])->columns(2),
 
             Card::make('Order SMS Settings')
@@ -187,7 +188,7 @@ class Setting extends Page implements HasForms
                         ->rows(5)
 
                         ->required()
-                        ->helperText(fn($state): string => 'Estimated SMS count: ' . (empty($state) ? '0' : ceil(strlen($state) / 160))),
+                        ->helperText(fn ($state): string => 'Estimated SMS count: '.(empty($state) ? '0' : ceil(strlen($state) / 160))),
                 ]),
 
             Card::make('Other Settings')

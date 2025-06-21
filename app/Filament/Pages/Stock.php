@@ -39,7 +39,7 @@ class Stock extends Page implements HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query(Product::query()->with(['category', 'productdetails'])->latest())
+            ->query(Product::query()->with(['category', 'productdetails'])->withSum('purchaseitems', 'available_purchase_value')->latest())
             ->columns([
                 ImageColumn::make('product_image')
                     ->label('Image')
@@ -76,9 +76,9 @@ class Stock extends Page implements HasTable
                     }),
                 TextColumn::make('purchase_value')
                     ->getStateUsing(function ($record) {
-                        $val = ($record->productdetails?->single_unit_purchase_price ?: 0) * ($record->productdetails?->available_stock ?: 0);
+                        // $val = ($record->productdetails?->single_unit_purchase_price ?: 0) * ($record->productdetails?->available_stock ?: 0);
 
-                        return number_format($val, 2, '.', '').' '.'Tk';
+                        return number_format($record->purchaseitems_sum_available_purchase_value ?: 0, 2, '.', '').' '.'Tk';
                     }),
 
             ])
