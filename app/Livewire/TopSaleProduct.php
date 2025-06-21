@@ -87,17 +87,17 @@ class TopSaleProduct extends Component implements HasForms, HasTable
                 TextColumn::make('product_name')->label('Product Name')->wrap(),
                 TextColumn::make('quantity')->label('Quantity')
                     ->summarize(
-                        Sum::make()->formatStateUsing(fn($state) => $state)->label('Qty')
+                        Sum::make()->formatStateUsing(fn ($state) => $state)->label('Qty')
                     ),
                 TextColumn::make('total_sale')->label('Total Sale')
                     ->summarize(
-                        Sum::make()->formatStateUsing(fn($state) => $state)->label('Total')
+                        Sum::make()->formatStateUsing(fn ($state) => $state)->label('Total')
                     ),
                 TextColumn::make('sale_amount')->label('Sale Amount')->getStateUsing(function ($record) {
-                    return 'TK ' . number_format($record->sale_amount, 2, '.', '');
+                    return 'TK '.number_format($record->sale_amount, 2, '.', '');
                 })
                     ->summarize(
-                        Sum::make()->formatStateUsing(fn($state) => number_format($state, 2, '.', '') . ' TK')->label('Total')
+                        Sum::make()->formatStateUsing(fn ($state) => number_format($state, 2, '.', '').' TK')->label('Total')
                     ),
 
             ])

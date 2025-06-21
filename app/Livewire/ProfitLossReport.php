@@ -72,7 +72,7 @@ class ProfitLossReport extends Component implements HasForms
 
     public function render()
     {
-        $startDate = \Carbon\Carbon::parse($this->start_date)->endOfMonth()->toDateString();
+        $startDate = \Carbon\Carbon::parse($this->start_date)->startOfMonth()->toDateString();
         $endDate = \Carbon\Carbon::parse($this->end_date)->endOfMonth()->toDateString();
 
         $tenantId = auth()->user()->tenant_id;
@@ -92,30 +92,66 @@ class ProfitLossReport extends Component implements HasForms
                 return $item->year.'-'.$item->month;
             });
 
+        // $orderitems = DB::table('orders')
+        //     // ->join('orders', 'order_items.order_id', '=', 'orders.id')
+        //     ->where('tenant_id', $tenantId)
+        //     ->whereBetween('order_date', [$startDate, $endDate])
+        //     // ->select(
+        //     //     DB::raw('YEAR(order_date) as year'),
+        //     //     DB::raw('MONTH(order_date) as month'),
+        //     //     DB::raw('SUM(receivable) as sales'),
+        //     //     DB::raw('SUM(profit) as gross_profit')
+        //     // )
+        //     // ->groupBy('year', 'month')
+        //     // ->orderBy('year', 'asc')
+        //     // ->orderBy('month', 'asc')
+        //     ->get();
+        // dd($orderitems);
+
         // Then get the order data
-        $orderitems = DB::table('order_items')
-            ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->where('order_items.tenant_id', $tenantId)
-            ->whereBetween('orders.order_date', [$startDate, $endDate])
+        $orderitems = DB::table('orders')
+            // ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->where('tenant_id', $tenantId)
+            ->whereBetween('order_date', [$startDate, $endDate])
             ->select(
-                DB::raw('YEAR(orders.order_date) as year'),
-                DB::raw('MONTH(orders.order_date) as month'),
-                DB::raw('SUM(orders.receivable) as sales'),
-                DB::raw('SUM(order_items.purchase_cost) as cost_of_goods_sold'),
-                DB::raw('SUM(orders.profit) as gross_profit')
+                DB::raw('YEAR(order_date) as year'),
+                DB::raw('MONTH(order_date) as month'),
+                DB::raw('SUM(receivable) as sales'),
+                DB::raw('SUM(profit) as gross_profit')
             )
             ->groupBy('year', 'month')
             ->orderBy('year', 'asc')
             ->orderBy('month', 'asc')
-            ->get();
+            ->get()
+            ->keyBy(function ($item) {
+                return $item->year.'-'.$item->month;
+            });
 
-        // Add expenses and calculate net profit
-        foreach ($orderitems as $item) {
-            $key = $item->year.'-'.$item->month;
-            $item->expenses = isset($expenses[$key]) ? $expenses[$key]->total_expenses : 0;
-            $item->net_profit = $item->gross_profit - $item->expenses;
+        // Generate all months in the date range
+        $allMonths = [];
+        $startMonth = \Carbon\Carbon::parse($startDate);
+        $endMonth = \Carbon\Carbon::parse($endDate);
+        $currentMonth = $startMonth->copy();
+
+        while ($currentMonth->lte($endMonth)) {
+            $year = $currentMonth->year;
+            $month = $currentMonth->month;
+            $key = $year.'-'.$month;
+
+            $monthData = new \stdClass;
+            $monthData->year = $year;
+            $monthData->month = $month;
+            $monthData->sales = isset($orderitems[$key]) ? $orderitems[$key]->sales : 0;
+            $monthData->gross_profit = isset($orderitems[$key]) ? $orderitems[$key]->gross_profit : 0;
+            $monthData->expenses = isset($expenses[$key]) ? $expenses[$key]->total_expenses : 0;
+            $monthData->net_profit = $monthData->gross_profit - $monthData->expenses;
+            $monthData->cost_of_goods_sold = $monthData->sales - $monthData->gross_profit;
+
+            $allMonths[] = $monthData;
+
+            $currentMonth->addMonth();
         }
 
-        return view('livewire.profit-loss-report', compact('orderitems'));
+        return view('livewire.profit-loss-report', ['orderitems' => collect($allMonths)]);
     }
 }

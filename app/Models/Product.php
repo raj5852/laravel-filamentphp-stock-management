@@ -25,7 +25,7 @@ class Product extends Model
 
         static::created(function ($model) {
             if ($model->product_code == '') {
-                $model->product_code = '000000' . $model->id;
+                $model->product_code = '000000'.$model->id;
             }
 
             $qty = getTotalStock($model->id, $model->first_opening_stock, $model->second_opening_stock);
@@ -85,6 +85,7 @@ class Product extends Model
                     'total_qty' => $model->total_opening_stock,
                     'total_in_text' => $qty_in_text,
                     'available_qty' => $qty,
+                    'available_purchase_value' => $model->total_purchase_cost ?: 0,
                 ]);
 
                 $payment = Payment::create([
