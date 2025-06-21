@@ -36,24 +36,24 @@ class CurrentMonthOverview extends BaseWidget
         $expenseInCurrentMonth = Expense::query()->whereBetween('date', [$startOfMonth, $endOfMonth])->sum('amount');
 
         return [
-            Stat::make('Sold in ' . $currentMonthYear, 'TK ' . number_format($soldInCurrentMonth, 1))
+            Stat::make('Sold in '.$currentMonthYear, 'TK '.number_format($soldInCurrentMonth, 1))
                 ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')
                 ->descriptionColor('success')
                 ->iconColor('warning'),
-            Stat::make('Purchased - in ' . $currentMonthYear, 'TK ' . number_format($purchasedInCurrentMonth, 1))
-                ->icon('heroicon-o-banknotes')
-                ->iconBackgroundColor('success')
-                ->descriptionColor('success')
-                ->iconColor('warning'),
-
-            Stat::make('Expense in ' . $currentMonthYear, 'TK ' . number_format($expenseInCurrentMonth, 1))
+            Stat::make('Purchased - in '.$currentMonthYear, 'TK '.number_format($purchasedInCurrentMonth, 1))
                 ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')
                 ->descriptionColor('success')
                 ->iconColor('warning'),
 
-            Stat::make('Profit ' . $currentMonthYear, 'TK ' . number_format($soldInCurrentMonth - ($current_month_sold_purchase_cost + $expenseInCurrentMonth), 1))
+            Stat::make('Expense in '.$currentMonthYear, 'TK '.number_format($expenseInCurrentMonth, 1))
+                ->icon('heroicon-o-banknotes')
+                ->iconBackgroundColor('success')
+                ->descriptionColor('success')
+                ->iconColor('warning'),
+
+            Stat::make('Profit '.$currentMonthYear, 'TK '.number_format($soldInCurrentMonth - ($current_month_sold_purchase_cost + $expenseInCurrentMonth), 1))
                 ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')
                 ->descriptionColor('success')

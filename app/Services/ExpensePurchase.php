@@ -2,88 +2,53 @@
 
 namespace App\Services;
 
-use App\Models\Product;
 use App\Models\PurchaseItem;
 
 class ExpensePurchase
 {
     public static function addPurchaseExpense($productId, $qty)
     {
-        $giveQtyFromUser = $qty;
 
-        $product = Product::find($productId);
-        $productdetails = $product->productdetails;
-        $openingQty = getTotalStock($product->id, $product->first_opening_stock, $product->second_opening_stock);
+        $purchaseItems = PurchaseItem::where('product_id', $productId)
+            ->where('available_qty', '>', 0)
+            ->get();
 
-        $totalSellQty = ($productdetails->purchased - $productdetails->available_stock);
+        $openingAndPurchaseQty = $qty;
+        $initialTotalQty = 0;
+        $indexByValue = [];
 
-        $openingQtyAvailable = ($openingQty - $totalSellQty);
+        foreach ($purchaseItems as $item) {
 
-        $lastOpeningQty = 0;
-        if ($openingQtyAvailable >= 1) {
-            $lastOpeningQty = $openingQtyAvailable;
-        } else {
-            $lastOpeningQty = 0;
-        }
+            $initialTotalQty += $item->available_qty;
 
-        if ($lastOpeningQty == 0) {
-            $openingAndPurchaseQty = [0, $giveQtyFromUser];
-        } elseif ($lastOpeningQty == $giveQtyFromUser) {
-            $openingAndPurchaseQty = [$lastOpeningQty, 0];
-        } elseif ($lastOpeningQty > $giveQtyFromUser) {
-            $openingAndPurchaseQty = [$giveQtyFromUser, 0];
-        } elseif ($lastOpeningQty < $giveQtyFromUser) {
-            $openingAndPurchaseQty = [$lastOpeningQty, $giveQtyFromUser - $lastOpeningQty];
-        }
-
-        // //////////////////////////////////////////////////////////////////////////////
-
-        if ($openingAndPurchaseQty[1] != 0) {
-
-            $purchaseItems = $product->purchaseitems()
-                ->where('main_unit_qty', '!=', '')
-                ->Orwhere('sub_unit_qty', '!=', '')
-                ->select('id', 'total_qty', 'available_qty', 'purchase_id', 'product_id')->get();
-
-            $initialTotalQty = 0;
-            $indexByValue = [];
-
-            foreach ($purchaseItems as $item) {
-
-                $initialTotalQty += $item->available_qty;
-
-                $totalQty = collect($indexByValue)->sum('qty');
-
-                if ($item->available_qty <= ($openingAndPurchaseQty[1] - $totalQty)) {
-                    $indexByValue[] = [
-                        'qty' => $item->available_qty,
-                        'purchase_item_id' => $item->id,
-                        'purchase_id' => $item->purchase_id,
-                        'qty_in_text' => getTotalStockInText($item->product_id, $item->available_qty),
-                    ];
-                } else {
-                    $indexByValue[] = [
-                        'qty' => ($openingAndPurchaseQty[1] - $totalQty),
-                        'purchase_item_id' => $item->id,
-                        'purchase_id' => $item->purchase_id,
-                        'qty_in_text' => getTotalStockInText($item->product_id, $openingAndPurchaseQty[1] - $totalQty),
-
-                    ];
-                }
-
-                if ($initialTotalQty >= $openingAndPurchaseQty[1]) {
-                    break;
-                }
+            if ($initialTotalQty > $qty) {
+                $available_qty = $item->available_qty - ($initialTotalQty - $qty);
+            } else {
+                $available_qty = $item->available_qty;
             }
 
-            foreach ($indexByValue as $key => $value) {
-                PurchaseItem::query()->find($value['purchase_item_id'])->decrement('available_qty', $value['qty']);
-            }
+            $indexByValue[] = [
+                'qty' => $available_qty,
+                'purchase_item_id' => $item->id,
+                'purchase_id' => $item->purchase_id,
+                'qty_in_text' => getTotalStockInText($item->product_id, $available_qty),
+                'purchase_value' => singleUnitPurchasePrice($item->product_id, $item->rate ?: 0) * $available_qty,
+            ];
 
-            return collect($indexByValue)->toArray();
-        } else {
-            return [];
+            if ($initialTotalQty >= $openingAndPurchaseQty) {
+                break;
+            }
         }
+
+        foreach ($indexByValue as $key => $value) {
+            $purchaseItem = PurchaseItem::query()->find($value['purchase_item_id']);
+            $purchaseItem->decrement('available_qty', $value['qty']);
+            $purchaseItem->update([
+                'available_purchase_value' => singleUnitPurchasePrice($purchaseItem->product_id, $purchaseItem->rate ?: 0) * $purchaseItem->available_qty,
+            ]);
+        }
+
+        return collect($indexByValue)->toArray();
     }
 
     public static function deletePurchaseExpense(array $purchase_ids)
