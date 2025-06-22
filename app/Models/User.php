@@ -163,4 +163,10 @@ Thanks for your order.
             }
         });
     }
+
+
+    function userInfo()
+    {
+        return $this->hasOne(UserInfo::class);
+    }
 }
