@@ -31,12 +31,13 @@ class PosReceipt extends Page
         // Default view
         $setting = Setting::first();
 
-        if ($setting->invoice_design == 'a4') {
-            return 'filament.resources.sales-resource.pages.pos-receipt';
-        } else {
+        return 'filament.resources.sales-resource.pages.pos-receipt';
+        // if ($setting->invoice_design == 'a4') {
+        //     return 'filament.resources.sales-resource.pages.pos-receipt';
+        // } else {
 
-            return 'filament.resources.sales-resource.pages.80mm';
-        }
+        //     return 'filament.resources.sales-resource.pages.80mm';
+        // }
     }
 
     protected function getViewData(): array
@@ -44,7 +45,7 @@ class PosReceipt extends Page
         return [
             'setting' => Setting::query()->first(),
             'customer' => Customer::query()->withSum('orders', 'due')->find($this->record->customer_id),
-            'order' => Order::query()->with('orderitems')->find($this->record->id),
+            'order' => Order::query()->with('orderitems', 'returnlist')->find($this->record->id),
         ];
     }
 }

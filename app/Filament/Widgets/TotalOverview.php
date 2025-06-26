@@ -44,6 +44,7 @@ class TotalOverview extends BaseWidget
                 ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')
                 ->iconColor('dark'),
+
             Stat::make('Total Profit', 'TK '.number_format($totalSold - ($totalExpense + $total_sold_purchase_cost), 1))
                 ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')

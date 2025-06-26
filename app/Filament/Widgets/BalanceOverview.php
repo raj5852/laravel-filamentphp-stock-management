@@ -6,6 +6,7 @@ use App\Models\Account;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Purchase;
+use App\Models\ReturnList;
 use App\Models\Supplier;
 use EightyNine\FilamentAdvancedWidget\AdvancedStatsOverviewWidget\Stat;
 // use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -33,6 +34,7 @@ class BalanceOverview extends BaseWidget
         $total_Payable = $purcahseDue + $customerPayableWallet + $supplierPayableWallet;
 
         $total_balance = Account::sum('current_balance');
+        $returnProductCurrentMonth = ReturnList::sum('receivable');
 
         return [
 
@@ -40,6 +42,12 @@ class BalanceOverview extends BaseWidget
                 ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')
                 ->iconColor('success'),
+
+            Stat::make('Total Returned ', 'TK '.number_format($returnProductCurrentMonth, 1))
+                ->icon('heroicon-o-banknotes')
+                ->iconBackgroundColor('success')
+                ->iconColor('success'),
+
             Stat::make('Total Payable', 'TK '.number_format($total_Payable, 1))
                 ->icon('heroicon-o-banknotes')
                 ->iconBackgroundColor('success')
