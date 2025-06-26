@@ -42,7 +42,7 @@ class CustomerResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('email')
                     ->placeholder('Enter Customer Email')
-                    ->unique(ignoreRecord: true, modifyRuleUsing: fn($rule) => $rule->where('tenant_id', auth()->user()->tenant_id))
+                    ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('tenant_id', auth()->user()->tenant_id))
                     ->rules([
                         'email',
                         'min:0',
@@ -69,7 +69,7 @@ class CustomerResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('opening_receivable')
                     ->minValue(0)
-                    ->hidden(fn(string $context) => $context === 'edit')
+                    ->hidden(fn (string $context) => $context === 'edit')
                     ->rules([
                         'numeric',
                         'min:0',
@@ -78,7 +78,7 @@ class CustomerResource extends Resource
                     ->numeric(),
                 Forms\Components\TextInput::make('opening_payable')
                     ->numeric()
-                    ->hidden(fn(string $context) => $context === 'edit')
+                    ->hidden(fn (string $context) => $context === 'edit')
                     ->rules([
                         'numeric',
                         'min:0',
@@ -92,7 +92,7 @@ class CustomerResource extends Resource
                         'max:5000',
                     ])
                     ->placeholder('Write Customer Note')
-                    ->columnSpanFull()
+                    ->columnSpanFull(),
 
             ]);
     }
@@ -125,18 +125,18 @@ class CustomerResource extends Resource
                     ->default(0)
                     ->label('Receivable')
                     ->formatStateUsing(function ($state) {
-                        return number_format($state ?: 0, 2) . ' TK';
+                        return number_format($state ?: 0, 2).' TK';
                     }),
                 Tables\Columns\TextColumn::make('orders_sum_paid')
                     ->default(0)
                     ->label('Paid')
                     ->formatStateUsing(function ($state) {
-                        return number_format($state ?: 0, 2) . ' TK';
+                        return number_format($state ?: 0, 2).' TK';
                     }),
                 Tables\Columns\TextColumn::make('orders_sum_due')->label('Sale Due')
                     ->default(0)
                     ->formatStateUsing(function ($state) {
-                        return number_format($state ?: 0, 2) . ' TK';
+                        return number_format($state ?: 0, 2).' TK';
                     }),
 
                 Tables\Columns\TextColumn::make('note')->wrap(),
@@ -152,7 +152,7 @@ class CustomerResource extends Resource
                             $message = "<span style='color:red'>**কাস্টমারের টাকা আপনার  </span> <br> <span style='color:red'>কাছে জমা আছে</span>";
                         }
 
-                        return new HtmlString('<span class="text-success"> <b>' . number_format(abs($record->wallet), 1) . ' TK </b> </span> <br>' . $message);
+                        return new HtmlString('<span class="text-success"> <b>'.number_format(abs($record->wallet), 1).' TK </b> </span> <br>'.$message);
                     })
                     ->searchable(),
                 Tables\Columns\TextColumn::make('totaldue')
@@ -166,7 +166,7 @@ class CustomerResource extends Resource
                             $balance = 0;
                         }
 
-                        return number_format(abs($balance) + $record->orders_sum_due ?: 0, 2) . ' TK';
+                        return number_format(abs($balance) + $record->orders_sum_due ?: 0, 2).' TK';
                     }),
             ])
             ->filters([
@@ -192,16 +192,16 @@ class CustomerResource extends Resource
                     Action::make('sale_list')
                         ->icon('fas-list')
                         ->label('Sale List')
-                        ->url(fn($record) => route('filament.admin.resources.sales.index', 'customer_id=' . $record->id)),
+                        ->url(fn ($record) => route('filament.admin.resources.sales.index', 'customer_id='.$record->id)),
 
                     Action::make('report')
                         ->label('Report')
                         ->icon('fas-flag')
-                        ->url(fn(Customer $record): string => route('filament.admin.resources.customers.report', $record)),
+                        ->url(fn (Customer $record): string => route('filament.admin.resources.customers.report', $record)),
                     Action::make('ledger')
                         ->label('Ledger')
                         ->icon('fas-book')
-                        ->url(fn(Customer $record): string => route('filament.admin.pages.customer-ledger', ['customer_id' => $record->id])),
+                        ->url(fn (Customer $record): string => route('filament.admin.pages.customer-ledger', ['customer_id' => $record->id])),
 
                     Tables\Actions\DeleteAction::make()
                         ->before(function ($record, $action) {

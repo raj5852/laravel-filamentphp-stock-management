@@ -13,12 +13,12 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\Colors\Color;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Table;
-use Filament\Support\Colors\Color;
 use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Table;
 
 class UserResource extends Resource
 {
@@ -48,7 +48,7 @@ class UserResource extends Resource
                     Forms\Components\TextInput::make('password')
                         ->password()
                         ->placeholder('Password')
-                        ->hidden(fn(string $context) => $context === 'edit')
+                        ->hidden(fn (string $context) => $context === 'edit')
                         ->maxLength(255),
 
                     Select::make('type')
@@ -60,7 +60,7 @@ class UserResource extends Resource
                     TextInput::make('expires_at')
                         ->numeric()
                         ->label('Add Month')
-                        ->hidden(fn(string $context) => $context === 'edit')
+                        ->hidden(fn (string $context) => $context === 'edit')
                         ->minValue(1),
 
                     TextInput::make('sms_count')
@@ -71,7 +71,7 @@ class UserResource extends Resource
                         ->label('SMS Count'),
 
                     DatePicker::make('expires_at')
-                        ->hidden(fn(string $context) => $context === 'create')
+                        ->hidden(fn (string $context) => $context === 'create')
                         ->required()
                         ->native(false),
 
@@ -86,7 +86,7 @@ class UserResource extends Resource
 
         return $table
             ->query(User::query()->with('userInfo')->latest()->where('type', UserTypeEnum::USER))
-            ->heading('All Users (' . $userCount . ')')
+            ->heading('All Users ('.$userCount.')')
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
@@ -109,7 +109,7 @@ class UserResource extends Resource
                     })
                     ->html()
                     ->copyableState(function ($record) {
-                        return config('app.url') . '/redirect-to-user/' . $record->email . '?password=' . $record->password;
+                        return config('app.url').'/redirect-to-user/'.$record->email.'?password='.$record->password;
                     }),
 
                 Tables\Columns\TextColumn::make('expires_at')
@@ -120,6 +120,7 @@ class UserResource extends Resource
                     ->getStateUsing(function ($record) {
                         $todayStartDate = today();
                         $endDate = Carbon::parse($record->expires_at);
+
                         return $todayStartDate->diffInDays($endDate);
                     }),
 
@@ -128,7 +129,6 @@ class UserResource extends Resource
                     ->getStateUsing(function ($record) {
                         return $record->sms_count;
                     }),
-
 
                 Tables\Columns\TextColumn::make('userInfo.description')
                     ->label('Description')
@@ -163,7 +163,7 @@ class UserResource extends Resource
                                 'yes' => 'Expired',
                                 'no' => 'Not Expired',
                             ])
-                            ->placeholder('All')
+                            ->placeholder('All'),
                     ])
                     ->label('Expiration Status')
                     ->query(function ($query, array $data) {
@@ -177,15 +177,15 @@ class UserResource extends Resource
             ->actions([
                 Action::make('link')
                     ->url(function ($record) {
-                        $link =  $record?->userInfo?->link;
+                        $link = $record?->userInfo?->link;
                         if ($link == '') {
-                            return '/superadmin/user-infos/create?user_id=' . $record->id;
+                            return '/superadmin/user-infos/create?user_id='.$record->id;
                         } else {
                             return $link;
                         }
                     })
                     ->label(function ($record) {
-                        $link =  $record?->userInfo?->link;
+                        $link = $record?->userInfo?->link;
                         if ($link == '') {
                             return 'Add Details';
                         } else {
@@ -195,7 +195,7 @@ class UserResource extends Resource
                     ->openUrlInNewTab() // This adds target="_blank"
                     ->icon('heroicon-s-link')
                     ->color(function ($record) {
-                        $link =  $record?->userInfo?->link;
+                        $link = $record?->userInfo?->link;
 
                         if ($link == '') {
                             return Color::Red;
@@ -207,9 +207,9 @@ class UserResource extends Resource
                 ActionGroup::make([
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\Action::make('toggle_status')
-                        ->label(fn(User $record): string => $record->status ? 'Deactivate' : 'Activate')
-                        ->icon(fn(User $record): string => $record->status ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
-                        ->color(fn(User $record): string => $record->status ? 'danger' : 'success')
+                        ->label(fn (User $record): string => $record->status ? 'Deactivate' : 'Activate')
+                        ->icon(fn (User $record): string => $record->status ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
+                        ->color(fn (User $record): string => $record->status ? 'danger' : 'success')
                         ->requiresConfirmation()
                         ->action(function (User $record): void {
                             $record->status = ! $record->status;

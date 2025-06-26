@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Scopes\TenantScope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -28,6 +29,12 @@ class Order extends Model
             $model->updated_by = $user->id;
         });
     }
+    // protected function discount(): Attribute
+    // {
+    //     return Attribute::make(
+    //         get: fn() => 0,
+    //     );
+    // }
 
     public function orderitems()
     {
@@ -42,5 +49,16 @@ class Order extends Model
     public function histories()
     {
         return $this->hasMany(History::class);
+    }
+
+    public function returnlist()
+    {
+        return $this->hasOne(ReturnList::class, 'order_id')->withDefault([
+            'total_no_discount' => 0,
+            'receivable' => 0,
+            'paid' => 0,
+            'due' => 0,
+            'profit' => 0,
+        ]);
     }
 }

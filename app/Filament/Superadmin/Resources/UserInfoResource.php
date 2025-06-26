@@ -3,7 +3,6 @@
 namespace App\Filament\Superadmin\Resources;
 
 use App\Filament\Superadmin\Resources\UserInfoResource\Pages;
-use App\Filament\Superadmin\Resources\UserInfoResource\RelationManagers;
 use App\Models\User;
 use App\Models\UserInfo;
 use Filament\Forms;
@@ -12,8 +11,6 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class UserInfoResource extends Resource
 {
@@ -43,12 +40,11 @@ class UserInfoResource extends Resource
 
                         // Ensure it starts with '880'
                         if (substr($phone, 0, 3) !== '880') {
-                            $phone = '880' . ltrim($phone, '0');
+                            $phone = '880'.ltrim($phone, '0');
                         }
 
-
                         if ($state === 'whatsapp') {
-                            $set('link', 'https://wa.me/' . $phone);
+                            $set('link', 'https://wa.me/'.$phone);
                         } else {
                             $set('link', '');
                         }

@@ -164,8 +164,7 @@ Thanks for your order.
         });
     }
 
-
-    function userInfo()
+    public function userInfo()
     {
         return $this->hasOne(UserInfo::class);
     }
