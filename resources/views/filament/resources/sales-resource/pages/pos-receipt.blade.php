@@ -8,6 +8,12 @@
             $balance = 0;
         }
 
+        $all_return_due = -App\Models\Order::query()
+            ->where('customer_id', $order->customer_id)
+            ->where('paid', '>', 0)
+            ->whereHas('returnlist')
+            ->sum('paid');
+
         $previous_due = (abs($balance) + $customer->orders_sum_due ?: 0) - $order->due;
 
     @endphp
@@ -127,7 +133,8 @@
                                         Total:</td>
                                     <td
                                         class="whitespace-nowrap border border-gray-200 py-0.5 px-2 text-right !text-black">
-                                        {{ number_format($order->total_no_discount, 2) }} Tk</td>
+                                        {{ number_format($order->total_no_discount + $order->returnlist->total_no_discount, 2) }}
+                                        Tk</td>
                                 </tr>
 
                                 <tr>
@@ -147,7 +154,7 @@
                                         Grand Total:</td>
                                     <td
                                         class="whitespace-nowrap border border-gray-200 py-0.5 px-2 text-right !text-black">
-                                        {{ $order->receivable }} Tk</td>
+                                        {{ $order->receivable + $order->returnlist->receivable }} Tk</td>
                                 </tr>
 
                                 <tr>
@@ -183,6 +190,17 @@
                                             {{ number_format($order->due, 2) }} Tk</td>
                                     </tr>
                                 @endif
+                                @if ($order->product_returned > 0)
+                                    <tr>
+                                        <td colspan="3" class="border border-gray-200"></td>
+                                        <td
+                                            class="border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
+                                            Previous Returned
+                                        </td>
+                                        <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
+                                            {{ number_format($order->product_returned, 2) }} Tk</td>
+                                    </tr>
+                                @endif
                                 <tr>
                                     <td colspan="3" class="border border-gray-200"></td>
                                     <td class="border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
@@ -190,7 +208,9 @@
                                         Due:
                                     </td>
                                     <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
-                                        {{ number_format($order->due + $previous_due, 2) }} Tk</td>
+                                        {{ number_format($order->due - $order->returnlist->paid + $previous_due, 2) }}
+                                        Tk
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>

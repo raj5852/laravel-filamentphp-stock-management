@@ -8,9 +8,12 @@ use App\HistoryTypeEnum;
 use App\Models\Account;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\PurchaseItem;
+use App\Models\ReturnList;
+use App\Models\ReturnListProduct;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -58,8 +61,9 @@ class SalesResource extends Resource
         return $table
             ->query(Order::query()
                 ->with([
-                    'orderitems:id,product_id,order_id',
+                    'orderitems:id,product_id,order_id,total_in_text',
                     'orderitems.product:id,product_name,product_code',
+                    'returnlist',
                 ])
                 ->withSum('orderitems', 'purchase_cost')
                 ->latest())
@@ -70,10 +74,11 @@ class SalesResource extends Resource
                     ->formatStateUsing(function ($record) {
                         // Fetch related orderitems with product details
                         $items = $record->orderitems->map(function ($purchaseItem) {
+                            // dd($purchaseItem);
                             $productName = $purchaseItem->product->product_name ?? 'N/A';
-                            $productCode = $purchaseItem->product->product_code ?? 'N/A';
+                            // $productCode = $purchaseItem->product->product_code ?? 'N/A';
 
-                            return "{$productName} | {$productCode}"; // Format: "Product Name (Product Code)"
+                            return "{$productName} * {$purchaseItem->total_in_text}"; // Format: "Product Name (Product Code)"
                         })->toArray();
 
                         // Format as a list (ul > li)
@@ -81,25 +86,36 @@ class SalesResource extends Resource
                     })
                     ->html(),
                 TextColumn::make('order_date')->label('Date')->date(),
-                TextColumn::make('receivable')->formatStateUsing(function ($state) {
-                    return number_format($state ?: 0, 2).' TK';
+                TextColumn::make('discount')->label('Discount')
+                    ->getStateUsing(function ($record) {
+                        return number_format(($record->total_no_discount + $record->returnlist->total_no_discount) - ($record->receivable + $record->returnlist->receivable)).' TK';
+                    }),
+
+                TextColumn::make('receivable')->formatStateUsing(function ($record) {
+                    return number_format($record->receivable + $record->returnlist->receivable, 2).' TK';
                 }),
-                TextColumn::make('paid')->formatStateUsing(function ($state) {
-                    return number_format($state ?: 0, 2).' TK';
+                TextColumn::make('paid')->formatStateUsing(function ($record) {
+                    return number_format($record->paid, 2).' TK';
                 }),
-                TextColumn::make('due')->formatStateUsing(function ($state) {
-                    return number_format($state ?: 0, 2).' TK';
+
+                TextColumn::make('product_returned')
+                    ->getStateUsing(function ($record) {
+                        return number_format($record->product_returned ?: 0, 0).' Tk';
+                    })
+                    ->label('Product Returned'),
+
+                TextColumn::make('due')->formatStateUsing(function ($record) {
+                    return number_format($record->due - $record->returnlist->paid, 2).' TK';
                 }),
-                TextColumn::make('orderitems_sum_purchase_cost')->label('Purchase Cost')->formatStateUsing(function ($state) {
-                    return number_format($state ?: 0, 2).' TK';
+                TextColumn::make('orderitems_sum_purchase_cost')->label('Purchase Cost')->formatStateUsing(function ($record) {
+                    return number_format($record->orderitems_sum_purchase_cost, 2).' TK';
                 }),
                 TextColumn::make('Profit')->default(function ($record) {
-                    // $profit = $record['receivable'] - $record['orderitems_sum_purchase_cost'];
 
                     return number_format($record->profit, 2).' Tk';
                 }),
-                TextColumn::make('Status')->default(function (Order $record) {
-                    return $record['receivable'] == $record['paid'] ? 'Paid' : 'Unpaid';
+                TextColumn::make('Status')->default(function ($record) {
+                    return ($record->due - $record->returnlist->paid) > 0 ? 'Unpaid' : 'Paid';
                 }),
             ])
             ->headerActions([
@@ -233,6 +249,100 @@ class SalesResource extends Resource
                         ->icon('heroicon-s-computer-desktop')
                         ->url(fn (Order $record) => route('filament.admin.resources.sales.pos-show', ['record' => $record->id])),
 
+                    Action::make('return_order')
+                        ->label('Return')
+                        ->icon('fas-rotate-left')
+                        ->requiresConfirmation()
+                        ->action(function ($record) {
+                            $returnList = ReturnList::where('order_id', $record->id)->first();
+                            if ($returnList) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Return List Already Exists')
+                                    ->send();
+
+                                return;
+                            }
+                            $orderItems = OrderItem::where('order_id', $record->id)->where('total_qty', '>', 0)->get();
+                            if ($orderItems->count() == 0) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('This order has no products.')
+                                    ->send();
+
+                                return;
+                            }
+
+                            // ///////////////
+
+                            foreach ($orderItems as $orderitem) {
+
+                                $product = Product::find($orderitem->product_id);
+                                $product->productdetails()->increment('available_stock', $orderitem->total_qty);
+                                $product->productdetails()->increment('returned', $orderitem->total_qty);
+                                // $product->productdetails()->decrement('sold', $orderitem->total_qty);
+
+                                $productDetails = $product->productdetails;
+                                // Use a single update to modify multiple columns
+                                $productDetails->update([
+                                    // 'sold_in_text' => getTotalStockInText($orderitem->product_id, $productDetails->sold),
+                                    'available_stock_in_text' => getTotalStockInText($orderitem->product_id, $productDetails->available_stock),
+                                    'returned_in_text' => getTotalStockInText($orderitem->product_id, $productDetails->returned),
+                                ]);
+
+                                foreach ($orderitem->purchase_ids ?? [] as $purchase_id) {
+                                    $purchaseItem = PurchaseItem::find($purchase_id['purchase_item_id']);
+
+                                    $purchaseItem->increment('available_qty', $purchase_id['qty']);
+
+                                    $purchaseItem->update([
+                                        'available_purchase_value' => singleUnitPurchasePrice($purchaseItem->product_id, $purchaseItem->rate ?: 0) * $purchaseItem->available_qty,
+                                    ]);
+                                }
+                            }
+
+                            // ///////////////
+
+                            $returnList = ReturnList::create([
+                                'order_id' => $record->id,
+                                'customer_id' => $record->customer_id,
+                                'invoiceno' => $record->invoiceno,
+                                'sell_date' => $record->order_date,
+                                'discount' => ($record->total_no_discount ?: 0) - ($record->receivable ?: 0),
+                                'receivable' => $record->receivable,
+                                'total_no_discount' => $record->total_no_discount,
+                                'profit' => $record->profit,
+                                'paid' => $record->paid,
+                                'due' => $record->due,
+                            ]);
+
+                            foreach ($orderItems as $item) {
+                                ReturnListProduct::create([
+                                    'return_list_id' => $returnList->id,
+                                    'product_id' => $item->product_id,
+                                    'total_in_text' => $item->total_in_text,
+                                    'total_qty' => $item->total_qty,
+                                    'purchase_cost' => $item->purchase_cost,
+                                ]);
+                                $item->decrement('total_qty', $item->total_qty);
+                                $item->decrement('purchase_cost', $item->purchase_cost);
+                            }
+
+                            $record->increment('product_returned', $record->receivable);
+                            $record->decrement('receivable', $record->receivable);
+                            $record->decrement('due', $record->due);
+
+                            // $record->decrement('paid', $record->paid);
+
+                            $record->decrement('total_no_discount', $record->total_no_discount);
+                            $record->decrement('profit', $record->profit);
+
+                            Notification::make()
+                                ->success()
+                                ->title('Return List Created Successfully')
+                                ->send();
+                        }),
+
                     Action::make('add_payment')
                         ->label('Add Payment')
                         ->icon('fas-money-bill-wave')
@@ -320,7 +430,7 @@ class SalesResource extends Resource
                         ->requiresConfirmation()
                         ->action(function (Order $record) {
 
-                            $order = $record->load('histories', 'orderitems');
+                            $order = $record->load('histories', 'orderitems', 'returnlist.returnlistproducts');
 
                             $histories = $order->histories;
 
@@ -330,12 +440,17 @@ class SalesResource extends Resource
                             }
 
                             $orderitems = $order->orderitems;
+                            $returnlistproducts = $order->returnlist->returnlistproducts;
 
                             foreach ($orderitems as $orderitem) {
 
                                 $product = Product::find($orderitem->product_id);
+
+                                $returnListProduct = collect($returnlistproducts)->where('product_id', $product->id)->first();
+
                                 $product->productdetails()->increment('available_stock', $orderitem->total_qty);
-                                $product->productdetails()->decrement('sold', $orderitem->total_qty);
+
+                                $product->productdetails()->decrement('sold', ($orderitem->total_qty + ($returnListProduct?->total_qty ?? 0)));
 
                                 $productDetails = $product->productdetails;
                                 // Use a single update to modify multiple columns

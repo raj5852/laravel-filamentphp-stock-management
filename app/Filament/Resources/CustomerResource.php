@@ -7,6 +7,7 @@ use App\Filament\Resources\CustomerResource\Pages;
 use App\Models\Customer;
 use Filament\Actions\Action;
 use Filament\Forms;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
@@ -85,6 +86,14 @@ class CustomerResource extends Resource
                     ])
                     ->minValue(0),
 
+                Textarea::make('note')
+                    ->rules([
+                        'string',
+                        'max:5000',
+                    ])
+                    ->placeholder('Write Customer Note')
+                    ->columnSpanFull(),
+
             ]);
     }
 
@@ -129,6 +138,8 @@ class CustomerResource extends Resource
                     ->formatStateUsing(function ($state) {
                         return number_format($state ?: 0, 2).' TK';
                     }),
+
+                Tables\Columns\TextColumn::make('note')->wrap(),
                 Tables\Columns\TextColumn::make('opening_receivable')
                     ->label('Wallet Balance')
                     ->formatStateUsing(function (Customer $record) {

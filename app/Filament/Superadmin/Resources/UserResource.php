@@ -5,6 +5,7 @@ namespace App\Filament\Superadmin\Resources;
 use App\Filament\Superadmin\Resources\UserResource\Pages;
 use App\Models\User;
 use App\UserTypeEnum;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\DatePicker;
@@ -12,8 +13,11 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\Colors\Color;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Table;
 
 class UserResource extends Resource
@@ -78,9 +82,11 @@ class UserResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $userCount = User::where('type', UserTypeEnum::USER)->count();
+
         return $table
-            ->query(User::query()->latest()->where('type', UserTypeEnum::USER))
-            ->heading('All Users')
+            ->query(User::query()->with('userInfo')->latest()->where('type', UserTypeEnum::USER))
+            ->heading('All Users ('.$userCount.')')
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
@@ -93,7 +99,7 @@ class UserResource extends Resource
                     ->falseIcon('heroicon-o-x-circle')
                     ->trueColor('success')
                     ->falseColor('danger')
-                    ->toggleable()
+                    // ->toggleable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('password')
                     ->copyable()
@@ -109,7 +115,24 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('expires_at')
                     ->date()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('id')
+                    ->label('Available days')
+                    ->getStateUsing(function ($record) {
+                        $todayStartDate = today();
+                        $endDate = Carbon::parse($record->expires_at);
 
+                        return $todayStartDate->diffInDays($endDate);
+                    }),
+
+                Tables\Columns\TextColumn::make('sms_count')
+                    ->label('SMS Count')
+                    ->getStateUsing(function ($record) {
+                        return $record->sms_count;
+                    }),
+
+                Tables\Columns\TextColumn::make('userInfo.description')
+                    ->label('Description')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -120,9 +143,67 @@ class UserResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
-            ])
+                Tables\Filters\SelectFilter::make('status')
+                    ->options([
+                        '1' => 'Active',
+                        '0' => 'Inactive',
+                    ])
+                    ->label('Status')
+                    ->placeholder('All')
+                    ->query(function ($query, array $data) {
+                        return $query->when($data['value'] !== null, function ($query) use ($data) {
+                            return $query->where('status', $data['value']);
+                        });
+                    }),
+
+                Tables\Filters\Filter::make('expired')
+                    ->form([
+                        Forms\Components\Select::make('expired_status')
+                            ->options([
+                                'yes' => 'Expired',
+                                'no' => 'Not Expired',
+                            ])
+                            ->placeholder('All'),
+                    ])
+                    ->label('Expiration Status')
+                    ->query(function ($query, array $data) {
+                        return $query->when($data['expired_status'] === 'yes', function ($query) {
+                            return $query->where('expires_at', '<', now());
+                        })->when($data['expired_status'] === 'no', function ($query) {
+                            return $query->where('expires_at', '>=', now());
+                        });
+                    }),
+            ], layout: FiltersLayout::AboveContent)
             ->actions([
+                Action::make('link')
+                    ->url(function ($record) {
+                        $link = $record?->userInfo?->link;
+                        if ($link == '') {
+                            return '/superadmin/user-infos/create?user_id='.$record->id;
+                        } else {
+                            return $link;
+                        }
+                    })
+                    ->label(function ($record) {
+                        $link = $record?->userInfo?->link;
+                        if ($link == '') {
+                            return 'Add Details';
+                        } else {
+                            return 'Link';
+                        }
+                    })
+                    ->openUrlInNewTab() // This adds target="_blank"
+                    ->icon('heroicon-s-link')
+                    ->color(function ($record) {
+                        $link = $record?->userInfo?->link;
+
+                        if ($link == '') {
+                            return Color::Red;
+                        } else {
+                            return Color::Blue;
+                        }
+                    })
+                    ->button(),
                 ActionGroup::make([
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\Action::make('toggle_status')
