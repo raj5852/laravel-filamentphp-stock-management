@@ -63,7 +63,11 @@ class ExpirdList extends Page implements HasTable
                     ->label('Expired Quantity'),
 
             ])
+            ->emptyStateHeading('No expired products found')
+            ->emptyStateDescription('All expired products will be listed here.')
+            ->emptyStateIcon('heroicon-o-exclamation-triangle')
             ->paginated([20, 50, 100])
         ;
     }
 }
+
