@@ -92,23 +92,17 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                 'id' => $product->id,
                 'name' => $product->product_name,
                 'rate' => $product->sale_price,
-
+                'discount_percentage' => 0,
                 'available_stock' => $product->productdetails->available_stock,
                 'product_code' => $product->product_code,
-
                 'unit_id' => $product->unit_id,
                 'sub_unit' => $product->sub_unit,
-
                 'mainunit' => $product->unit,
                 'subunit' => $product->subunit,
-
                 'related_by_value' => $product->unit->related_by_value,
-
-                'main_unit_qty' => null,
-                'sub_unit_qty' => null,
-
+                'main_unit_qty' => 1,
+                'sub_unit_qty' => 0,
                 'sub_total' => $product->sale_price ?? 0,
-
             ];
         }
     }
@@ -128,7 +122,10 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
             $this->products[$index]['main_unit_qty'] = $this->getMainQty($product['mainunit']['related_to_unit'], $product['related_by_value'], $product['available_stock']);
             $this->products[$index]['sub_unit_qty'] = $this->getSubQty($product['related_by_value'], $product['available_stock']);
+            return;
         }
+
+        
     }
 
     public function getMainQty($related_to_unit, $related_by_value, $totalStockAmount)
@@ -166,7 +163,10 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
             $this->products[$index]['main_unit_qty'] = $this->getMainQty($product['mainunit']['related_to_unit'], $product['related_by_value'], $product['available_stock']);
             $this->products[$index]['sub_unit_qty'] = $this->getSubQty($product['related_by_value'], $product['available_stock']);
+            return;
         }
+
+        
     }
 
     public function getTotalStock($related_to_unit, $related_by_value, $openingStockValue = null, $subOpeningStockValue = null)
@@ -193,15 +193,23 @@ class Pos extends Component implements HasActions, HasForms, HasTable
         $grandTotal = 0;
 
         foreach ($this->products as $product) {
-            $mainUnitPrice = ($product['rate'] ?: 0) * ($product['main_unit_qty'] ?: 0);
+            $rate = is_numeric($product['rate']) ? (float)$product['rate'] : 0;
+            $mainUnitQty = is_numeric($product['main_unit_qty']) ? (int)$product['main_unit_qty'] : 0;
+            $mainUnitPrice = $rate * $mainUnitQty;
             $subUnitPrice = 0;
 
             if (! empty($product['subunit'])) {
-                $singleSubUnitPrice = ($product['rate'] ?: 0) / $product['related_by_value'];
-                $subUnitPrice = $singleSubUnitPrice * ($product['sub_unit_qty'] ?: 0);
+                $singleSubUnitPrice = $rate / $product['related_by_value'];
+                $subUnitQty = is_numeric($product['sub_unit_qty']) ? (int)$product['sub_unit_qty'] : 0;
+                $subUnitPrice = $singleSubUnitPrice * $subUnitQty;
             }
 
-            $grandTotal += $mainUnitPrice + $subUnitPrice;
+            $subtotal = $mainUnitPrice + $subUnitPrice;
+            $discountPercentage = is_numeric($product['discount_percentage']) ? (float)$product['discount_percentage'] : 0;
+            $discount = ($subtotal * $discountPercentage) / 100;
+            $final_subtotal = $subtotal - $discount;
+
+            $grandTotal += $final_subtotal;
         }
 
         return $grandTotal;
@@ -384,13 +392,13 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                 Split::make([
                     Stack::make([
                         ImageColumn::make('product_image')->defaultImageUrl('/images/notfound.jpg')->alignCenter(),
-                        TextColumn::make('product_name')->getStateUsing(fn ($record) => $record->product_name.' - '.$record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
+                        TextColumn::make('product_name')->getStateUsing(fn($record) => $record->product_name . ' - ' . $record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
                         TextColumn::make('sale_price')->getStateUsing(function ($record) {
-                            return new HtmlString('<span class="font-bold">'.number_format($record->sale_price, 2, '.', '').'</span>'.' TK');
+                            return new HtmlString('<span class="font-bold">' . number_format($record->sale_price, 2, '.', '') . '</span>' . ' TK');
                         })->alignCenter(),
                         TextColumn::make('productdetails.available_stock_in_text')
                             ->getStateUsing(function ($record) {
-                                return new HtmlString('<span >Stock: </span>'.$record->productdetails?->available_stock_in_text);
+                                return new HtmlString('<span >Stock: </span>' . $record->productdetails?->available_stock_in_text);
                             })
                             ->alignCenter(),
                     ]),
@@ -440,10 +448,9 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
     public function totalDue($pay_amount = 0, $getDiscount = 0)
     {
-
         $mainbalance = $this->getGrandTotalProperty();
-
-        $val = $getDiscount;
+        $pay_amount = $pay_amount ?: 0;
+        $val = $getDiscount ?: 0;
 
         if (preg_match('/^\d+(\.\d+)?%$/', $val)) {
             // If $val is a percentage
@@ -456,7 +463,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
             $result = $mainbalance - $subtraction;
         }
 
-        return number_format($result - ($pay_amount ?: 0), 2, '.', '');
+        return number_format($result - $pay_amount, 2, '.', '');
     }
 
     public function paymentAction()
@@ -465,9 +472,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
         return LivewireAction::make('Payment')
             ->form([
-
                 Card::make([
-
                     Grid::make(2)
                         ->schema([
                             TextInput::make('paying_items')
@@ -497,45 +502,46 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                                     return number_format($this->totalDue(), 2);
                                 }),
                         ]),
-
                 ]),
 
-                // ///////
-                Grid::make(2)
+                \Filament\Forms\Components\Section::make('More Options')
+                    ->collapsible()
+                    ->collapsed()
                     ->schema([
-                        TextInput::make('discount')
-                            ->live(onBlur: false, debounce: 500)
-                            ->label('Discount')
-                            ->numeric(false)
-                            ->placeholder('0%')
-                            ->rules(['nullable', 'regex:/^(\d+|\d+%)$/']) // Laravel server-side validation
-                            ->afterStateUpdated(function ($set, $get, $state) {
-                                $set('pay_amount', null);
+                        Grid::make(2)
+                            ->schema([
+                                TextInput::make('discount')
+                                    ->live(onBlur: false, debounce: 500)
+                                    ->label('Discount')
+                                    ->autocomplete(false)
+                                    ->numeric(false)
+                                    ->default('')
+                                    ->placeholder('0%')
+                                    ->rules(['nullable', 'regex:/^(\d+|\d+%)$/'])
+                                    ->afterStateUpdated(function ($set, $get, $state) {
+                                        $set('pay_amount', null);
+                                        $total = $this->totalDue($get('pay_amount'), $state ?: 0);
+                                        $set('pay_amount', null);
+                                        $set('due', $total);
+                                        $set('after_discount', $total);
+                                    }),
 
-                                $total = $this->totalDue($get('pay_amount'), $state);
-
-                                $set('pay_amount', null);
-                                $set('due', $total);
-                                $set('after_discount', $total);
-                            }),
-
-                        Textarea::make('note')
-                            ->label('Note')
-                            ->rules([
-                                'nullable',
-                                'max:5000',
-                            ])
-                            ->placeholder('Enter Note (Optional)'),
-
+                                Textarea::make('note')
+                                    ->label('Note')
+                                    ->rules([
+                                        'nullable',
+                                        'max:5000',
+                                    ])
+                                    ->placeholder('Enter Note (Optional)'),
+                            ]),
                     ]),
 
                 Grid::make(2)
                     ->schema([
-
                         Select::make('account_id')
                             ->label('Transaction Account')
-                            ->options($accounts->toArray()) // Convert the Collection to an array
-                            ->default(array_key_first($accounts->toArray())) // Set the default to the first option
+                            ->options($accounts->toArray())
+                            ->default(array_key_first($accounts->toArray()))
                             ->rules([
                                 Rule::exists('accounts', 'id')->where('tenant_id', auth()->user()->tenant_id),
                             ])
@@ -558,19 +564,19 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                                     ->button()
                                     ->action(function ($set, $get) {
                                         $bal_without_comma = str_replace(',', '', ($get('after_discount') ?: 0));
-
                                         $set('pay_amount', number_format($bal_without_comma, 2, '.', ''));
                                         $set('due', 0);
                                     })
                             ),
-
-                        Toggle::make('send_sms')
-                            ->label('Send SMS'),
                     ]),
+
+                Toggle::make('send_sms')
+                    ->label('Send SMS'),
+
+
             ])
             ->modalButton('Order')
             ->modalCancelAction(false)
-            // ->modalWidth('md')
             ->action(function (array $data) {
 
                 $totalProduct = count($this->products);
@@ -602,6 +608,21 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                         ->send();
 
                     return;
+                }
+
+                // Additional validation for minimum quantity
+                foreach ($this->products as $index => $product) {
+                    $mainQty = is_numeric($product['main_unit_qty']) ? (int)$product['main_unit_qty'] : 0;
+                    $subQty = is_numeric($product['sub_unit_qty']) ? (int)$product['sub_unit_qty'] : 0;
+
+                    if ($mainQty === 0 && $subQty === 0) {
+                        Notification::make()
+                            ->danger()
+                            ->title("Please add at least 1 quantity for product: {$product['name']}")
+                            ->send();
+
+                        return;
+                    }
                 }
 
                 foreach ($this->products as $product) {
@@ -669,23 +690,28 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                         ]);
 
                         foreach ($this->products as $product) {
-                            $main_unit_qty = $product['main_unit_qty'] ?: 0;
-                            $sub_unit_qty = $product['sub_unit_qty'] ?: 0;
+                            $main_unit_qty = is_numeric($product['main_unit_qty']) ? (int)$product['main_unit_qty'] : 0;
+                            $sub_unit_qty = is_numeric($product['sub_unit_qty']) ? (int)$product['sub_unit_qty'] : 0;
+                            $rate = is_numeric($product['rate']) ? (float)$product['rate'] : 0;
 
-                            $mainunitprice = ($product['rate'] ?: 0) * ($product['main_unit_qty'] ?: 0);
+                            $mainunitprice = $rate * $main_unit_qty;
                             if ($product['subunit'] != '') {
-                                $SingleSubunitPrice = ($product['rate'] ?: 0) / $product['related_by_value'];
-                                $subunitPrice = $SingleSubunitPrice * ($product['sub_unit_qty'] ?: 0);
+                                $SingleSubunitPrice = $rate / $product['related_by_value'];
+                                $subunitPrice = $SingleSubunitPrice * $sub_unit_qty;
                             } else {
                                 $subunitPrice = 0;
                             }
 
-                            $total_subunitprice = number_format($mainunitprice + $subunitPrice, 2, '.', '');
+                            $subtotal = $mainunitprice + $subunitPrice;
+                            $discountPercentage = is_numeric($product['discount_percentage']) ? (float)$product['discount_percentage'] : 0;
+                            $item_discount = ($subtotal * $discountPercentage) / 100;
+                            $final_subtotal = $subtotal - $item_discount;
+
+                            $total_subunitprice = number_format($final_subtotal, 2, '.', '');
 
                             $totalQty = getTotalStock($product['id'], $main_unit_qty, $sub_unit_qty);
 
                             $purchaseIds = ExpensePurchase::addPurchaseExpense($product['id'], $totalQty);
-                            // dd($purchaseIds);
                             $totalPurcahseCost = collect($purchaseIds)->sum('purchase_value');
 
                             $total_qty_in_text = getTotalStockInText($product['id'], $totalQty);
@@ -694,7 +720,6 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                             $available_stock = $getproduct->productdetails->available_stock ?: 0;
                             $sold = $getproduct->productdetails->sold;
 
-                            // $purchaseCost = $totalQty * $getproduct->productdetails->single_unit_purchase_price;
                             $getproduct->productdetails()->update([
                                 'available_stock' => $available_stock - $totalQty,
                                 'available_stock_in_text' => getTotalStockInText($product['id'], ($available_stock - $totalQty)),
@@ -713,6 +738,8 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                                 'available_qty' => $totalQty,
                                 'purchase_cost' => $totalPurcahseCost,
                                 'purchase_ids' => $purchaseIds,
+                                'discount_percentage' => $product['discount_percentage'] ?: 0,
+                                'discount_amount' => $item_discount,
                             ]);
                         }
                         $orderDetails = $order->orderitems;

@@ -16,6 +16,8 @@
                                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Name</th>
                                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Quantity</th>
                                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Price</th>
+                                        <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Discount %
+                                        </th>
                                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 "
                                             style="width: 100px !important">
                                             Sub T</th>
@@ -71,16 +73,37 @@
                                                             value = value.replace(/[^0-9.]/g, '');
                                                             // Ensure only one decimal point
                                                             value = value.replace(/(\..*?)\..*/g, '$1');
+                                                            // Remove lone decimal point
+                                                            value = value.replace(/^\./, '');
                                                             // Prevent leading zeros unless followed by a decimal point
                                                             value = value.replace(/^0(?![.])/g, '');
                                                             this.value = value;
                                                         " />
                                                 </div>
-
-
                                             </td>
 
-
+                                            <td
+                                                class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 md:w-[120px]">
+                                                <div class="flex items-center gap-2">
+                                                    <input type="text" min="0" max="100"
+                                                        wire:model.live.debounce.10ms="products.{{ $index }}.discount_percentage"
+                                                        class="w-full min-w-[70px] px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-center text-gray-900 dark:text-white"
+                                                        oninput="
+                                                            let value = this.value;
+                                                            // Remove invalid characters
+                                                            value = value.replace(/[^0-9.]/g, '');
+                                                            // Ensure only one decimal point
+                                                            value = value.replace(/(\..*?)\..*/g, '$1');
+                                                            // Remove lone decimal point
+                                                            value = value.replace(/^\./, '');
+                                                            // Prevent leading zeros unless followed by a decimal point
+                                                            value = value.replace(/^0(?![.])/g, '');
+                                                            // Cap at 100
+                                                            if (parseFloat(value) > 100) value = '100';
+                                                            this.value = value;
+                                                        " />
+                                                </div>
+                                            </td>
 
                                             <td
                                                 class="px-4 py-2 border dark:border-gray-700 font-semibold text-center text-gray-900 dark:text-white min-w-[100px]">
@@ -97,15 +120,22 @@
                                                         $subunitPrice = 0;
                                                     }
 
-                                                    echo number_format($mainunitprice + $subunitPrice, 2);
+                                                    $subtotal = $mainunitprice + $subunitPrice;
+                                                    $discount =
+                                                        ($subtotal * ($product['discount_percentage'] ?: 0)) / 100;
+                                                    $final_subtotal = $subtotal - $discount;
+
+                                                    echo number_format($final_subtotal, 2);
                                                 @endphp
                                                 Tk
 
                                             </td>
                                             <td class="px-4 py-2 border dark:border-gray-700 text-center">
                                                 <button wire:click="removeProduct({{ $index }})"
-                                                    class="text-gray-600 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400">
-                                                    🗑️
+                                                    class="flex items-center justify-center w-8 h-8 text-danger-600 hover:text-danger-700 hover:bg-danger-50 rounded-full transition duration-200">
+                                                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
                                                 </button>
                                             </td>
                                         </tr>
@@ -113,7 +143,7 @@
                                 </tbody>
                                 <tfoot>
                                     <tr class="bg-gray-100 dark:bg-gray-800">
-                                        <td colspan="3"
+                                        <td colspan="4"
                                             class="px-4 py-2 text-right font-bold border dark:border-gray-700 text-gray-800 dark:text-gray-200">
                                             Grand Total:
                                         </td>
