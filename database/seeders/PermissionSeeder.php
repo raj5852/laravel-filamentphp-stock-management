@@ -39,6 +39,7 @@ class PermissionSeeder extends Seeder
             'promotional_sms',
             'customers',
             'suppliers',
+            'expird list',
             'profit loss report',
             'today report',
             'current month report',

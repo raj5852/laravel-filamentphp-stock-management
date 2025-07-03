@@ -10,6 +10,7 @@
                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Product</th>
                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Rate</th>
                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Qty</th>
+                        <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Expiry Date</th>
                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Sub Total</th>
                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700"></th>
                     </tr>
@@ -55,6 +56,11 @@
                                 </div>
                             </td>
 
+                            <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 md:w-[160px]">
+                                <input type="date" wire:model.live="products.{{ $index }}.expiry_date"
+                                    class="w-full min-w-[70px] px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-center text-gray-900 dark:text-white" />
+                            </td>
+
                             <td
                                 class="px-4 py-2 border dark:border-gray-700 font-semibold text-center text-gray-900 dark:text-white min-w-[100px]">
 
@@ -73,17 +79,21 @@
 
                             </td>
                             <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 text-center">
-                                <button wire:click="removeProduct({{ $index }})"
-                                    class="text-gray-600 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400">
-                                    🗑️
-                                </button>
+                                <x-filament::button
+                                    wire:click="removeProduct({{ $index }})"
+                                    color="danger"
+                                    size="sm"
+                                    icon="heroicon-m-trash"
+                                    icon-alias="panels::resources.delete-button"
+                                    tooltip="Delete"
+                                />
                             </td>
                         </tr>
                     @endforeach
                 </tbody>
                 <tfoot>
                     <tr class="bg-gray-100 dark:bg-gray-800">
-                        <td colspan="4"
+                        <td colspan="5"
                             class="wrap px-4 py-2 text-right font-bold border dark:border-gray-700 text-gray-800 dark:text-gray-200">
                             Grand Total:
                         </td>
