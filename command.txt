@@ -1,14 +1,23 @@
+php artisan migrate
+php artisan app:add-new-role
+
+
 php artisan optimize:clear
-php artisan storage:link
-
-
-
-php artisan filament:optimize-clear
 php artisan filament:optimize
 php artisan optimize
 
 
 
+
+
+
+
+
+
+
+
+php artisan optimize:clear
+php artisan storage:link
 
 
 ****** composer install --no-dev --optimize-autoloader

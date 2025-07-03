@@ -8,6 +8,12 @@
             $balance = 0;
         }
 
+        $all_return_due = -App\Models\Order::query()
+            ->where('customer_id', $order->customer_id)
+            ->where('paid', '>', 0)
+            ->whereHas('returnlist')
+            ->sum('paid');
+
         $previous_due = (abs($balance) + $customer->orders_sum_due ?: 0) - $order->due;
 
     @endphp
@@ -89,9 +95,13 @@
                                     <th class="border border-gray-200 py-1 px-2 text-left w-10 !text-black">#</th>
                                     <th class="border border-gray-200 py-1 px-2 text-left !text-black w-[45%]">Details
                                     </th>
-                                    <th class="border border-gray-200 py-1 px-2 text-center !text-black w-[15%]">Qty
+                                    <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Rack
                                     </th>
                                     <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Price
+                                    </th>
+                                    <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Discount
+                                    </th>
+                                    <th class="border border-gray-200 py-1 px-2 text-center !text-black w-[15%]">Qty
                                     </th>
                                     <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Net.A
                                     </th>
@@ -105,48 +115,64 @@
                                         </td>
                                         <td class="border border-gray-200 py-0.5 px-2 !text-black">
                                             {{ $item->product->product_name }}</td>
+                                        <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
+                                            {{ $item->product?->rack?->rack_name }} </td>
+                                        <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
+                                            {{ number_format($item->rate, 1) }} Tk
+                                        </td>
+                                        <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
+                                            @if ($item->discount_amount > 0)
+                                                {{ number_format($item->discount_amount, 1) }} Tk
+                                            @else
+                                                <center>
+                                                    --
+                                                </center>
+                                            @endif
+
+                                        </td>
                                         <td class="border border-gray-200 py-0.5 px-2 text-center !text-black">
                                             {{ $item->total_in_text }}</td>
+
                                         <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
-                                            {{ number_format($item->rate, 2) }} Tk</td>
-                                        <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
-                                            {{ number_format($item->total_rate, 2) }} Tk</td>
+                                            {{ number_format($item->total_rate, 1) }} Tk</td>
                                     </tr>
                                 @endforeach
 
                                 <!-- Summary rows with consistent formatting -->
                                 <tr>
-                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td colspan="5" class="border border-gray-200"></td>
                                     <td
                                         class="whitespace-nowrap border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
                                         Total:</td>
                                     <td
                                         class="whitespace-nowrap border border-gray-200 py-0.5 px-2 text-right !text-black">
-                                        {{ number_format($order->total_no_discount, 2) }} Tk</td>
+                                        {{ number_format($order->total_no_discount + $order->returnlist->total_no_discount, 2) }}
+                                        Tk</td>
                                 </tr>
-
+                                @if ($order->discount != null)
+                                    <tr>
+                                        <td colspan="5" class="border border-gray-200"></td>
+                                        <td
+                                            class="whitespace-nowrap border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
+                                            Discount:</td>
+                                        <td
+                                            class="whitespace-nowrap border border-gray-200 py-0.5 px-2 text-right !text-black">
+                                            {{ is_numeric($order->discount) ? $order->discount . ' TK' : $order->discount ?? 0 . ' Tk' }}
+                                        </td>
+                                    </tr>
+                                @endif
                                 <tr>
-                                    <td colspan="3" class="border border-gray-200"></td>
-                                    <td
-                                        class="whitespace-nowrap border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
-                                        Discount:</td>
-                                    <td
-                                        class="whitespace-nowrap border border-gray-200 py-0.5 px-2 text-right !text-black">
-                                        {{ is_numeric($order->discount) ? $order->discount . ' TK' : $order->discount ?? 0 . ' Tk' }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td colspan="5" class="border border-gray-200"></td>
                                     <td
                                         class="whitespace-nowrap border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
                                         Grand Total:</td>
                                     <td
                                         class="whitespace-nowrap border border-gray-200 py-0.5 px-2 text-right !text-black">
-                                        {{ $order->receivable }} Tk</td>
+                                        {{ $order->receivable + $order->returnlist->receivable }} Tk</td>
                                 </tr>
 
                                 <tr>
-                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td colspan="5" class="border border-gray-200"></td>
                                     <td class="border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
                                         Total
                                         Paid:
@@ -156,7 +182,7 @@
                                 </tr>
                                 @if ($previous_due > 0)
                                     <tr>
-                                        <td colspan="3" class="border border-gray-200"></td>
+                                        <td colspan="5" class="border border-gray-200"></td>
                                         <td
                                             class="border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
                                             Previous
@@ -168,7 +194,7 @@
                                 @endif
                                 @if ($previous_due > 0)
                                     <tr>
-                                        <td colspan="3" class="border border-gray-200"></td>
+                                        <td colspan="5" class="border border-gray-200"></td>
                                         <td
                                             class="border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
                                             Current
@@ -178,14 +204,27 @@
                                             {{ number_format($order->due, 2) }} Tk</td>
                                     </tr>
                                 @endif
+                                @if ($order->product_returned > 0)
+                                    <tr>
+                                        <td colspan="5" class="border border-gray-200"></td>
+                                        <td
+                                            class="border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
+                                            Previous Returned
+                                        </td>
+                                        <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
+                                            {{ number_format($order->product_returned, 2) }} Tk</td>
+                                    </tr>
+                                @endif
                                 <tr>
-                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td colspan="5" class="border border-gray-200"></td>
                                     <td class="border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
                                         Total
                                         Due:
                                     </td>
                                     <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
-                                        {{ number_format($order->due + $previous_due, 2) }} Tk</td>
+                                        {{ number_format($order->due - $order->returnlist->paid + $previous_due, 2) }}
+                                        Tk
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>

@@ -7,6 +7,7 @@ use App\Models\Scopes\TenantScope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 #[ScopedBy(TenantScope::class)]
 class Product extends Model
@@ -25,7 +26,7 @@ class Product extends Model
 
         static::created(function ($model) {
             if ($model->product_code == '') {
-                $model->product_code = '000000'.$model->id;
+                $model->product_code = '000000' . $model->id;
             }
 
             $qty = getTotalStock($model->id, $model->first_opening_stock, $model->second_opening_stock);
@@ -145,6 +146,12 @@ class Product extends Model
                 $purcahse->delete();
             }
         });
+    }
+    protected function total_expired_value(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => 0,
+        );
     }
 
     public function category()

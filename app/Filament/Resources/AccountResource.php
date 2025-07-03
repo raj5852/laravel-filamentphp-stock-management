@@ -286,7 +286,7 @@ class AccountResource extends Resource
                     ->button()
                     ->size('sm')
                     ->color('success')
-                    ->url(fn (Account $record) => route('filament.admin.resources.accounts.history', ['record' => $record->id])),
+                    ->url(fn(Account $record) => route('filament.admin.resources.accounts.history', ['record' => $record->id])),
 
             ])
             ->bulkActions([

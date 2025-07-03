@@ -38,8 +38,16 @@ class Stock extends Page implements HasTable
 
     public function table(Table $table): Table
     {
+        $today = today();
         return $table
-            ->query(Product::query()->with(['category', 'productdetails'])->withSum('purchaseitems', 'available_purchase_value')->latest())
+            ->query(
+                Product::query()->with(['category', 'productdetails', 'unit', 'subunit'])
+                    ->withSum('purchaseitems', 'available_purchase_value')
+                    ->withSum(['purchaseitems as total_expiry_qty' => function ($query) use ($today) {
+                        $query->where('expiry_date', '<', $today);
+                    }], 'available_qty')
+                    ->latest()
+            )
             ->columns([
                 ImageColumn::make('product_image')
                     ->label('Image')
@@ -47,16 +55,16 @@ class Stock extends Page implements HasTable
                 TextColumn::make('product_name')
                     ->extraAttributes(['class' => 'max-w-[250px] whitespace-normal'])
                     ->label('Product')
-                    ->getStateUsing(fn ($record) => $record->product_name.' - '.$record->product_code.''),
+                    ->getStateUsing(fn($record) => $record->product_name . ' - ' . $record->product_code . ''),
                 TextColumn::make('category.name')
                     ->label('Category'),
 
                 TextColumn::make('sale_price')
                     ->label('Price')
-                    ->getStateUsing(fn ($record) => number_format($record->sale_price, 2, '.', '')),
+                    ->getStateUsing(fn($record) => number_format($record->sale_price, 2, '.', '')),
                 TextColumn::make('purchase_cost')
                     ->label('Cost')
-                    ->getStateUsing(fn ($record) => number_format($record->purchase_cost, 2, '.', '')),
+                    ->getStateUsing(fn($record) => number_format($record->purchase_cost, 2, '.', '')),
                 TextColumn::make('productdetails.purchased_in_text')
                     ->label('Purchased'),
 
@@ -66,19 +74,25 @@ class Stock extends Page implements HasTable
                     ->label('Damaged'),
                 TextColumn::make('productdetails.returned_in_text')
                     ->label('Returned'),
+                TextColumn::make('total_expired_value')
+                    ->label('Expired')
+                    ->getStateUsing(function ($record) {
+                        return getTotalStockInTextWithoutModal($record, $record->total_expiry_qty);
+                    }),
+
                 TextColumn::make('productdetails.available_stock_in_text')
                     ->label('Available Stock'),
                 TextColumn::make('sale_value')
                     ->getStateUsing(function ($record) {
                         $val = ($record->productdetails?->single_unit_sale_price ?: 0) * ($record->productdetails?->available_stock ?: 0);
 
-                        return number_format($val, 2, '.', '').' '.'Tk';
+                        return number_format($val, 2, '.', '') . ' ' . 'Tk';
                     }),
                 TextColumn::make('purchase_value')
                     ->getStateUsing(function ($record) {
                         // $val = ($record->productdetails?->single_unit_purchase_price ?: 0) * ($record->productdetails?->available_stock ?: 0);
 
-                        return number_format($record->purchaseitems_sum_available_purchase_value ?: 0, 2, '.', '').' '.'Tk';
+                        return number_format($record->purchaseitems_sum_available_purchase_value ?: 0, 2, '.', '') . ' ' . 'Tk';
                     }),
 
             ])
@@ -107,7 +121,7 @@ class Stock extends Page implements HasTable
                         }
 
                         if ($productName) {
-                            $query->where('product_name', 'like', '%'.$productName.'%');
+                            $query->where('product_name', 'like', '%' . $productName . '%');
                         }
 
                         if ($categoryId) {
@@ -141,7 +155,7 @@ class Stock extends Page implements HasTable
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['product_code'],
-                            fn ($query, $term) => $query->where('product_code', $term)
+                            fn($query, $term) => $query->where('product_code', $term)
                         );
                     }),
 
@@ -156,7 +170,7 @@ class Stock extends Page implements HasTable
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['product_name'],
-                            fn ($query, $term) => $query->where('product_name', 'like', '%'.$term.'%')
+                            fn($query, $term) => $query->where('product_name', 'like', '%' . $term . '%')
                         );
                     }),
 

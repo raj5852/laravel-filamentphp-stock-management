@@ -121,7 +121,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                             ])
                             ->required(),
                         TextInput::make('opening_receivable')
-                            ->hidden(fn (string $context) => $context === 'edit')
+                            ->hidden(fn(string $context) => $context === 'edit')
                             ->rules([
                                 'numeric',
                                 'min:0',
@@ -131,7 +131,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                             ->numeric()
                             ->minValue(0),
                         TextInput::make('opening_payable')
-                            ->hidden(fn (string $context) => $context === 'edit')
+                            ->hidden(fn(string $context) => $context === 'edit')
                             ->rules([
                                 'numeric',
                                 'min:0',
@@ -238,6 +238,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                 'sub_unit_qty' => null,
 
                 'sub_total' => $product->purchase_cost ?? 0,
+                'expiry_date' => now()->addYear()->format('Y-m-d'),
 
             ];
         }
@@ -363,9 +364,16 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                     '*.main_unit_qty' => ['nullable', 'integer', 'min:0', 'max:9999999999'],
                     '*.sub_unit_qty' => ['nullable', 'integer', 'min:0', 'max:9999999999'],
                     '*.id' => ['required', Rule::exists('products', 'id')->where('tenant_id', auth()->user()->tenant_id)],
+                    '*.expiry_date' => ['required', 'date'],
                 ];
 
-                $validator = Validator::make($this->products, $rules);
+                $messages = [
+                    '*.expiry_date.required' => 'The expiry date field is required for all products.',
+                    '*.expiry_date.date' => 'Please enter a valid expiry date.',
+                    // '*.expiry_date.after' => 'The expiry date must be a future date.',
+                ];
+
+                $validator = Validator::make($this->products, $rules, $messages);
 
                 if ($validator->fails()) {
                     $errorMessages = implode(', ', $validator->errors()->all());
@@ -454,6 +462,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                                 'total_in_text' => $total_qty_in_text,
                                 'available_qty' => $totalQty,
                                 'available_purchase_value' => $total_subunitprice,
+                                'expiry_date' => $product['expiry_date'],
                             ]);
                         }
 
