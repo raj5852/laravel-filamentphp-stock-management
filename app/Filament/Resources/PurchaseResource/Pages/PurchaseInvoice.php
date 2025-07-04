@@ -31,7 +31,7 @@ class PurchaseInvoice extends Page
             'purchase' => Purchase::query()->with([
                 'supplier:id,supplier_name,phone,address',
                 'purchaseitems' => function ($query) {
-                    $query->select('id', 'product_id', 'purchase_id', 'total_in_text', 'rate', 'total_rate')
+                    $query->select('id', 'product_id', 'purchase_id', 'total_in_text', 'rate', 'total_rate', 'expiry_date')
                         ->with('product:id,product_name,product_code');
                 },
             ])->find($this->record->id),

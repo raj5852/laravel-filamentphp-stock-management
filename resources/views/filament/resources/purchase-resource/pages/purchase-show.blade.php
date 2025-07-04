@@ -76,6 +76,9 @@
                                     </th>
                                     <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Price
                                     </th>
+                                    <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Expiry
+                                        date
+                                    </th>
                                     <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Net A
                                     </th>
                                 </tr>
@@ -94,13 +97,15 @@
                                         <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
                                             {{ number_format($item->rate, 2) }} Tk</td>
                                         <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
+                                            {{ Carbon\Carbon::parse($item->expiry_date)->format('d M, Y') }} </td>
+                                        <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
                                             {{ number_format($item->total_rate, 2) }} Tk</td>
                                     </tr>
                                 @endforeach
 
                                 <!-- Summary rows with consistent formatting -->
                                 <tr>
-                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td colspan="4" class="border border-gray-200"></td>
                                     <td
                                         class="whitespace-nowrap border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
                                         Grand Total:</td>
@@ -109,7 +114,7 @@
                                         {{ number_format($purchase->payable, 2) }} Tk</td>
                                 </tr>
                                 <tr>
-                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td colspan="4" class="border border-gray-200"></td>
                                     <td class="border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
                                         Paid:
                                     </td>
@@ -117,7 +122,7 @@
                                         {{ number_format($purchase->paid, 2) }} Tk</td>
                                 </tr>
                                 <tr>
-                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td colspan="4" class="border border-gray-200"></td>
                                     <td class="border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
                                         Due:
                                     </td>
