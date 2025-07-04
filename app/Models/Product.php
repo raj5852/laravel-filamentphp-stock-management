@@ -5,9 +5,9 @@ namespace App\Models;
 use App\HistoryTypeEnum;
 use App\Models\Scopes\TenantScope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 
 #[ScopedBy(TenantScope::class)]
 class Product extends Model
@@ -26,7 +26,7 @@ class Product extends Model
 
         static::created(function ($model) {
             if ($model->product_code == '') {
-                $model->product_code = '000000' . $model->id;
+                $model->product_code = '000000'.$model->id;
             }
 
             $qty = getTotalStock($model->id, $model->first_opening_stock, $model->second_opening_stock);
@@ -147,10 +147,11 @@ class Product extends Model
             }
         });
     }
+
     protected function total_expired_value(): Attribute
     {
         return Attribute::make(
-            get: fn() => 0,
+            get: fn () => 0,
         );
     }
 
@@ -196,7 +197,7 @@ class Product extends Model
         return $this->hasMany(OrderItem::class, 'product_id');
     }
 
-    function rack()
+    public function rack()
     {
         return $this->belongsTo(Rack::class);
     }

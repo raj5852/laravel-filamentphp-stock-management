@@ -29,7 +29,7 @@ class Rack extends Model
         });
     }
 
-    function products()
+    public function products()
     {
         return $this->hasMany(Product::class);
     }

@@ -122,10 +122,10 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
             $this->products[$index]['main_unit_qty'] = $this->getMainQty($product['mainunit']['related_to_unit'], $product['related_by_value'], $product['available_stock']);
             $this->products[$index]['sub_unit_qty'] = $this->getSubQty($product['related_by_value'], $product['available_stock']);
+
             return;
         }
 
-        
     }
 
     public function getMainQty($related_to_unit, $related_by_value, $totalStockAmount)
@@ -163,10 +163,10 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
             $this->products[$index]['main_unit_qty'] = $this->getMainQty($product['mainunit']['related_to_unit'], $product['related_by_value'], $product['available_stock']);
             $this->products[$index]['sub_unit_qty'] = $this->getSubQty($product['related_by_value'], $product['available_stock']);
+
             return;
         }
 
-        
     }
 
     public function getTotalStock($related_to_unit, $related_by_value, $openingStockValue = null, $subOpeningStockValue = null)
@@ -193,19 +193,19 @@ class Pos extends Component implements HasActions, HasForms, HasTable
         $grandTotal = 0;
 
         foreach ($this->products as $product) {
-            $rate = is_numeric($product['rate']) ? (float)$product['rate'] : 0;
-            $mainUnitQty = is_numeric($product['main_unit_qty']) ? (int)$product['main_unit_qty'] : 0;
+            $rate = is_numeric($product['rate']) ? (float) $product['rate'] : 0;
+            $mainUnitQty = is_numeric($product['main_unit_qty']) ? (int) $product['main_unit_qty'] : 0;
             $mainUnitPrice = $rate * $mainUnitQty;
             $subUnitPrice = 0;
 
             if (! empty($product['subunit'])) {
                 $singleSubUnitPrice = $rate / $product['related_by_value'];
-                $subUnitQty = is_numeric($product['sub_unit_qty']) ? (int)$product['sub_unit_qty'] : 0;
+                $subUnitQty = is_numeric($product['sub_unit_qty']) ? (int) $product['sub_unit_qty'] : 0;
                 $subUnitPrice = $singleSubUnitPrice * $subUnitQty;
             }
 
             $subtotal = $mainUnitPrice + $subUnitPrice;
-            $discountPercentage = is_numeric($product['discount_percentage']) ? (float)$product['discount_percentage'] : 0;
+            $discountPercentage = is_numeric($product['discount_percentage']) ? (float) $product['discount_percentage'] : 0;
             $discount = ($subtotal * $discountPercentage) / 100;
             $final_subtotal = $subtotal - $discount;
 
@@ -392,13 +392,13 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                 Split::make([
                     Stack::make([
                         ImageColumn::make('product_image')->defaultImageUrl('/images/notfound.jpg')->alignCenter(),
-                        TextColumn::make('product_name')->getStateUsing(fn($record) => $record->product_name . ' - ' . $record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
+                        TextColumn::make('product_name')->getStateUsing(fn ($record) => $record->product_name.' - '.$record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
                         TextColumn::make('sale_price')->getStateUsing(function ($record) {
-                            return new HtmlString('<span class="font-bold">' . number_format($record->sale_price, 2, '.', '') . '</span>' . ' TK');
+                            return new HtmlString('<span class="font-bold">'.number_format($record->sale_price, 2, '.', '').'</span>'.' TK');
                         })->alignCenter(),
                         TextColumn::make('productdetails.available_stock_in_text')
                             ->getStateUsing(function ($record) {
-                                return new HtmlString('<span >Stock: </span>' . $record->productdetails?->available_stock_in_text);
+                                return new HtmlString('<span >Stock: </span>'.$record->productdetails?->available_stock_in_text);
                             })
                             ->alignCenter(),
                     ]),
@@ -573,7 +573,6 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                 Toggle::make('send_sms')
                     ->label('Send SMS'),
 
-
             ])
             ->modalButton('Order')
             ->modalCancelAction(false)
@@ -612,8 +611,8 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
                 // Additional validation for minimum quantity
                 foreach ($this->products as $index => $product) {
-                    $mainQty = is_numeric($product['main_unit_qty']) ? (int)$product['main_unit_qty'] : 0;
-                    $subQty = is_numeric($product['sub_unit_qty']) ? (int)$product['sub_unit_qty'] : 0;
+                    $mainQty = is_numeric($product['main_unit_qty']) ? (int) $product['main_unit_qty'] : 0;
+                    $subQty = is_numeric($product['sub_unit_qty']) ? (int) $product['sub_unit_qty'] : 0;
 
                     if ($mainQty === 0 && $subQty === 0) {
                         Notification::make()
@@ -690,9 +689,9 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                         ]);
 
                         foreach ($this->products as $product) {
-                            $main_unit_qty = is_numeric($product['main_unit_qty']) ? (int)$product['main_unit_qty'] : 0;
-                            $sub_unit_qty = is_numeric($product['sub_unit_qty']) ? (int)$product['sub_unit_qty'] : 0;
-                            $rate = is_numeric($product['rate']) ? (float)$product['rate'] : 0;
+                            $main_unit_qty = is_numeric($product['main_unit_qty']) ? (int) $product['main_unit_qty'] : 0;
+                            $sub_unit_qty = is_numeric($product['sub_unit_qty']) ? (int) $product['sub_unit_qty'] : 0;
+                            $rate = is_numeric($product['rate']) ? (float) $product['rate'] : 0;
 
                             $mainunitprice = $rate * $main_unit_qty;
                             if ($product['subunit'] != '') {
@@ -703,7 +702,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                             }
 
                             $subtotal = $mainunitprice + $subunitPrice;
-                            $discountPercentage = is_numeric($product['discount_percentage']) ? (float)$product['discount_percentage'] : 0;
+                            $discountPercentage = is_numeric($product['discount_percentage']) ? (float) $product['discount_percentage'] : 0;
                             $item_discount = ($subtotal * $discountPercentage) / 100;
                             $final_subtotal = $subtotal - $item_discount;
 
