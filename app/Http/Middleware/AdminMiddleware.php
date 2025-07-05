@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +19,9 @@ class AdminMiddleware
     {
 
         if (Auth::check()) {
-            $user = Auth::user();
+            $authUser = auth()->user();
+            $user = User::where('tenant_id', $authUser->tenant_id)->firstOrFail();
+
             if ($user->status == 0) {
                 return response()->view('errors.account-disabled', [], 403);
             }
