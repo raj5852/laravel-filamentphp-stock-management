@@ -89,13 +89,41 @@
                             @endphp
                             @forelse ($datas as $data)
                                 @php
-                                    if ($data->type == 'purchase') {
-                                        $bal = $bal - abs($data->amount);
-                                    } elseif ($data->type == 'opening_balance') {
-                                        $bal = $data->amount;
+                                    // Debit
+                                    if (
+                                        $data->type == 'order' ||
+                                        $data->particulars == 'Opening Receivable' ||
+                                        $data->particulars == '3'
+                                    ) {
+                                        $debit = $data->amount;
                                     } else {
-                                        $bal = $bal + abs($data->amount);
+                                        $debit = '';
                                     }
+
+                                    // Credit
+
+                                    if (
+                                        ($data->type == 'history' && $data->particulars == '2') ||
+                                        $data->type == 'purchase' ||
+                                        $data->particulars == 'Opening Payable'
+                                    ) {
+                                        $credit = $data->amount;
+                                    } else {
+                                        $credit = '';
+                                    }
+
+                                    // // Balance
+
+                                    $bal = $bal + ($debit ?: 0) - ($credit ?: 0);
+
+                                    // if ($data->type == 'purchase') {
+                                    //     $bal = $bal - abs($data->amount);
+                                    // } elseif ($data->type == 'opening_balance') {
+                                    //     $bal = $data->amount;
+                                    // } else {
+                                    //     $bal = $bal + abs($data->amount);
+                                    // }
+
                                 @endphp
 
 
@@ -146,8 +174,19 @@
                                                                 <span
                                                                     class="fi-ta-text-item-label text-sm leading-6 text-gray-950 dark:text-white  "
                                                                     style="">
-                                                                    @if ($data->type == 'history')
+                                                                    {{-- @if ($data->type == 'history')
                                                                         Paid to Supplier
+                                                                    @elseif($data->type == 'opening_balance')
+                                                                        {{ $data->particulars }}
+                                                                    @else
+                                                                        Purchase #{{ $data->particulars }}
+                                                                    @endif --}}
+                                                                    @if ($data->type == 'history')
+                                                                        @if ($data->particulars == '2')
+                                                                            Received from Supplier
+                                                                        @else
+                                                                            Paid to Supplier
+                                                                        @endif
                                                                     @elseif($data->type == 'opening_balance')
                                                                         {{ $data->particulars }}
                                                                     @else
@@ -181,9 +220,10 @@
                                                                 <span
                                                                     class="fi-ta-text-item-label text-sm leading-6 text-gray-950 dark:text-white  "
                                                                     style="">
-                                                                    @if ($data->type == 'history' || $data->particulars == 'Opening Receivable')
+                                                                    {{-- @if ($data->type == 'history' || $data->particulars == 'Opening Receivable')
                                                                         {{ abs($data->amount) }}
-                                                                    @endif
+                                                                    @endif --}}
+                                                                    {{ $debit }}
                                                                 </span>
 
                                                             </div>
@@ -211,9 +251,11 @@
                                                                 <span
                                                                     class="fi-ta-text-item-label text-sm leading-6 text-gray-950 dark:text-white  "
                                                                     style="">
-                                                                    @if ($data->type == 'purchase' || $data->particulars == 'Opening Payable')
+                                                                    {{-- @if ($data->type == 'purchase' || $data->particulars == 'Opening Payable')
                                                                         {{ abs($data->amount) }}
-                                                                    @endif
+                                                                    @endif --}}
+                                                                    {{ $credit }}
+
                                                                 </span>
 
                                                             </div>

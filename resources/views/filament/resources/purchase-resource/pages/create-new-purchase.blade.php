@@ -72,11 +72,11 @@
                                 Tk
 
                             </td>
+
                             <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 text-center">
-                                <button wire:click="removeProduct({{ $index }})"
-                                    class="text-gray-600 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400">
-                                    🗑️
-                                </button>
+                                <x-filament::button wire:click="removeProduct({{ $index }})" color="danger"
+                                    size="sm" icon="heroicon-m-trash" icon-alias="panels::resources.delete-button"
+                                    tooltip="Delete" />
                             </td>
                         </tr>
                     @endforeach

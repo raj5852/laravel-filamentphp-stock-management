@@ -99,6 +99,8 @@
                                     </th>
                                     <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Price
                                     </th>
+                                    <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Discount
+                                    </th>
                                     <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Net.A
                                     </th>
                                 </tr>
@@ -116,13 +118,23 @@
                                         <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
                                             {{ number_format($item->rate, 2) }} Tk</td>
                                         <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
+                                            @if ($item->discount_amount > 0)
+                                                {{ number_format($item->discount_amount, 1) }} Tk
+                                            @else
+                                                <center>
+                                                    --
+                                                </center>
+                                            @endif
+
+                                        </td>
+                                        <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
                                             {{ number_format($item->total_rate, 2) }} Tk</td>
                                     </tr>
                                 @endforeach
 
                                 <!-- Summary rows with consistent formatting -->
                                 <tr>
-                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td colspan="4" class="border border-gray-200"></td>
                                     <td
                                         class="whitespace-nowrap border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
                                         Total:</td>
@@ -131,19 +143,20 @@
                                         {{ number_format($order->total_no_discount + $order->returnlist->total_no_discount, 2) }}
                                         Tk</td>
                                 </tr>
-
+                                @if ($order->discount != null)
+                                    <tr>
+                                        <td colspan="4" class="border border-gray-200"></td>
+                                        <td
+                                            class="whitespace-nowrap border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
+                                            Discount:</td>
+                                        <td
+                                            class="whitespace-nowrap border border-gray-200 py-0.5 px-2 text-right !text-black">
+                                            {{ is_numeric($order->discount) ? $order->discount . ' TK' : $order->discount ?? 0 . ' Tk' }}
+                                        </td>
+                                    </tr>
+                                @endif
                                 <tr>
-                                    <td colspan="3" class="border border-gray-200"></td>
-                                    <td
-                                        class="whitespace-nowrap border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
-                                        Discount:</td>
-                                    <td
-                                        class="whitespace-nowrap border border-gray-200 py-0.5 px-2 text-right !text-black">
-                                        {{ is_numeric($order->discount) ? $order->discount . ' TK' : $order->discount ?? 0 . ' Tk' }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td colspan="4" class="border border-gray-200"></td>
                                     <td
                                         class="whitespace-nowrap border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
                                         Grand Total:</td>
@@ -153,7 +166,7 @@
                                 </tr>
 
                                 <tr>
-                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td colspan="4" class="border border-gray-200"></td>
                                     <td class="border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
                                         Total
                                         Paid:
@@ -163,7 +176,7 @@
                                 </tr>
                                 @if ($previous_due > 0)
                                     <tr>
-                                        <td colspan="3" class="border border-gray-200"></td>
+                                        <td colspan="4" class="border border-gray-200"></td>
                                         <td
                                             class="border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
                                             Previous
@@ -175,7 +188,7 @@
                                 @endif
                                 @if ($previous_due > 0)
                                     <tr>
-                                        <td colspan="3" class="border border-gray-200"></td>
+                                        <td colspan="4" class="border border-gray-200"></td>
                                         <td
                                             class="border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
                                             Current
@@ -187,7 +200,7 @@
                                 @endif
                                 @if ($order->product_returned > 0)
                                     <tr>
-                                        <td colspan="3" class="border border-gray-200"></td>
+                                        <td colspan="4" class="border border-gray-200"></td>
                                         <td
                                             class="border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
                                             Previous Returned
@@ -197,7 +210,7 @@
                                     </tr>
                                 @endif
                                 <tr>
-                                    <td colspan="3" class="border border-gray-200"></td>
+                                    <td colspan="4" class="border border-gray-200"></td>
                                     <td class="border border-gray-200 py-0.5 px-2 text-right font-semibold !text-black">
                                         Total
                                         Due:
