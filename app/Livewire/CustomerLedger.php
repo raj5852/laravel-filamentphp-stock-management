@@ -99,7 +99,7 @@ class CustomerLedger extends Component implements HasForms
                     ->when($this->start_date != null && $this->end_date != null, function ($query) {
                         return $query->whereBetween('date', [$this->start_date, $this->end_date]);
                     })
-                    ->select('id', 'date', 'amount', 'created_at', DB::raw('"history" as type'), DB::raw('"Received from Customer" as particulars'))
+                    ->select('id', 'date', 'amount', 'created_at', DB::raw('"history" as type'), 'type as particulars')
             )
             ->union(
                 DB::table('opening_balances')
