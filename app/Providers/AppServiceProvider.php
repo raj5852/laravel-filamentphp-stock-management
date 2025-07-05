@@ -33,6 +33,15 @@ class AppServiceProvider extends ServiceProvider
             Js::make('example-local-script', asset('js/custom-filament.js')),
         ]);
 
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::TOPBAR_START,
+            fn(): string => Blade::render('@livewire(\'top-left-message\')'),
+        );
+
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::USER_MENU_BEFORE,
+            fn(): string => Blade::render('@livewire(\'top-right-message\')'),
+        );
 
 
         // URL::forceHttps();

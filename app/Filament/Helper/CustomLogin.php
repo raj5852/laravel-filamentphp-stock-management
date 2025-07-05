@@ -15,12 +15,14 @@ class CustomLogin extends Login
                 ->email()
                 ->required()
                 ->placeholder('Email')
+                ->default('demo@gmail.com')
                 ->maxLength(255),
             TextInput::make('password')
                 ->password()
                 ->visible()
                 ->placeholder('password')
                 ->revealable(true)
+                ->default('password')
                 ->maxLength(255),
         ]);
     }
