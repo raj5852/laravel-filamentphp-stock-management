@@ -99,7 +99,7 @@ class SupplierLedger extends Component implements HasForms
                     ->when($this->start_date != null && $this->end_date != null, function ($query) {
                         return $query->whereBetween('date', [$this->start_date, $this->end_date]);
                     })
-                    ->select('id', 'date', 'amount', 'created_at', DB::raw('"history" as type'), DB::raw('"Paid to Supplier" as particulars'))
+                    ->select('id', 'date', 'amount', 'created_at', DB::raw('"history" as type'), 'type as particulars')
             )
             ->union(
                 DB::table('opening_balances')
@@ -112,7 +112,6 @@ class SupplierLedger extends Component implements HasForms
             )
             ->orderBy('created_at', 'asc')
             ->get();
-
         $this->datas = $datas;
     }
 
