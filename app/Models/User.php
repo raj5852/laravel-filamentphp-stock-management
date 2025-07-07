@@ -39,6 +39,7 @@ class User extends Authenticatable implements FilamentUser
         'type',
         'expires_at',
         'sms_count',
+        'timezone',
     ];
 
     /**

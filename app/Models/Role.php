@@ -25,8 +25,8 @@ class Role extends ModelsRole
         });
 
         static::updating(function ($model) {
-            $user = auth()->user();
-            $model->updated_by = $user->id;
+            // $user = auth()->user();
+            // $model->updated_by = $user->id;
         });
     }
 }

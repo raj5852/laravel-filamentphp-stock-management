@@ -40,12 +40,12 @@ class CategoryResource extends Resource
                 FileUpload::make('image')
                     ->image()
                     ->imageEditor()
-                    ->rules([
-                        'image',
-                    ])
-                    ->optimize('jpg')
-                    ->resize(50),
-
+                    ->visibility('public')
+                    ->rules(['image'])
+                    ->optimize('webp')
+                    ->imagePreviewHeight('180')
+                    ->maxSize(5120) // 5 MB
+                    ->resize(85),
             ])
             ->columns(1);
     }
