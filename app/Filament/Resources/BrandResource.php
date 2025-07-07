@@ -38,13 +38,13 @@ class BrandResource extends Resource
                     ->required(),
 
                 FileUpload::make('brand_logo')
-                    ->image()
                     ->imageEditor()
-                    ->optimize('jpg')
-                    ->rules([
-                        'image',
-                    ])
-                    ->resize(50),
+                    ->visibility('public')
+                    ->rules(['image'])
+                    ->optimize('webp')
+                    ->imagePreviewHeight('180')
+                    ->maxSize(5120) // 5 MB
+                    ->resize(85),
 
                 Forms\Components\Textarea::make('brand_description')
                     ->placeholder('Brand Description')
