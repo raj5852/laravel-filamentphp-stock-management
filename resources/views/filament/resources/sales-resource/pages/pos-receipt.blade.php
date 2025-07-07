@@ -99,9 +99,9 @@
                                     </th>
                                     <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Price
                                     </th>
-                                    <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Discount
-                                    </th>
                                     <th class="border border-gray-200 py-1 px-2 text-center !text-black w-[15%]">Qty
+                                    </th>
+                                    <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Discount
                                     </th>
                                     <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Net.A
                                     </th>
@@ -120,6 +120,8 @@
                                         <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
                                             {{ number_format($item->rate, 1) }} Tk
                                         </td>
+                                        <td class="border border-gray-200 py-0.5 px-2 text-center !text-black">
+                                            {{ $item->total_in_text }}</td>
                                         <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
                                             @if ($item->discount_amount > 0)
                                                 {{ number_format($item->discount_amount, 1) }} Tk
@@ -130,8 +132,7 @@
                                             @endif
 
                                         </td>
-                                        <td class="border border-gray-200 py-0.5 px-2 text-center !text-black">
-                                            {{ $item->total_in_text }}</td>
+
 
                                         <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
                                             {{ number_format($item->total_rate, 1) }} Tk</td>
