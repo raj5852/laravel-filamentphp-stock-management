@@ -33,7 +33,12 @@ class RoleResource extends Resource
             ->schema([
                 Card::make([
                     Card::make([
-                        TextInput::make('name')->placeholder('Role name')->required(),
+                        TextInput::make('name')->placeholder('Role name')
+                            ->unique(ignoreRecord: true, column: 'name')
+                            ->validationMessages([
+                                'unique' => 'Please choose another role name'
+                            ])
+                            ->required(),
                         Toggle::make('select_all')
                             ->inline(false)
                             ->label('Select All Permissions')

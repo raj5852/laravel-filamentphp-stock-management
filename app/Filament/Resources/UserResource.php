@@ -42,10 +42,10 @@ class UserResource extends Resource
 
                     Forms\Components\TextInput::make('password')
                         ->password()
-                        ->required(fn ($livewire) => $livewire instanceof Pages\CreateUser)
+                        ->required(fn($livewire) => $livewire instanceof Pages\CreateUser)
                         ->minLength(6)
-                        ->dehydrated(fn ($state) => filled($state))
-                        ->dehydrateStateUsing(fn ($state) => Hash::make($state))
+                        ->dehydrated(fn($state) => filled($state))
+                        ->dehydrateStateUsing(fn($state) => Hash::make($state))
                         ->placeholder('Password')
                         ->maxLength(255),
 
@@ -53,7 +53,7 @@ class UserResource extends Resource
                     Select::make('roles')
                         ->label('Role')
                         ->multiple()
-                        ->relationship('roles', 'name', fn ($query) => $query->where('tenant_id', auth()->user()->tenant_id))
+                        ->relationship('roles', 'name', fn($query) => $query->where('tenant_id', auth()->user()->tenant_id))
                         ->preload()
                         ->searchable()
                         // ->rules(['required', 'array', 'min:1', Rule::exists('roles', 'id')->where('tenant_id', auth()->user()->tenant_id)])
@@ -72,9 +72,9 @@ class UserResource extends Resource
                 User::query()->where([
                     'tenant_id' => auth()->user()->tenant_id,
                 ])->where(
-                    'id',
+                    'type',
                     '!=',
-                    auth()->user()->id
+                    '1'
                 )
             )
             ->columns([
