@@ -71,8 +71,8 @@ class ProductResource extends Resource
                             ->validationMessages([
                                 'regex' => 'Product code must contain only English letters and numbers',
                             ])
-                            ->readOnly(fn(string $context) => $context === 'edit')
-                            ->unique(ignoreRecord: true, modifyRuleUsing: fn($rule) => $rule->where('tenant_id', auth()->user()->tenant_id)),
+                            ->readOnly(fn (string $context) => $context === 'edit')
+                            ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('tenant_id', auth()->user()->tenant_id)),
 
                         Forms\Components\Select::make('category_id')
                             ->label('Category')
@@ -181,7 +181,7 @@ class ProductResource extends Resource
                                 }),
                                 'required',
                             ])
-                            ->hidden(fn(string $context) => $context === 'edit')
+                            ->hidden(fn (string $context) => $context === 'edit')
                             ->afterStateUpdated(function ($set) {
                                 $set('sub_unit', null);
                                 $set('first_opening_stock', null);
@@ -208,7 +208,7 @@ class ProductResource extends Resource
                             })
                             ->searchable()
                             ->reactive()
-                            ->hidden(fn(string $context) => $context === 'edit')
+                            ->hidden(fn (string $context) => $context === 'edit')
                             ->afterStateUpdated(function ($set) {
                                 $set('first_opening_stock', null);
                                 $set('second_opening_stock', null);
@@ -257,7 +257,7 @@ class ProductResource extends Resource
 
                                 ])
                                 ->numeric(),
-                        ])->hidden(fn(string $context) => $context === 'edit'),
+                        ])->hidden(fn (string $context) => $context === 'edit'),
 
                     ]),
                 ])->columnSpan(['lg' => 2]),
@@ -306,7 +306,6 @@ class ProductResource extends Resource
                             ->maxSize(5120) // 5 MB
                             ->resize(85),
 
-
                     ]),
                 ])
                     ->columnSpan(1),
@@ -338,11 +337,11 @@ class ProductResource extends Resource
 
                 Tables\Columns\TextColumn::make('sale_price')
                     ->label('Price')
-                    ->formatStateUsing(fn($state) => number_format((float) $state, 2, '.', '')),
+                    ->formatStateUsing(fn ($state) => number_format((float) $state, 2, '.', '')),
 
                 Tables\Columns\TextColumn::make('purchase_cost')
                     ->label('Cost')
-                    ->formatStateUsing(fn($state) => number_format((float) $state, 2, '.', '')),
+                    ->formatStateUsing(fn ($state) => number_format((float) $state, 2, '.', '')),
 
                 Tables\Columns\TextColumn::make('product_details')
                     ->wrap()
@@ -361,7 +360,7 @@ class ProductResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['product_code'],
-                            fn($query, $term) => $query->where('product_code', 'like', '%' . $term . '%'),
+                            fn ($query, $term) => $query->where('product_code', 'like', '%'.$term.'%'),
                         );
                     }),
                 Filter::make('product_name')
@@ -375,7 +374,7 @@ class ProductResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['product_name'],
-                            fn($query, $term) => $query->where('product_name', 'like', '%' . $term . '%'),
+                            fn ($query, $term) => $query->where('product_name', 'like', '%'.$term.'%'),
                         );
                     }),
                 SelectFilter::make('category_id')
@@ -400,7 +399,7 @@ class ProductResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['product_details'],
-                            fn($query, $term) => $query->where('product_details', 'like', '%' . $term . '%'),
+                            fn ($query, $term) => $query->where('product_details', 'like', '%'.$term.'%'),
                         );
                     }),
 
@@ -426,8 +425,8 @@ class ProductResource extends Resource
                     ->icon('fas-eye')
                     ->button()
                     ->outlined()
-                    ->modalHeading(fn($record) => $record->product_name) // Dynamic title
-                    ->modalContent(fn($record) => view('filament.modals.product-details', ['product' => $record->load('category', 'brand', 'productdetails')]))
+                    ->modalHeading(fn ($record) => $record->product_name) // Dynamic title
+                    ->modalContent(fn ($record) => view('filament.modals.product-details', ['product' => $record->load('category', 'brand', 'productdetails')]))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close'),
 
@@ -437,7 +436,7 @@ class ProductResource extends Resource
                         ->label('Sell History')
                         ->icon('heroicon-s-clock')
                         // clock-rotate-left
-                        ->url(fn(Product $record) => route('filament.admin.resources.products.sell-history', ['record' => $record->id])),
+                        ->url(fn (Product $record) => route('filament.admin.resources.products.sell-history', ['record' => $record->id])),
                     Tables\Actions\DeleteAction::make()
                         ->before(function ($record, $action) {
 
@@ -474,7 +473,7 @@ class ProductResource extends Resource
                     ->icon('fas-qrcode')
                     ->button()
                     ->outlined()
-                    ->modalContent(fn($record) => view('filament.modals.qr-code', [
+                    ->modalContent(fn ($record) => view('filament.modals.qr-code', [
                         'qrCode' => QrCode::size(200)->generate($record->product_code),
                         'record' => $record,
                     ]))
@@ -487,7 +486,7 @@ class ProductResource extends Resource
                     ->icon('fas-barcode')
                     ->button()
                     ->outlined()
-                    ->modalContent(fn($record) => view('filament.modals.barcode', [
+                    ->modalContent(fn ($record) => view('filament.modals.barcode', [
                         'record' => $record,
                         'company_name' => Setting::first()->company_name,
                     ]))

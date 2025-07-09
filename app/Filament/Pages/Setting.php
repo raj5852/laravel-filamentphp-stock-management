@@ -5,9 +5,7 @@ namespace App\Filament\Pages;
 use App\Enums\InvoiceLogoType;
 use App\Models\Setting as ModelsSetting;
 use App\Models\User;
-use DateTimeZone;
 use Filament\Forms\Components\Card;
-use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Radio;
@@ -69,7 +67,6 @@ class Setting extends Page implements HasForms
             $authUser = auth()->user();
             $user = User::where('tenant_id', $authUser->tenant_id)->firstOrFail();
 
-
             $this->company_name = $setting->company_name;
             $this->email_address = $setting->email_address;
             $this->phone = $setting->phone;
@@ -79,7 +76,6 @@ class Setting extends Page implements HasForms
             $this->order_sms = $setting->order_sms;
             $this->invoice_design = $setting->invoice_design;
             $this->timezone = $user->timezone ?? 0;
-
 
             if ($setting->logo) {
                 $this->file = $setting->logo;
@@ -99,7 +95,6 @@ class Setting extends Page implements HasForms
         }
     }
 
-
     public function getFormSchema(): array
     {
         return [
@@ -109,7 +104,6 @@ class Setting extends Page implements HasForms
                         ->icon('heroicon-o-building-office')
                         ->schema([
                             Card::make([
-
 
                                 FileUpload::make('file')
                                     ->label('Logo')
@@ -216,7 +210,7 @@ class Setting extends Page implements HasForms
                                     ->reactive()
                                     ->rows(5)
                                     ->required()
-                                    ->helperText(fn($state): string => 'Estimated SMS count: ' . (empty($state) ? '0' : ceil(strlen($state) / 160))),
+                                    ->helperText(fn ($state): string => 'Estimated SMS count: '.(empty($state) ? '0' : ceil(strlen($state) / 160))),
                             ]),
                         ]),
                     Tab::make('Timezone')

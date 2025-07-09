@@ -83,7 +83,7 @@ class User extends Authenticatable implements FilamentUser
             $loginUser = auth()->user();
 
             if ($user->tenant_id == '') {
-                if ($loginUser->type == UserTypeEnum::USER) {
+                if (($loginUser->type == UserTypeEnum::USER) || ($loginUser->type == UserTypeEnum::USERROLE)) {
                     $user->tenant_id = $loginUser->tenant_id;
                 } else {
                     $user->tenant_id = $user->id;

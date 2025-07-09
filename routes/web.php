@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\UserController;
-use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\SuperAdminMiddleware;
 use Illuminate\Support\Facades\Route;
 
