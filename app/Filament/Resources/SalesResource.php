@@ -429,50 +429,64 @@ class SalesResource extends Resource
                         ->icon('heroicon-s-trash')
                         ->requiresConfirmation()
                         ->action(function (Order $record) {
+                            try {
+                                DB::beginTransaction();
 
-                            $order = $record->load('histories', 'orderitems', 'returnlist.returnlistproducts');
+                                $order = $record->load('histories', 'orderitems', 'returnlist.returnlistproducts');
 
-                            $histories = $order->histories;
+                                $histories = $order->histories;
 
-                            foreach ($histories as $history) {
-                                Account::query()->where('id', $history->account_id)->decrement('current_balance', $history->amount);
-                                $history->delete();
-                            }
-
-                            $orderitems = $order->orderitems;
-                            $returnlistproducts = $order->returnlist->returnlistproducts;
-
-                            foreach ($orderitems as $orderitem) {
-
-                                $product = Product::find($orderitem->product_id);
-
-                                $returnListProduct = collect($returnlistproducts)->where('product_id', $product->id)->first();
-
-                                $product->productdetails()->increment('available_stock', $orderitem->total_qty);
-
-                                $product->productdetails()->decrement('sold', ($orderitem->total_qty + ($returnListProduct?->total_qty ?? 0)));
-
-                                $productDetails = $product->productdetails;
-                                // Use a single update to modify multiple columns
-                                $productDetails->update([
-                                    'sold_in_text' => getTotalStockInText($orderitem->product_id, $productDetails->sold),
-                                    'available_stock_in_text' => getTotalStockInText($orderitem->product_id, $productDetails->available_stock),
-                                ]);
-
-                                foreach ($orderitem->purchase_ids ?? [] as $purchase_id) {
-                                    $purchaseItem = PurchaseItem::find($purchase_id['purchase_item_id']);
-
-                                    $purchaseItem->increment('available_qty', $purchase_id['qty']);
-
-                                    $purchaseItem->update([
-                                        'available_purchase_value' => singleUnitPurchasePrice($purchaseItem->product_id, $purchaseItem->rate ?: 0) * $purchaseItem->available_qty,
-                                    ]);
+                                foreach ($histories as $history) {
+                                    Account::query()->where('id', $history->account_id)->decrement('current_balance', $history->amount);
+                                    $history->delete();
                                 }
 
-                                $orderitem->delete();
-                            }
+                                $orderitems = $order->orderitems;
+                                $returnlistproducts = $order->returnlist->returnlistproducts;
+                                $countReturnlistproducts = count($returnlistproducts);
 
-                            $order->delete();
+                                foreach ($orderitems as $orderitem) {
+
+                                    $product = Product::find($orderitem->product_id);
+
+                                    $returnListProduct = collect($returnlistproducts)->where('product_id', $product->id)->first();
+
+                                    $product->productdetails()->increment('available_stock', $orderitem->total_qty);
+
+                                    $product->productdetails()->decrement('sold', ($orderitem->total_qty + ($returnListProduct?->total_qty ?? 0)));
+
+                                    $productDetails = $product->productdetails;
+                                    // Use a single update to modify multiple columns
+                                    $productDetails->update([
+                                        'sold_in_text' => getTotalStockInText($orderitem->product_id, $productDetails->sold),
+                                        'available_stock_in_text' => getTotalStockInText($orderitem->product_id, $productDetails->available_stock),
+                                    ]);
+
+                                    // dd($orderitem->purchase_ids);
+                                    if ($countReturnlistproducts == 0) {
+                                        // dd($orderitem->purchase_ids);
+                                        foreach ($orderitem->purchase_ids ?? [] as $purchase_id) {
+                                            // dd($purchase_id);
+                                            $purchaseItem = PurchaseItem::find($purchase_id['purchase_item_id']);
+
+                                            $purchaseItem->increment('available_qty', $purchase_id['qty']);
+
+                                            $purchaseItem->update([
+                                                'available_purchase_value' => singleUnitPurchasePrice($purchaseItem->product_id, $purchaseItem->rate ?: 0) * $purchaseItem->available_qty,
+                                            ]);
+                                        }
+                                    }
+                                    $orderitem->delete();
+                                }
+
+                                $order->delete();
+
+                                DB::commit();
+                            } catch (\Throwable $th) {
+
+                                DB::rollBack();
+                                throw $th;
+                            }
 
                             Notification::make()->success()
                                 ->title('Order Deleted Successfully')
