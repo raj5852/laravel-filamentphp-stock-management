@@ -1,5 +1,4 @@
 php artisan migrate
-php artisan app:add-new-role
 
 
 php artisan optimize:clear

@@ -5,10 +5,13 @@ namespace App\Filament\Resources\PurchaseResource\Pages;
 use App\Filament\Resources\PurchaseResource;
 use App\HistoryTypeEnum;
 use App\Models\Account;
+use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Purchase;
+use App\Models\Setting;
 use App\Models\Supplier;
+use App\Services\ExpensePurchase;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -401,6 +404,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
 
                     try {
                         DB::beginTransaction();
+                        $overSale = Setting::first()->oversale;
 
                         $totalPurchase = Purchase::count() + 1;
 
@@ -455,6 +459,21 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                                 'available_qty' => $totalQty,
                                 'available_purchase_value' => $total_subunitprice,
                             ]);
+
+                            if ($overSale == 1) {
+                                $orderItems = OrderItem::where('product_id', $product['id'])->where('over_sale_qty', '>', 0)->select('id', 'purchase_ids', 'over_sale_qty')->get('id');
+                                foreach ($orderItems as $orderItem) {
+                                    $purchaseIds = $orderItem->purchase_ids ?? [];
+                                    $newItem = ExpensePurchase::addPurchaseExpense($product['id'], $orderItem->over_sale_qty);
+                                    $qty = collect($newItem)->sum('qty');
+                                    $orderItem->decrement('over_sale_qty', $qty);
+
+                                    array_unshift($purchaseIds, ...$newItem);
+                                    $orderItem->purchase_ids = $purchaseIds;
+
+                                    $orderItem->save();
+                                }
+                            }
                         }
 
                         $payment = Payment::create([
@@ -484,6 +503,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                     } catch (\Exception $e) {
                         DB::rollBack();
 
+                        throw $e;
                         // Handle exception
 
                     }

@@ -25,6 +25,7 @@ use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
 
 class ReturnList extends Page implements HasForms, HasTable
@@ -142,74 +143,84 @@ class ReturnList extends Page implements HasForms, HasTable
                         ->requiresConfirmation()
                         ->action(function (ModelsReturnList $record) {
 
-                            $isOrder = 0;
+                            try {
+                                DB::beginTransaction();
 
-                            $orderItems = OrderItem::where('order_id', $record->order_id)->get();
+                                $isOrder = 0;
 
-                            foreach ($orderItems as $orderItem) {
+                                $orderItems = OrderItem::where('order_id', $record->order_id)->get();
 
-                                foreach ($orderItem->purchase_ids as $purchaseid) {
+                                foreach ($orderItems as $orderItem) {
 
-                                    $purchaseItem = PurchaseItem::find($purchaseid['purchase_item_id']);
+                                    foreach ($orderItem->purchase_ids as $purchaseid) {
 
-                                    if ($purchaseItem->available_qty < $purchaseid['qty']) {
-                                        $isOrder += 1;
+                                        $purchaseItem = PurchaseItem::find($purchaseid['purchase_item_id']);
+
+                                        if ($purchaseItem->available_qty < $purchaseid['qty']) {
+                                            $isOrder += 1;
+                                        }
                                     }
                                 }
-                            }
-                            if ($isOrder > 0) {
-                                Notification::make()
-                                    ->title('You can not delete this return list')
-                                    ->danger()
-                                    ->send();
+                                if ($isOrder > 0) {
+                                    Notification::make()
+                                        ->title('You can not delete this return list')
+                                        ->danger()
+                                        ->send();
 
-                                return;
-                            }
-
-                            foreach ($orderItems as $orderitem) {
-
-                                $product = ModelsProduct::find($orderitem->product_id);
-
-                                $returnListProduct = ReturnListProduct::where('product_id', $product->id)->first();
-
-                                $product->productdetails()->decrement('available_stock', $returnListProduct->total_qty);
-                                $product->productdetails()->decrement('returned', $returnListProduct->total_qty);
-                                // $product->productdetails()->increment('sold', $returnListProduct->total_qty);
-
-                                $productDetails = $product->productdetails;
-                                // Use a single update to modify multiple columns
-                                $productDetails->update([
-                                    // 'sold_in_text' => getTotalStockInText($orderitem->product_id, $productDetails->sold),
-                                    'available_stock_in_text' => getTotalStockInText($orderitem->product_id, $productDetails->available_stock),
-                                    'returned_in_text' => getTotalStockInText($orderitem->product_id, $productDetails->returned),
-                                ]);
-
-                                foreach ($orderitem->purchase_ids ?? [] as $purchase_id) {
-                                    $purchaseItem = PurchaseItem::find($purchase_id['purchase_item_id']);
-
-                                    $purchaseItem->decrement('available_qty', $purchase_id['qty']);
-
-                                    $purchaseItem->update([
-                                        'available_purchase_value' => singleUnitPurchasePrice($purchaseItem->product_id, $purchaseItem->rate ?: 0) * $purchaseItem->available_qty,
-                                    ]);
+                                    return;
                                 }
 
-                                $orderitem->increment('total_qty', $returnListProduct->total_qty);
-                                $orderitem->increment('purchase_cost', $returnListProduct->purchase_cost);
+                                foreach ($orderItems as $orderitem) {
+
+                                    $product = ModelsProduct::find($orderitem->product_id);
+
+                                    $returnListProduct = ReturnListProduct::where('product_id', $product->id)->first();
+
+                                    $product->productdetails()->decrement('available_stock', $returnListProduct->total_qty);
+                                    $product->productdetails()->decrement('returned', $returnListProduct->total_qty);
+                                    // $product->productdetails()->increment('sold', $returnListProduct->total_qty);
+
+                                    $productDetails = $product->productdetails;
+                                    // Use a single update to modify multiple columns
+                                    $productDetails->update([
+                                        // 'sold_in_text' => getTotalStockInText($orderitem->product_id, $productDetails->sold),
+                                        'available_stock_in_text' => getTotalStockInText($orderitem->product_id, $productDetails->available_stock),
+                                        'returned_in_text' => getTotalStockInText($orderitem->product_id, $productDetails->returned),
+                                    ]);
+
+                                    foreach ($orderitem->purchase_ids ?? [] as $purchase_id) {
+                                        $purchaseItem = PurchaseItem::find($purchase_id['purchase_item_id']);
+
+                                        $purchaseItem->decrement('available_qty', $purchase_id['qty']);
+
+                                        $purchaseItem->update([
+                                            'available_purchase_value' => singleUnitPurchasePrice($purchaseItem->product_id, $purchaseItem->rate ?: 0) * $purchaseItem->available_qty,
+                                        ]);
+                                    }
+
+                                    $orderitem->increment('total_qty', $returnListProduct->total_qty);
+                                    $orderitem->increment('purchase_cost', $returnListProduct->purchase_cost);
+                                    $orderitem->increment('over_sale_qty', $returnListProduct->over_sale_qty);
+                                }
+
+                                $order = Order::find($record->order_id);
+
+                                $order->decrement('product_returned', $record->receivable);
+                                $order->increment('receivable', $record->receivable);
+                                $order->increment('due', $record->due);
+
+                                $order->increment('total_no_discount', $record->total_no_discount);
+                                $order->increment('profit', $record->profit);
+
+                                // ////
+
+                                $record->delete();
+
+                                DB::commit();
+                            } catch (\Throwable $th) {
+                                DB::rollBack();
+                                throw $th;
                             }
-
-                            $order = Order::find($record->order_id);
-
-                            $order->decrement('product_returned', $record->receivable);
-                            $order->increment('receivable', $record->receivable);
-                            $order->increment('due', $record->due);
-
-                            $order->increment('total_no_discount', $record->total_no_discount);
-                            $order->increment('profit', $record->profit);
-
-                            // ////
-
-                            $record->delete();
                             Notification::make()->success()
                                 ->title('Return product Deleted Successfully')
                                 ->send();

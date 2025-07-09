@@ -69,17 +69,20 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
     public $all_customers = [];
 
+    public $oversale;
+
     public function mount()
     {
         $this->customer_id = Customer::where('is_default', 1)->first()->id;
         $this->order_date = now();
+        $this->oversale = Setting::first()->oversale;
     }
 
     public function addProduct($productId)
     {
         $product = Product::findOrfail($productId)->load(['unit', 'subunit', 'productdetails:id,available_stock,product_id']);
 
-        if ($product->productdetails->available_stock <= 0) {
+        if ($product->productdetails->available_stock <= 0 && $this->oversale == 0) {
             Notification::make()
                 ->title('This product is Stock out. Please Purchases the Product.')
                 ->danger()
@@ -112,18 +115,20 @@ class Pos extends Component implements HasActions, HasForms, HasTable
         $product = $this->products[$index];
         $stock = $product['available_stock'];
 
-        $getQty = $this->getTotalStock($product['mainunit']['related_to_unit'], $product['related_by_value'], $quantity, $product['sub_unit_qty']);
+        if ($this->oversale == 0) {
+            $getQty = $this->getTotalStock($product['mainunit']['related_to_unit'], $product['related_by_value'], $quantity, $product['sub_unit_qty']);
 
-        if ($stock < $getQty) {
-            Notification::make()
-                ->title('Not Enough Stock.')
-                ->danger()
-                ->send();
+            if ($stock < $getQty) {
+                Notification::make()
+                    ->title('Not Enough Stock.')
+                    ->danger()
+                    ->send();
 
-            $this->products[$index]['main_unit_qty'] = $this->getMainQty($product['mainunit']['related_to_unit'], $product['related_by_value'], $product['available_stock']);
-            $this->products[$index]['sub_unit_qty'] = $this->getSubQty($product['related_by_value'], $product['available_stock']);
+                $this->products[$index]['main_unit_qty'] = $this->getMainQty($product['mainunit']['related_to_unit'], $product['related_by_value'], $product['available_stock']);
+                $this->products[$index]['sub_unit_qty'] = $this->getSubQty($product['related_by_value'], $product['available_stock']);
 
-            return;
+                return;
+            }
         }
     }
 
@@ -154,16 +159,19 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
         $getQty = $this->getTotalStock($product['mainunit']['related_to_unit'], $product['related_by_value'], $product['main_unit_qty'], $quantity);
 
-        if ($stock < $getQty) {
-            Notification::make()
-                ->title('Not Enough Stock.')
-                ->danger()
-                ->send();
+        if ($this->oversale == 0) {
 
-            $this->products[$index]['main_unit_qty'] = $this->getMainQty($product['mainunit']['related_to_unit'], $product['related_by_value'], $product['available_stock']);
-            $this->products[$index]['sub_unit_qty'] = $this->getSubQty($product['related_by_value'], $product['available_stock']);
+            if ($stock < $getQty) {
+                Notification::make()
+                    ->title('Not Enough Stock.')
+                    ->danger()
+                    ->send();
 
-            return;
+                $this->products[$index]['main_unit_qty'] = $this->getMainQty($product['mainunit']['related_to_unit'], $product['related_by_value'], $product['available_stock']);
+                $this->products[$index]['sub_unit_qty'] = $this->getSubQty($product['related_by_value'], $product['available_stock']);
+
+                return;
+            }
         }
     }
 
@@ -390,13 +398,13 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                 Split::make([
                     Stack::make([
                         ImageColumn::make('product_image')->defaultImageUrl('/images/notfound.jpg')->alignCenter(),
-                        TextColumn::make('product_name')->getStateUsing(fn($record) => $record->product_name . ' - ' . $record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
+                        TextColumn::make('product_name')->getStateUsing(fn ($record) => $record->product_name.' - '.$record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
                         TextColumn::make('sale_price')->getStateUsing(function ($record) {
-                            return new HtmlString('<span class="font-bold">' . number_format($record->sale_price, 2, '.', '') . '</span>' . ' TK');
+                            return new HtmlString('<span class="font-bold">'.number_format($record->sale_price, 2, '.', '').'</span>'.' TK');
                         })->alignCenter(),
                         TextColumn::make('productdetails.available_stock_in_text')
                             ->getStateUsing(function ($record) {
-                                return new HtmlString('<span >Stock: </span>' . $record->productdetails?->available_stock_in_text);
+                                return new HtmlString('<span >Stock: </span>'.$record->productdetails?->available_stock_in_text);
                             })
                             ->alignCenter(),
                     ]),
@@ -622,15 +630,17 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                     }
                 }
 
-                foreach ($this->products as $product) {
-                    $getQty = $this->getTotalStock($product['mainunit']['related_to_unit'], $product['related_by_value'], $product['main_unit_qty'], $product['sub_unit_qty']);
-                    if ($getQty > $product['available_stock']) {
-                        Notification::make()
-                            ->danger()
-                            ->title('Some Products Does not Have stock!')
-                            ->send();
+                if ($this->oversale == 0) {
+                    foreach ($this->products as $product) {
+                        $getQty = $this->getTotalStock($product['mainunit']['related_to_unit'], $product['related_by_value'], $product['main_unit_qty'], $product['sub_unit_qty']);
+                        if ($getQty > $product['available_stock']) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Some Products Does not Have stock!')
+                                ->send();
 
-                        return;
+                            return;
+                        }
                     }
                 }
 
@@ -709,6 +719,8 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                             $totalQty = getTotalStock($product['id'], $main_unit_qty, $sub_unit_qty);
 
                             $purchaseIds = ExpensePurchase::addPurchaseExpense($product['id'], $totalQty);
+                            $over_sale_qty = (int) $totalQty - (int) collect($purchaseIds)->sum('qty');
+
                             $totalPurcahseCost = collect($purchaseIds)->sum('purchase_value');
 
                             $total_qty_in_text = getTotalStockInText($product['id'], $totalQty);
@@ -737,6 +749,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                                 'purchase_ids' => $purchaseIds,
                                 'discount_percentage' => $product['discount_percentage'] ?: 0,
                                 'discount_amount' => $item_discount,
+                                'over_sale_qty' => $over_sale_qty,
                             ]);
                         }
                         $orderDetails = $order->orderitems;

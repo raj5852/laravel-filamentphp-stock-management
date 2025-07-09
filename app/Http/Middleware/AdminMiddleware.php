@@ -23,17 +23,16 @@ class AdminMiddleware
             $user = User::where('tenant_id', $authUser->tenant_id)->firstOrFail();
 
             $timezone = $user->timezone;
-            
+
             // Set timezone based on user preference
             $timezoneString = match ($timezone) {
                 0 => 'Asia/Dhaka',
                 1 => 'Asia/Dubai',
                 default => 'Asia/Dhaka',
             };
-            
+
             config(['app.timezone' => $timezoneString]);
             date_default_timezone_set($timezoneString);
-
 
             if ($user->status == 0) {
                 return response()->view('errors.account-disabled', [], 403);

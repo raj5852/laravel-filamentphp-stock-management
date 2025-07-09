@@ -215,6 +215,11 @@ class UserResource extends Resource
                             $record->status = ! $record->status;
                             $record->save();
                         }),
+                    Action::make('Setting')
+                        ->label('Setting')
+                        ->icon('heroicon-s-printer')
+                        ->url(fn (User $record) => route('filament.superadmin.resources.users.setting', ['record' => $record->id])),
+
                 ])
                     ->dropdown(true)
                     ->label('Actions')
@@ -240,6 +245,8 @@ class UserResource extends Resource
     {
         return [
             'index' => Pages\ListUsers::route('/'),
+            'setting' => Pages\Setting::route('/setting/{record}'),
+
             // 'create' => Pages\CreateUser::route('/create'),
             // 'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
