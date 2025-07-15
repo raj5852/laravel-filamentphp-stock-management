@@ -82,37 +82,37 @@ class SalesResource extends Resource
                         })->toArray();
 
                         // Format as a list (ul > li)
-                        return '<ul class="list-disc pl-5 space-y-2">'.implode('', array_map(fn ($item) => "<li class='max-w-[300px] whitespace-normal'>{$item}</li>", $items)).'</ul>';
+                        return '<ul class="list-disc pl-5 space-y-2">' . implode('', array_map(fn($item) => "<li class='max-w-[300px] whitespace-normal'>{$item}</li>", $items)) . '</ul>';
                     })
                     ->html(),
                 TextColumn::make('order_date')->label('Date')->date(),
                 TextColumn::make('discount')->label('Discount')
                     ->getStateUsing(function ($record) {
-                        return number_format(($record->total_no_discount + $record->returnlist->total_no_discount) - ($record->receivable + $record->returnlist->receivable)).' TK';
+                        return number_format(($record->total_no_discount + $record->returnlist->total_no_discount) - ($record->receivable + $record->returnlist->receivable)) . ' TK';
                     }),
 
                 TextColumn::make('receivable')->formatStateUsing(function ($record) {
-                    return number_format($record->receivable + $record->returnlist->receivable, 2).' TK';
+                    return number_format($record->receivable + $record->returnlist->receivable, 2) . ' TK';
                 }),
                 TextColumn::make('paid')->formatStateUsing(function ($record) {
-                    return number_format($record->paid, 2).' TK';
+                    return number_format($record->paid, 2) . ' TK';
                 }),
 
                 TextColumn::make('product_returned')
                     ->getStateUsing(function ($record) {
-                        return number_format($record->product_returned ?: 0, 0).' Tk';
+                        return number_format($record->product_returned ?: 0, 0) . ' Tk';
                     })
                     ->label('Product Returned'),
 
                 TextColumn::make('due')->formatStateUsing(function ($record) {
-                    return number_format($record->due - $record->returnlist->paid, 2).' TK';
+                    return number_format($record->due - $record->returnlist->paid, 2) . ' TK';
                 }),
                 TextColumn::make('orderitems_sum_purchase_cost')->label('Purchase Cost')->formatStateUsing(function ($record) {
-                    return number_format($record->orderitems_sum_purchase_cost, 2).' TK';
+                    return number_format($record->orderitems_sum_purchase_cost, 2) . ' TK';
                 }),
                 TextColumn::make('Profit')->default(function ($record) {
 
-                    return number_format($record->profit, 2).' Tk';
+                    return number_format($record->profit, 2) . ' Tk';
                 }),
                 TextColumn::make('Status')->default(function ($record) {
                     return ($record->due - $record->returnlist->paid) > 0 ? 'Unpaid' : 'Paid';
@@ -176,7 +176,7 @@ class SalesResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['invoiceno'],
-                            fn ($query, $term) => $query->where('invoiceno', $term)
+                            fn($query, $term) => $query->where('invoiceno', $term)
                         );
                     }),
                 Filter::make('start_date')
@@ -190,7 +190,7 @@ class SalesResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['start_date'],
-                            fn ($query, $term) => $query->where('order_date', '>=', $term)
+                            fn($query, $term) => $query->where('order_date', '>=', $term)
                         );
                     }),
                 Filter::make('end_date')
@@ -204,7 +204,7 @@ class SalesResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['end_date'],
-                            fn ($query, $term) => $query->where('order_date', '<=', $term)
+                            fn($query, $term) => $query->where('order_date', '<=', $term)
                         );
                     }),
 
@@ -227,7 +227,7 @@ class SalesResource extends Resource
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['product_id'],
-                            fn ($query, $term) => $query->whereHas('orderitems', function ($query) use ($term) {
+                            fn($query, $term) => $query->whereHas('orderitems', function ($query) use ($term) {
                                 $query->where('product_id', $term);
                             })
                         );
@@ -242,12 +242,19 @@ class SalesResource extends Resource
                     Action::make('Invoice')
                         ->label('Invoice')
                         ->icon('heroicon-s-printer')
-                        ->url(fn (Order $record) => route('filament.admin.resources.sales.pos-receipt', ['record' => $record->id])),
+                        ->url(fn(Order $record) => route('filament.admin.resources.sales.pos-receipt', ['record' => $record->id])),
+
+                    Action::make('Chalan')
+                        ->label('Chalan Print')
+                        ->icon('heroicon-s-printer')
+                        ->url(fn(Order $record) => route('filament.admin.resources.sales.chalan', ['record' => $record->id])),
 
                     Action::make('Show')
                         ->label('Show')
                         ->icon('heroicon-s-computer-desktop')
-                        ->url(fn (Order $record) => route('filament.admin.resources.sales.pos-show', ['record' => $record->id])),
+                        ->url(fn(Order $record) => route('filament.admin.resources.sales.pos-show', ['record' => $record->id])),
+
+
 
                     Action::make('return_order')
                         ->label('Return')
@@ -380,7 +387,7 @@ class SalesResource extends Resource
                                     'min:0',
                                     'max:9999999999',
                                 ])
-                                ->default(fn (Order $record) => $record->due)
+                                ->default(fn(Order $record) => $record->due)
                                 ->required(),
                             Textarea::make('note')
                                 ->label('Note'),
@@ -529,6 +536,8 @@ class SalesResource extends Resource
             'index' => Pages\ListSales::route('/'),
             'pos-receipt' => Pages\PosReceipt::route('/pos-receipt/{record}'),
             'pos-show' => Pages\SalesShow::route('/pos-show/{record}'),
+            'chalan' => Pages\Chalan::route('/chalan/{record}'),
+
         ];
     }
 }
