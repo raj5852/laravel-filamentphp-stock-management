@@ -106,6 +106,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                 'main_unit_qty' => 1,
                 'sub_unit_qty' => 0,
                 'sub_total' => $product->sale_price ?? 0,
+                'purchase_cost' => $product->purchase_cost,
             ];
         }
     }
@@ -398,13 +399,13 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                 Split::make([
                     Stack::make([
                         ImageColumn::make('product_image')->defaultImageUrl('/images/notfound.jpg')->alignCenter(),
-                        TextColumn::make('product_name')->getStateUsing(fn ($record) => $record->product_name.' - '.$record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
+                        TextColumn::make('product_name')->getStateUsing(fn($record) => $record->product_name . ' - ' . $record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
                         TextColumn::make('sale_price')->getStateUsing(function ($record) {
-                            return new HtmlString('<span class="font-bold">'.number_format($record->sale_price, 2, '.', '').'</span>'.' TK');
+                            return new HtmlString('<span class="font-bold">' . number_format($record->sale_price, 2, '.', '') . '</span>' . ' TK');
                         })->alignCenter(),
                         TextColumn::make('productdetails.available_stock_in_text')
                             ->getStateUsing(function ($record) {
-                                return new HtmlString('<span >Stock: </span>'.$record->productdetails?->available_stock_in_text);
+                                return new HtmlString('<span >Stock: </span>' . $record->productdetails?->available_stock_in_text);
                             })
                             ->alignCenter(),
                     ]),
@@ -719,9 +720,11 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                             $totalQty = getTotalStock($product['id'], $main_unit_qty, $sub_unit_qty);
 
                             $purchaseIds = ExpensePurchase::addPurchaseExpense($product['id'], $totalQty);
-                            $over_sale_qty = (int) $totalQty - (int) collect($purchaseIds)->sum('qty');
 
-                            $totalPurcahseCost = collect($purchaseIds)->sum('purchase_value');
+                            $over_sale_qty = (int) $totalQty - (int) collect($purchaseIds)->sum('qty');
+                            $overSalePurcahsePrice =  ($over_sale_qty * $product['purchase_cost']);
+
+                            $totalPurcahseCost = collect($purchaseIds)->sum('purchase_value') + $overSalePurcahsePrice;
 
                             $total_qty_in_text = getTotalStockInText($product['id'], $totalQty);
 
