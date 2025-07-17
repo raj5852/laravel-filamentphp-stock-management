@@ -306,6 +306,40 @@ class ProductResource extends Resource
                             ->maxSize(5120) // 5 MB
                             ->resize(85),
 
+                        Forms\Components\Repeater::make('colors')
+                            ->schema([
+                                Forms\Components\TextInput::make('color_name')
+                                    ->required()
+                                    ->label('Color Name')
+                                    ->placeholder('Enter color name (e.g. Red, Blue)'),
+                                Forms\Components\ColorPicker::make('color_code')
+                                    ->required()
+                                    ->label('Color Code'),
+                                Forms\Components\TextInput::make('stock')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->minValue(0)
+                                    ->required()
+                                    ->label('Stock'),
+                            ])
+                            ->defaultItems(0)
+                            ->reorderable(false)
+                            ->addActionLabel('Add Color')
+                            ->label('Product Colors'),
+
+                        Forms\Components\Repeater::make('sizes')
+                            ->schema([
+                                Forms\Components\TextInput::make('size_name')
+                                    ->required()
+                                    ->label('Size Name')
+                                    ->placeholder('Enter size (e.g. S, M, L, XL, XXL)'),
+                               
+                            ])
+                            ->defaultItems(0)
+                            ->reorderable(false)
+                            ->addActionLabel('Add Size')
+                            ->label('Product Sizes'),
+
                     ]),
                 ])
                     ->columnSpan(1),
