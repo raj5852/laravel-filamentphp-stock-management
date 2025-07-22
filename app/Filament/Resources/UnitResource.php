@@ -65,7 +65,7 @@ class UnitResource extends Resource
                     ->required(fn (Get $get): bool => ($get('related_to_unit') != '') || ($get('operator') != ''))
                     ->numeric()
                     ->rules([
-                        'min:0',
+                        'min:0.1',
                         'numeric',
                         'max:9999999999',
                     ])

@@ -307,10 +307,14 @@ class PurchaseResource extends Resource
                         ->modalWidth('sm'),
                     DeleteAction::make()
                         ->before(function (Purchase $record, $action) {
-                            $damage = Damage::whereJsonContains('purchase_ids', ['purchase_id' => $record->id])->exists();
+                            $damage = Damage::query()
+                            ->whereJsonContains('purchase_ids', ['purchase_id' => strval($record->id)])
+                            ->orWhereJsonContains('purchase_ids', ['purchase_id' => (int)$record->id])
+                            ->exists();
 
                             $sales = OrderItem::query()
-                                ->whereJsonContains('purchase_ids', ['purchase_id' => $record->id])
+                                ->whereJsonContains('purchase_ids', ['purchase_id' => strval($record->id)])
+                                ->orWhereJsonContains('purchase_ids', ['purchase_id' => (int)$record->id])
                                 ->exists();
 
                             if ($damage || $sales) {
