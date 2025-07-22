@@ -52,8 +52,8 @@ class PurchaseShow extends Page implements HasActions, HasForms
                     'histories.payment',
                     'supplier:id,supplier_name,phone,address',
                     'purchaseitems' => function ($query) {
-                        $query->select('id', 'product_id', 'purchase_id', 'total_in_text', 'rate', 'total_rate')
-                            ->with('product:id,product_name,product_code');
+                        $query->select('id', 'product_id', 'purchase_id', 'total_in_text', 'rate', 'total_rate', 'varient_uniqid')
+                            ->with('product:id,product_name,product_code,has_varient,color_size');
                     },
                 ])
                 ->find($this->record->id),

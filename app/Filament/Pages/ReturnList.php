@@ -143,33 +143,33 @@ class ReturnList extends Page implements HasForms, HasTable
                         ->requiresConfirmation()
                         ->action(function (ModelsReturnList $record) {
 
-                            try {
-                                DB::beginTransaction();
+                            $isOrder = 0;
 
-                                $isOrder = 0;
+                            $orderItems = OrderItem::where('order_id', $record->order_id)->get();
 
-                                $orderItems = OrderItem::where('order_id', $record->order_id)->get();
+                            foreach ($orderItems as $orderItem) {
 
-                                foreach ($orderItems as $orderItem) {
+                                foreach ($orderItem->purchase_ids as $purchaseid) {
 
-                                    foreach ($orderItem->purchase_ids as $purchaseid) {
+                                    $purchaseItem = PurchaseItem::find($purchaseid['purchase_item_id']);
 
-                                        $purchaseItem = PurchaseItem::find($purchaseid['purchase_item_id']);
-
-                                        if ($purchaseItem->available_qty < $purchaseid['qty']) {
-                                            $isOrder += 1;
-                                        }
+                                    if ($purchaseItem->available_qty < $purchaseid['qty']) {
+                                        $isOrder += 1;
                                     }
                                 }
-                                if ($isOrder > 0) {
-                                    Notification::make()
-                                        ->title('You can not delete this return list')
-                                        ->danger()
-                                        ->send();
+                            }
+                            if ($isOrder > 0) {
+                                Notification::make()
+                                    ->title('You can not delete this return list')
+                                    ->danger()
+                                    ->send();
 
-                                    return;
-                                }
+                                return;
+                            }
 
+                            
+                            try {
+                                DB::beginTransaction();
                                 foreach ($orderItems as $orderitem) {
 
                                     $product = ModelsProduct::find($orderitem->product_id);
@@ -201,6 +201,10 @@ class ReturnList extends Page implements HasForms, HasTable
                                     $orderitem->increment('total_qty', $returnListProduct->total_qty);
                                     $orderitem->increment('purchase_cost', $returnListProduct->purchase_cost);
                                     $orderitem->increment('over_sale_qty', $returnListProduct->over_sale_qty);
+
+                                    if ($orderitem->varient_uniqid != '') {
+                                        updateProductVarient($orderitem->product_id, $orderitem->varient_uniqid, available_stock: -$orderitem->total_qty);
+                                    }
                                 }
 
                                 $order = Order::find($record->order_id);

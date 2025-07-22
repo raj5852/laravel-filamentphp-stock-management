@@ -122,36 +122,36 @@
                         </table>
                     </div>
                 </div>
+            </div>
 
 
-                <!-- Action buttons -->
-                <div class="hiddenButtons">
-                    <div class="mb-6">
-                        <button onclick="printInvoice()"
-                            class="w-full bg-gray-200 text-gray-800 py-2 flex items-center justify-center gap-2 hover:bg-gray-300 !text-black">
-                            <div style="display: flex">
-                                <x-fas-print class="w-4 h-4" />
-                                <div style="margin-left: 5px; margin-top: -4px">Print</div>
-                            </div>
-                        </button>
-                    </div>
+            <!-- Action buttons -->
+            <div class="hiddenButtons">
+                <div class="mb-6">
+                    <button onclick="printInvoice()"
+                        class="w-full bg-gray-200 text-gray-800 py-2 flex items-center justify-center gap-2 hover:bg-gray-300 !text-black">
+                        <div style="display: flex">
+                            <x-fas-print class="w-4 h-4" />
+                            <div style="margin-left: 5px; margin-top: -4px">Print</div>
+                        </div>
+                    </button>
+                </div>
 
-                    <div class="grid grid-cols-1 gap-4">
-                        {{-- <a href="{{ route('filament.admin.pages.pos') }}"
+                <div class="grid grid-cols-1 gap-4">
+                    {{-- <a href="{{ route('filament.admin.pages.pos') }}"
                             class="bg-teal-500 text-white py-2 flex items-center justify-center gap-2 hover:bg-teal-600 !text-black">
                             <div style="display: flex">
                                 <x-fas-reply class="w-5 h-5" />
                                 <div style="margin-left: 5px">New Sale</div>
                             </div>
                         </a> --}}
-                        <a href="{{ route('filament.admin.resources.sales.index') }}"
-                            class="bg-teal-500 text-white py-2 flex items-center justify-center gap-2 hover:bg-teal-600 !text-black">
-                            <div style="display: flex">
-                                <x-fas-reply class="w-5 h-5" />
-                                <div style="margin-left: 5px">Sale List</div>
-                            </div>
-                        </a>
-                    </div>
+                    <a href="{{ route('filament.admin.resources.sales.index') }}"
+                        class="bg-teal-500 text-white py-2 flex items-center justify-center gap-2 hover:bg-teal-600 !text-black">
+                        <div style="display: flex">
+                            <x-fas-reply class="w-5 h-5" />
+                            <div style="margin-left: 5px">Sale List</div>
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>

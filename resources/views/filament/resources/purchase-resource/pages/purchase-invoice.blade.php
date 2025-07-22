@@ -89,7 +89,17 @@
                                         </td>
                                         <td class="border border-gray-200 py-0.5 px-2 !text-black">
                                             {{ $item->product?->product_name }}
-                                            | {{ $item->product?->product_code }}</td>
+                                            | {{ $item->product?->product_code }}
+                                            @if($item->product->has_varient == 1)
+                                            - V: 
+                                                @foreach($item->product->color_size ?? [] as $key => $colorsize)
+                                                    @if($colorsize["uniqid"] == $item->varient_uniqid)
+                                                        {{ $colorsize['color'] }} - {{ $colorsize['size'] }}
+                                                    @endif
+                                                @endforeach
+
+                                            @endif
+                                        </td>
                                         <td class="border border-gray-200 py-0.5 px-2 text-center !text-black">
                                             {{ $item->total_in_text }}</td>
                                         <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">

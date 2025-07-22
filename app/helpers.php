@@ -141,3 +141,30 @@ if (! function_exists('numberToBanglaWord')) {
         return Number::spell($num);
     }
 }
+if (! function_exists('updateProductVarient')) {
+    function updateProductVarient($productId, $uniqid, $purchase_stock = 0, $available_stock = 0)
+    {
+        // dd($uniqid);
+
+        $product = Product::where('id', $productId)
+            ->whereJsonContains('color_size', ['uniqid' => $uniqid])
+            ->firstOrFail();
+        // Use collection methods to manipulate the JSON array more elegantly
+        $colorSizeCollection = collect($product->color_size);
+
+        $updated = $colorSizeCollection->transform(function ($variation) use ($uniqid, $purchase_stock, $available_stock) {
+            if ($variation['uniqid'] === $uniqid) {
+                $variation['purchase_stock'] += $purchase_stock;
+                $variation['available_stock'] += $available_stock;
+            }
+
+            return $variation;
+        });
+
+        // Update the product with the modified collection
+        $product->color_size = $updated->all();
+        $product->save();
+
+        return $product;
+    }
+}

@@ -307,48 +307,61 @@ class PurchaseResource extends Resource
                         ->modalWidth('sm'),
                     DeleteAction::make()
                         ->before(function (Purchase $record, $action) {
-                            $damage = Damage::whereJsonContains('purchase_ids', ['purchase_id' => $record->id])->exists();
+                            try {
+                                DB::beginTransaction();
 
-                            $sales = OrderItem::query()
-                                ->whereJsonContains('purchase_ids', ['purchase_id' => $record->id])
-                                ->exists();
+                                $damage = Damage::whereJsonContains('purchase_ids', ['purchase_id' => $record->id])->exists();
 
-                            if ($damage || $sales) {
-                                Notification::make()->danger()->title('You can\'t delete it.')->send();
-                                $action->cancel();
-                            }
+                                $sales = OrderItem::query()
+                                    ->whereJsonContains('purchase_ids', ['purchase_id' => $record->id])
+                                    ->exists();
 
-                            foreach ($record->histories as $item) {
-                                $item->account->increment('current_balance', $item->amount);
-                                $item->delete();
-                            }
-
-                            $products = [];
-                            foreach ($record->purchaseitems as $item) {
-                                $product = Product::with('productdetails')->find($item->product_id);
-                                if ($product) {
-                                    $productDetails = $product->productdetails;
-
-                                    // Avoid multiple find queries for the same product
-                                    if (! isset($products[$item->product_id])) {
-                                        $products[$item->product_id] = $product;
-                                    }
-
-                                    // Update product details
-                                    $productDetails->decrement('available_stock', $item->total_qty);
-                                    $productDetails->decrement('purchased', $item->total_qty);
-
-                                    // Use a single update to modify multiple columns
-                                    $productDetails->update([
-                                        'purchased_in_text' => getTotalStockInText($item->product_id, $productDetails->purchased),
-                                        'available_stock_in_text' => getTotalStockInText($item->product_id, $productDetails->available_stock),
-                                    ]);
+                                if ($damage || $sales) {
+                                    Notification::make()->danger()->title('You can\'t delete it.')->send();
+                                    $action->cancel();
                                 }
-                                $item->delete();
-                            }
 
-                            $record->delete();
-                            Notification::make()->success()->title('Deleted Successfully')->send();
+                                foreach ($record->histories as $item) {
+                                    $item->account->increment('current_balance', $item->amount);
+                                    $item->delete();
+                                }
+
+                                $products = [];
+                                foreach ($record->purchaseitems as $item) {
+                                    $product = Product::with('productdetails')->find($item->product_id);
+                                    if ($product) {
+                                        $productDetails = $product->productdetails;
+
+                                        // Avoid multiple find queries for the same product
+                                        if (! isset($products[$item->product_id])) {
+                                            $products[$item->product_id] = $product;
+                                        }
+
+                                        // Update product details
+                                        $productDetails->decrement('available_stock', $item->total_qty);
+                                        $productDetails->decrement('purchased', $item->total_qty);
+
+                                        // Use a single update to modify multiple columns
+                                        $productDetails->update([
+                                            'purchased_in_text' => getTotalStockInText($item->product_id, $productDetails->purchased),
+                                            'available_stock_in_text' => getTotalStockInText($item->product_id, $productDetails->available_stock),
+                                        ]);
+                                    }
+                                    if ($item->varient_uniqid != null) {
+                                        $totalQty = -$item->total_qty;
+                                        updateProductVarient($item->product_id, $item->varient_uniqid, $totalQty, $totalQty);
+                                    }
+                                    $item->delete();
+                                }
+
+                                $record->delete();
+                                Notification::make()->success()->title('Deleted Successfully')->send();
+
+                                DB::commit();
+                            } catch (\Throwable $th) {
+                                DB::rollBack();
+                                throw $th;
+                            }
                         }),
                 ])->dropdown(true)
 

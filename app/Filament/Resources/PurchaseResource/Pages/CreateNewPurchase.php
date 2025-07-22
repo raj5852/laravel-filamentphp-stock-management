@@ -196,7 +196,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                         if (! is_null($state)) {
 
                             $products = collect($this->products);
-                            $product = $products->where('id', $get('product_id'))->first();
+                            $product = $products->where('id', $get('product_id'))->where('has_varient', '!=', 1)->first();
                             if ($product) {
 
                                 Notification::make()
@@ -241,6 +241,9 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                 'sub_unit_qty' => null,
 
                 'sub_total' => $product->purchase_cost ?? 0,
+                'has_varient' => $product->has_varient,
+                'color_size' => $product->color_size,
+                'variation_id' => null,
 
             ];
         }
@@ -368,6 +371,25 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                     '*.id' => ['required', Rule::exists('products', 'id')->where('tenant_id', auth()->user()->tenant_id)],
                 ];
 
+                // Add conditional validation for variation_id
+                foreach ($this->products as $index => $product) {
+
+                    if (isset($product['has_varient']) && $product['has_varient']) {
+                        $rules[$index.'.variation_id'] = ['required'];
+
+                        $getProduct = Product::where('id', $product['id'])->whereJsonContains('color_size', ['uniqid' => $product['variation_id']])->first();
+                        if (! $getProduct) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Variation not found')
+                                ->send();
+
+                            return;
+                        }
+
+                    }
+                }
+
                 $validator = Validator::make($this->products, $rules);
 
                 if ($validator->fails()) {
@@ -421,6 +443,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                         ]);
 
                         foreach ($this->products as $product) {
+
                             $main_unit_qty = $product['main_unit_qty'] ?: 0;
                             $sub_unit_qty = $product['sub_unit_qty'] ?: 0;
 
@@ -458,7 +481,12 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                                 'total_in_text' => $total_qty_in_text,
                                 'available_qty' => $totalQty,
                                 'available_purchase_value' => $total_subunitprice,
+                                'varient_uniqid' => $product['variation_id'],
                             ]);
+
+                            if ($product['has_varient'] == 1) {
+                                updateProductVarient($product['id'], $product['variation_id'], $totalQty, $totalQty);
+                            }
 
                             if ($overSale == 1) {
                                 $orderItems = OrderItem::where('product_id', $product['id'])->where('over_sale_qty', '>', 0)->select('id', 'purchase_ids', 'over_sale_qty')->get('id');

@@ -45,7 +45,9 @@ class PosReceipt extends Page
         return [
             'setting' => Setting::query()->first(),
             'customer' => Customer::query()->withSum('orders', 'due')->find($this->record->customer_id),
-            'order' => Order::query()->with('orderitems', 'returnlist')->find($this->record->id),
+            'order' => Order::query()
+                ->with('orderitems', 'orderitems.product', 'returnlist')
+                ->find($this->record->id),
         ];
     }
 }

@@ -106,6 +106,9 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                 'main_unit_qty' => 1,
                 'sub_unit_qty' => 0,
                 'sub_total' => $product->sale_price ?? 0,
+                'has_varient' => $product->has_varient,
+                'color_size' => $product->color_size,
+                'user_color_size' => null,
             ];
         }
     }
@@ -113,7 +116,23 @@ class Pos extends Component implements HasActions, HasForms, HasTable
     public function updateMainQuantity($index, $quantity)
     {
         $product = $this->products[$index];
-        $stock = $product['available_stock'];
+
+        if ($product['has_varient'] == 1 && $product['user_color_size'] == '') {
+            $this->products[$index]['main_unit_qty'] = 1;
+            $this->products[$index]['sub_unit_qty'] = 0;
+            Notification::make()
+                ->title('Please select variation.')
+                ->danger()
+                ->send();
+
+            return false;
+        }
+
+        if ($product['has_varient'] == 1) {
+            $stock = collect($product['color_size'])->where('uniqid', $product['user_color_size'])->first()['available_stock'];
+        } else {
+            $stock = $product['available_stock'];
+        }
 
         if ($this->oversale == 0) {
             $getQty = $this->getTotalStock($product['mainunit']['related_to_unit'], $product['related_by_value'], $quantity, $product['sub_unit_qty']);
@@ -124,8 +143,8 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                     ->danger()
                     ->send();
 
-                $this->products[$index]['main_unit_qty'] = $this->getMainQty($product['mainunit']['related_to_unit'], $product['related_by_value'], $product['available_stock']);
-                $this->products[$index]['sub_unit_qty'] = $this->getSubQty($product['related_by_value'], $product['available_stock']);
+                $this->products[$index]['main_unit_qty'] = $this->getMainQty($product['mainunit']['related_to_unit'], $product['related_by_value'], $stock);
+                $this->products[$index]['sub_unit_qty'] = $this->getSubQty($product['related_by_value'], $stock);
 
                 return;
             }
@@ -155,7 +174,22 @@ class Pos extends Component implements HasActions, HasForms, HasTable
     public function updateSubQuantity($index, $quantity)
     {
         $product = $this->products[$index];
-        $stock = $product['available_stock'];
+        if ($product['has_varient'] == 1 && $product['user_color_size'] == '') {
+            $this->products[$index]['main_unit_qty'] = 1;
+            $this->products[$index]['sub_unit_qty'] = 0;
+            Notification::make()
+                ->title('Please select variation.')
+                ->danger()
+                ->send();
+
+            return false;
+        }
+
+        if ($product['has_varient'] == 1) {
+            $stock = collect($product['color_size'])->where('uniqid', $product['user_color_size'])->first()['available_stock'];
+        } else {
+            $stock = $product['available_stock'];
+        }
 
         $getQty = $this->getTotalStock($product['mainunit']['related_to_unit'], $product['related_by_value'], $product['main_unit_qty'], $quantity);
 
@@ -167,8 +201,8 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                     ->danger()
                     ->send();
 
-                $this->products[$index]['main_unit_qty'] = $this->getMainQty($product['mainunit']['related_to_unit'], $product['related_by_value'], $product['available_stock']);
-                $this->products[$index]['sub_unit_qty'] = $this->getSubQty($product['related_by_value'], $product['available_stock']);
+                $this->products[$index]['main_unit_qty'] = $this->getMainQty($product['mainunit']['related_to_unit'], $product['related_by_value'], $stock);
+                $this->products[$index]['sub_unit_qty'] = $this->getSubQty($product['related_by_value'], $stock);
 
                 return;
             }
@@ -233,7 +267,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                     ->live()
                     ->afterStateUpdated(function ($state, $set) {
 
-                        $existsProducts = collect($this->products)->where('product_code', $state)->first();
+                        $existsProducts = collect($this->products)->where('has_varient', '!=', 1)->where('product_code', $state)->first();
                         if ($existsProducts) {
                             Notification::make()
                                 ->title('Please Increase the quantity.')
@@ -260,7 +294,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                     ->placeholder('Start to write product name...')
                     ->afterStateUpdated(function ($state, $set) {
 
-                        $existsProducts = collect($this->products)->where('id', $state)->first();
+                        $existsProducts = collect($this->products)->where('has_varient', '!=', 1)->where('id', $state)->first();
                         if ($existsProducts) {
                             Notification::make()
                                 ->title('Please Increase the quantity.')
@@ -435,7 +469,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                                 ->danger()
                                 ->send();
                         }
-                        $existsProducts = collect($this->products)->where('id', $record->id)->first();
+                        $existsProducts = collect($this->products)->where('id', $record->id)->where('has_varient', '!=', 1)->first();
                         if ($existsProducts) {
                             Notification::make()
                                 ->title('Please Increase the quantity.')
@@ -628,12 +662,31 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
                         return;
                     }
+                    if ($product['has_varient'] == 1 && $product['user_color_size'] == '') {
+                        Notification::make()
+                            ->danger()
+                            ->title("Please select color size for product: {$product['name']}")
+                            ->send();
+
+                        return;
+                    }
+
                 }
 
                 if ($this->oversale == 0) {
                     foreach ($this->products as $product) {
-                        $getQty = $this->getTotalStock($product['mainunit']['related_to_unit'], $product['related_by_value'], $product['main_unit_qty'], $product['sub_unit_qty']);
-                        if ($getQty > $product['available_stock']) {
+                        $main_unit_qty = collect($this->products)->where('id', $product['id'])->where('user_color_size', $product['user_color_size'])->sum('main_unit_qty');
+                        $sub_unit_qty = collect($this->products)->where('id', $product['id'])->where('user_color_size', $product['user_color_size'])->sum('sub_unit_qty');
+                        // dd($main_unit_qty,$sub_unit_qty);
+
+                        if ($product['has_varient'] == 1) {
+                            $stock = collect($product['color_size'])->where('uniqid', $product['user_color_size'])->first()['available_stock'];
+                        } else {
+                            $stock = $product['available_stock'];
+                        }
+
+                        $getQty = $this->getTotalStock($product['mainunit']['related_to_unit'], $product['related_by_value'], $main_unit_qty, $sub_unit_qty);
+                        if ($getQty > $stock) {
                             Notification::make()
                                 ->danger()
                                 ->title('Some Products Does not Have stock!')
@@ -718,7 +771,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
                             $totalQty = getTotalStock($product['id'], $main_unit_qty, $sub_unit_qty);
 
-                            $purchaseIds = ExpensePurchase::addPurchaseExpense($product['id'], $totalQty);
+                            $purchaseIds = ExpensePurchase::addPurchaseExpense($product['id'], $totalQty, $product['user_color_size']);
                             $over_sale_qty = (int) $totalQty - (int) collect($purchaseIds)->sum('qty');
 
                             $totalPurcahseCost = collect($purchaseIds)->sum('purchase_value');
@@ -750,7 +803,13 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                                 'discount_percentage' => $product['discount_percentage'] ?: 0,
                                 'discount_amount' => $item_discount,
                                 'over_sale_qty' => $over_sale_qty,
+                                'varient_uniqid' => $product['user_color_size'],
                             ]);
+
+                            if ($product['has_varient'] == 1) {
+                                updateProductVarient($product['id'], $product['user_color_size'], available_stock: -$totalQty);
+                            }
+
                         }
                         $orderDetails = $order->orderitems;
                         $order->update([

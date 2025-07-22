@@ -6,10 +6,13 @@ use App\Models\PurchaseItem;
 
 class ExpensePurchase
 {
-    public static function addPurchaseExpense($productId, $qty)
+    public static function addPurchaseExpense($productId, $qty, $varient_uniqid = null)
     {
 
         $purchaseItems = PurchaseItem::where('product_id', $productId)
+            ->when($varient_uniqid, function ($query) use ($varient_uniqid) {
+                $query->where('varient_uniqid', $varient_uniqid);
+            })
             ->where('available_qty', '>', 0)
             ->get();
 

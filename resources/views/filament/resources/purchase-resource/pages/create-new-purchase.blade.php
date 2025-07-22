@@ -8,6 +8,7 @@
                     <tr>
                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">#SL</th>
                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Product</th>
+                        <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Size</th>
                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Rate</th>
                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Qty</th>
                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Sub Total</th>
@@ -20,6 +21,25 @@
                             <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 text-center">
                                 {{ $loop->iteration }}</td>
                             <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">{{ $product['name'] }}
+                            </td>
+                            <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 md:w-[160px]">
+                                @if($product['has_varient'])
+                                    <select wire:model.live.debounce.10ms="products.{{ $index }}.variation_id" id="" class="px-1 sm:px-2 md:px-4 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white" >
+                                        <option value="">Select Variation</option>
+                                        @foreach($product['color_size'] ?? [] as $item)
+                                            @if($item['status'] == 'true')
+                                            <option value="{{ $item['uniqid'] }}">
+                                                @if($item['color'] !== null)
+                                                    {{ $item['color'] }} - 
+                                                @endif
+                                                @if($item['size'] !== null)
+                                                    {{ $item['size'] }}
+                                                @endif
+                                            </option>
+                                            @endif
+                                        @endforeach
+                                    </select>
+                                @endif  
                             </td>
 
                             <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 md:w-[160px]">
@@ -83,7 +103,7 @@
                 </tbody>
                 <tfoot>
                     <tr class="bg-gray-100 dark:bg-gray-800">
-                        <td colspan="4"
+                        <td colspan="5"
                             class="wrap px-4 py-2 text-right font-bold border dark:border-gray-700 text-gray-800 dark:text-gray-200">
                             Grand Total:
                         </td>

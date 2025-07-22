@@ -14,6 +14,7 @@ use Filament\Forms;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -43,6 +44,8 @@ class ProductResource extends Resource
 
     public static function form(Form $form): Form
     {
+        $tenantID = auth()->user()->tenant_id;
+
         return $form
             ->schema([
 
@@ -71,9 +74,28 @@ class ProductResource extends Resource
                             ->validationMessages([
                                 'regex' => 'Product code must contain only English letters and numbers',
                             ])
-                            ->readOnly(fn (string $context) => $context === 'edit')
-                            ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('tenant_id', auth()->user()->tenant_id)),
+                            ->disabled(fn (string $context) => $context === 'edit')
+                            ->dehydrated()
+                            ->unique(ignoreRecord: true, modifyRuleUsing: fn ($rule) => $rule->where('tenant_id', $tenantID)),
 
+                        Select::make('has_varient')
+                            ->label('Has Varient')
+                            ->native(false)
+                            ->required()
+                            ->live()
+                            ->disabled(function ($context) {
+                                return $context === 'edit';
+                            })
+                            ->dehydrated()
+                            ->default(false)
+                            ->options([
+                                false => 'No',
+                                true => 'Yes',
+                            ])
+                            ->afterStateUpdated(function ($get, $set) {
+                                $set('first_opening_stock', null);
+                                $set('second_opening_stock', null);
+                            }),
                         Forms\Components\Select::make('category_id')
                             ->label('Category')
                             ->placeholder('Select Category')
@@ -81,8 +103,8 @@ class ProductResource extends Resource
                             ->options(Category::query()->get(['id', 'name'])->pluck('name', 'id'))
                             ->searchable()
                             ->rules([
-                                Rule::exists('categories', 'id')->where(function ($query) {
-                                    $query->where('tenant_id', auth()->user()->tenant_id);
+                                Rule::exists('categories', 'id')->where(function ($query) use ($tenantID) {
+                                    $query->where('tenant_id', $tenantID);
                                 }),
                                 'required',
                             ])
@@ -141,8 +163,8 @@ class ProductResource extends Resource
                             ])
                             ->createOptionModalHeading('Create a new Brand')
                             ->rules([
-                                Rule::exists('brands', 'id')->where(function ($query) {
-                                    $query->where('tenant_id', auth()->user()->tenant_id);
+                                Rule::exists('brands', 'id')->where(function ($query) use ($tenantID) {
+                                    $query->where('tenant_id', $tenantID);
                                 }),
                             ])
                             ->createOptionAction(function (Forms\Components\Actions\Action $action) {
@@ -176,8 +198,8 @@ class ProductResource extends Resource
                             ->live()
                             ->reactive()
                             ->rules([
-                                Rule::exists('units', 'id')->where(function ($query) {
-                                    $query->where('tenant_id', auth()->user()->tenant_id);
+                                Rule::exists('units', 'id')->where(function ($query) use ($tenantID) {
+                                    $query->where('tenant_id', $tenantID);
                                 }),
                                 'required',
                             ])
@@ -192,8 +214,8 @@ class ProductResource extends Resource
                             ->live()
                             ->placeholder('Select Sub Unit')
                             ->rules([
-                                Rule::exists('units', 'id')->where(function ($query) {
-                                    $query->where('tenant_id', auth()->user()->tenant_id);
+                                Rule::exists('units', 'id')->where(function ($query) use ($tenantID) {
+                                    $query->where('tenant_id', $tenantID);
                                 }),
                             ])
                             ->options(function ($get) {
@@ -235,6 +257,9 @@ class ProductResource extends Resource
                                     'min:0',
                                     'max_digits:10',
                                 ])
+                                ->hidden(function ($get) {
+                                    return $get('has_varient');
+                                })
                                 ->numeric(),
 
                             Forms\Components\TextInput::make('second_opening_stock')
@@ -243,6 +268,9 @@ class ProductResource extends Resource
                                     if ($get('sub_unit') != '') {
                                         return true;
                                     }
+                                })
+                                ->hidden(function ($get) {
+                                    return $get('has_varient');
                                 })
                                 ->placeholder(function ($get) {
                                     $subunit = Unit::find($get('sub_unit'));
@@ -258,6 +286,49 @@ class ProductResource extends Resource
                                 ])
                                 ->numeric(),
                         ])->hidden(fn (string $context) => $context === 'edit'),
+
+                        Forms\Components\Repeater::make('color_size')
+                            ->schema([
+                                Grid::make(2)->schema([
+
+                                    Forms\Components\Hidden::make('uniqid')
+                                        ->default(fn () => uniqid()),
+
+                                    Forms\Components\Hidden::make('purchase_stock')
+                                        ->default(0),
+                                    Forms\Components\Hidden::make('available_stock')
+                                        ->default(0),
+
+                                    Forms\Components\TextInput::make('color')
+                                        ->label('Color ')
+                                        ->placeholder('Enter color name (e.g. Red, Blue)'),
+
+                                    Forms\Components\TextInput::make('size')
+                                        ->label('Size ')
+                                        ->placeholder('Enter size (e.g. S, M, L, XL, XXL)'),
+
+                                    Forms\Components\Toggle::make('status')
+                                        ->label('Status')
+                                        ->visible(fn (string $context) => $context === 'edit')
+                                        ->onColor('success')
+                                        ->offColor('danger')
+                                        ->onIcon('heroicon-s-check')
+                                        ->offIcon('heroicon-s-x-mark')
+                                        ->default(true)
+                                        ->required()
+                                        ->dehydrated(),
+                                ])->columns(2),
+
+                            ])
+                            ->reorderable(false)
+                            ->maxItems(14)
+                            ->minItems(1)
+                            ->deletable(fn (string $context) => $context != 'edit')
+                            ->addActionLabel('Add Color Size')
+                            ->visible(function ($get) {
+                                return $get('has_varient');
+                            })
+                            ->label('Product Color Size'),
 
                     ]),
                 ])->columnSpan(['lg' => 2]),
@@ -305,40 +376,6 @@ class ProductResource extends Resource
                             ->imagePreviewHeight('180')
                             ->maxSize(5120) // 5 MB
                             ->resize(85),
-
-                        Forms\Components\Repeater::make('colors')
-                            ->schema([
-                                Forms\Components\TextInput::make('color_name')
-                                    ->required()
-                                    ->label('Color Name')
-                                    ->placeholder('Enter color name (e.g. Red, Blue)'),
-                                Forms\Components\ColorPicker::make('color_code')
-                                    ->required()
-                                    ->label('Color Code'),
-                                Forms\Components\TextInput::make('stock')
-                                    ->numeric()
-                                    ->default(0)
-                                    ->minValue(0)
-                                    ->required()
-                                    ->label('Stock'),
-                            ])
-                            ->defaultItems(0)
-                            ->reorderable(false)
-                            ->addActionLabel('Add Color')
-                            ->label('Product Colors'),
-
-                        Forms\Components\Repeater::make('sizes')
-                            ->schema([
-                                Forms\Components\TextInput::make('size_name')
-                                    ->required()
-                                    ->label('Size Name')
-                                    ->placeholder('Enter size (e.g. S, M, L, XL, XXL)'),
-                               
-                            ])
-                            ->defaultItems(0)
-                            ->reorderable(false)
-                            ->addActionLabel('Add Size')
-                            ->label('Product Sizes'),
 
                     ]),
                 ])

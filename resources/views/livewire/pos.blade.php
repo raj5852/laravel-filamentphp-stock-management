@@ -14,10 +14,11 @@
                                 <thead class="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-100">
                                     <tr>
                                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Name</th>
+                                        <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Size</th>
                                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Quantity</th>
                                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Price</th>
-                                        <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Discount %
-                                        </th>
+                                        <!-- <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">Discount %
+                                        </th> -->
                                         <th class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 "
                                             style="width: 100px !important">
                                             Sub T</th>
@@ -29,7 +30,26 @@
                                         <tr class="bg-white dark:bg-gray-900">
                                             <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">
                                                 {{ $product['name'] }}</td>
-
+                                            <td class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700">
+                                                @if($product['has_varient'])
+                                                    <select wire:model.live="products.{{ $index }}.user_color_size" name="" id="" class="w-full min-w-[80px] px-1 sm:px-2 md:px-4 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white" style="min-width: 100px;">
+                                                        <option value="">Select Variation</option>
+                                                        @foreach($product['color_size'] ?? [] as $item)
+                                                            @if($item['status'] == 'true')
+                                                            <option value="{{ $item['uniqid'] }}">
+                                                                @if($item['color'] !== null)
+                                                                 {{ $item['color'] }} - 
+                                                                @endif
+                                                                @if($item['size'] !== null)
+                                                                 {{ $item['size'] }} - 
+                                                                @endif
+                                                                {{ $item['available_stock'] }}
+                                                            </option>
+                                                            @endif
+                                                        @endforeach
+                                                    </select>
+                                                @endif  
+                                            </td>
                                             <td
                                                 class="{{ $product['unit_id'] !== null && $product['sub_unit'] !== null ? 'px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 md:w-[300px] ' : 'px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 md:w-[200px] min-w-[50px] ' }}">
                                                 <div class="flex items-center gap-2">
@@ -82,7 +102,7 @@
                                                 </div>
                                             </td>
 
-                                            <td
+                                            <!-- <td
                                                 class="px-1 sm:px-2 md:px-4 py-2 border dark:border-gray-700 md:w-[120px]">
                                                 <div class="flex items-center gap-2">
                                                     <input type="text" min="0" max="100"
@@ -103,7 +123,7 @@
                                                             this.value = value;
                                                         " />
                                                 </div>
-                                            </td>
+                                            </td> -->
 
                                             <td
                                                 class="px-4 py-2 border dark:border-gray-700 font-semibold text-center text-gray-900 dark:text-white min-w-[100px]">

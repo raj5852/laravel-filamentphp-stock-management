@@ -13,6 +13,10 @@ class Product extends Model
 {
     protected $guarded = [];
 
+    protected $casts = [
+        'color_size' => 'json',
+    ];
+
     protected static function boot()
     {
         parent::boot();

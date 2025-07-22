@@ -3,12 +3,11 @@
 namespace App\Filament\Resources\SalesResource\Pages;
 
 use App\Filament\Resources\SalesResource;
-use Filament\Resources\Pages\Page;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Setting;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
-
+use Filament\Resources\Pages\Page;
 
 class Chalan extends Page
 {
@@ -18,15 +17,12 @@ class Chalan extends Page
 
     protected static string $view = 'filament.resources.sales-resource.pages.chalan';
 
-
     protected static ?string $title = '';
 
     public function mount(int|string $record): void
     {
         $this->record = $this->resolveRecord($record);
     }
-
-
 
     protected function getViewData(): array
     {

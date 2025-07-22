@@ -36,7 +36,7 @@ class RoleResource extends Resource
                         TextInput::make('name')->placeholder('Role name')
                             ->unique(ignoreRecord: true, column: 'name')
                             ->validationMessages([
-                                'unique' => 'Please choose another role name'
+                                'unique' => 'Please choose another role name',
                             ])
                             ->required(),
                         Toggle::make('select_all')
