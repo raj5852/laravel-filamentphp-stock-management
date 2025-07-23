@@ -63,11 +63,14 @@ class Damage extends Model
                         'available_purchase_value' => singleUnitPurchasePrice($purchaseItem->product_id, $purchaseItem->rate ?: 0) * $purchaseItem->available_qty,
                     ]);
                 }
+                if ($product->has_varient == 1) {
+                    updateProductVarient($product->id, $damage->varient, available_stock: $damage->total_qty);
+                }
 
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();
-
+                throw $e;
                 // Handle exception
 
             }

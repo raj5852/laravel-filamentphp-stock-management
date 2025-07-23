@@ -8,7 +8,7 @@ use App\Models\Damage;
 use App\Models\Product;
 use App\Services\ExpensePurchase;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -21,7 +21,6 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\HtmlString;
 use Illuminate\Validation\Rule;
 
 class DamageResource extends Resource
@@ -58,20 +57,27 @@ class DamageResource extends Resource
                             ])
                             ->afterStateUpdated(function ($set, $get, $state) {
                                 $product = Product::find($state);
+
+                                if ($product?->has_varient == 1) {
+                                    $set('has_varient', 1);
+                                    $set('variations', $product->color_size);
+                                } else {
+                                    $set('has_varient', 0);
+                                    $set('variations', null);
+                                }
+
                                 $set('main_unit_name', $product?->unit?->unit_name);
                                 $set('sub_unit_name', $product?->subunit?->unit_name ?: null);
 
                                 $set('available_stock_in_text', $product?->productdetails?->available_stock_in_text);
+
                             })
                             ->required(),
 
-                        Placeholder::make('product_name')
-                            ->label('Available Stock')
-                            ->content(function ($get) {
-                                if ($get('available_stock_in_text') != '') {
-                                    return new HtmlString('<h1 style="color:green; font-weight: bold; font-size: 20px">'.$get('available_stock_in_text').'<h1>');
-                                }
-                            })->hidden(fn ($get) => $get('available_stock_in_text') == ''),
+                        Hidden::make('has_varient')
+                            ->default(0),
+                        Hidden::make('variations'),
+
                         TextInput::make('quantity_in_main_unit')
                             ->label(function ($get) {
                                 if ($get('main_unit_name') == '') {
@@ -89,7 +95,7 @@ class DamageResource extends Resource
                                 return $get('main_unit_name');
                             })
                             ->hidden(fn ($get) => $get('main_unit_name') == '')
-                            ->live()
+                            // ->live()
                             ->rules([
                                 'integer',
                                 'min:0',
@@ -114,13 +120,38 @@ class DamageResource extends Resource
                                 return $get('sub_unit_name');
                             })
                             ->hidden(fn ($get) => $get('sub_unit_name') == '')
-                            ->live()
+                            // ->live()
                             ->rules([
                                 'integer',
                                 'min:0',
                                 'max_digits:10',
                             ])
                             ->numeric(),
+
+                        Select::make('color_size')
+                            ->label('Variations')
+                            ->visible(function ($get) {
+                                return $get('product_id') != '' && $get('has_varient') === 1;
+                            })
+                            ->required()
+                            ->options(function ($get) {
+                                if ($get('has_varient') != 1) {
+                                    return [];
+                                }
+
+                                $colorSize = $get('variations');
+                                if (! is_array($colorSize) && ! ($colorSize instanceof \Illuminate\Support\Collection)) {
+                                    return [];
+                                }
+
+                                return collect($colorSize)->mapWithKeys(function ($item) {
+                                    $colorText = $item['color'] ?? '';
+                                    $sizeText = $item['size'] ?? '';
+                                    $displayText = trim($colorText.($colorText && $sizeText ? ' - ' : '').$sizeText);
+
+                                    return [$item['uniqid'] => $displayText];
+                                });
+                            }),
 
                         DatePicker::make('date')
                             ->native(false)
@@ -134,7 +165,19 @@ class DamageResource extends Resource
                     ->before(function (array $data, $action) {
 
                         $product = Product::find($data['product_id']);
-                        $productQty = $product->productdetails->available_stock;
+                        $totalAvailableProductstock = $product->productdetails->available_stock;
+                        if ($product['has_varient'] == 1) {
+                            if ($data['color_size'] == '') {
+                                Notification::make()
+                                    ->title('Please select a variation')
+                                    ->danger()
+                                    ->send();
+                                $action->halt();
+                            }
+                            $productQty = collect($product['color_size'])->where('uniqid', $data['color_size'])->first()['available_stock'];
+                        } else {
+                            $productQty = $totalAvailableProductstock;
+                        }
 
                         $getQty = getTotalStock($data['product_id'], $data['quantity_in_main_unit'] ?? null, $data['quantity_in_sub_unit'] ?? null);
                         $total_in_text = getTotalStockInText($data['product_id'], $getQty);
@@ -154,10 +197,12 @@ class DamageResource extends Resource
                                 ->send();
                             $action->halt();
                         }
+                        // dd($data['color_size']);
                         try {
                             DB::beginTransaction();
 
-                            $purchaseIds = ExpensePurchase::addPurchaseExpense($data['product_id'], $getQty);
+                            $purchaseIds = ExpensePurchase::addPurchaseExpense($data['product_id'], $getQty, $data['color_size']);
+                            // dd($purchaseIds);
                             Damage::create([
                                 'product_id' => $data['product_id'],
                                 'quantity_in_main_unit' => $data['quantity_in_main_unit'] ?? null,
@@ -167,6 +212,7 @@ class DamageResource extends Resource
                                 'total_qty' => $getQty,
                                 'total_in_text' => $total_in_text,
                                 'purchase_ids' => $purchaseIds,
+                                'varient' => $data['color_size'],
                             ]);
 
                             Notification::make()
@@ -178,15 +224,18 @@ class DamageResource extends Resource
                             $product->productdetails()->increment('damaged', $getQty);
 
                             $product->productdetails()->update([
-                                'available_stock' => $productQty - $getQty,
-                                'available_stock_in_text' => getTotalStockInText($product->id, $productQty - $getQty),
+                                'available_stock' => $totalAvailableProductstock - $getQty,
+                                'available_stock_in_text' => getTotalStockInText($product->id, $totalAvailableProductstock - $getQty),
                                 'damaged_in_text' => getTotalStockInText($product->id, $getDamage + $getQty),
                             ]);
+                            if ($product['has_varient'] == 1) {
+                                updateProductVarient($data['product_id'], $data['color_size'], available_stock: -$getQty);
+                            }
 
                             DB::commit();
                         } catch (\Exception $e) {
                             DB::rollBack();
-
+                            throw $e;
                             // Handle exception
 
                         }

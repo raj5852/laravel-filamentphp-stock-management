@@ -167,7 +167,6 @@ class ReturnList extends Page implements HasForms, HasTable
                                 return;
                             }
 
-                            
                             try {
                                 DB::beginTransaction();
                                 foreach ($orderItems as $orderitem) {

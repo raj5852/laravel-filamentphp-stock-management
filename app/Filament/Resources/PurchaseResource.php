@@ -310,15 +310,15 @@ class PurchaseResource extends Resource
                             try {
                                 DB::beginTransaction();
 
-                                 $damage = Damage::query()
-                            ->whereJsonContains('purchase_ids', ['purchase_id' => strval($record->id)])
-                            ->orWhereJsonContains('purchase_ids', ['purchase_id' => (int)$record->id])
-                            ->exists();
+                                $damage = Damage::query()
+                                    ->whereJsonContains('purchase_ids', ['purchase_id' => strval($record->id)])
+                                    ->orWhereJsonContains('purchase_ids', ['purchase_id' => (int) $record->id])
+                                    ->exists();
 
-                            $sales = OrderItem::query()
-                                ->whereJsonContains('purchase_ids', ['purchase_id' => strval($record->id)])
-                                ->orWhereJsonContains('purchase_ids', ['purchase_id' => (int)$record->id])
-                                ->exists();
+                                $sales = OrderItem::query()
+                                    ->whereJsonContains('purchase_ids', ['purchase_id' => strval($record->id)])
+                                    ->orWhereJsonContains('purchase_ids', ['purchase_id' => (int) $record->id])
+                                    ->exists();
 
                                 if ($damage || $sales) {
                                     Notification::make()->danger()->title('You can\'t delete it.')->send();
