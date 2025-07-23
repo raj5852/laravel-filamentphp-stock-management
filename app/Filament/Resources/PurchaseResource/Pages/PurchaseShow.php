@@ -58,11 +58,14 @@ class PurchaseShow extends Page implements HasActions, HasForms
                 ])
                 ->find($this->record->id),
 
-            'damages' => Damage::query()->with('product')->whereJsonContains('purchase_ids', ['purchase_id' => $this->record->id])
+            'damages' => Damage::query()->with('product')
+             ->whereJsonContains('purchase_ids', ['purchase_id' => strval($this->record->id)])
+                ->orWhereJsonContains('purchase_ids', ['purchase_id' => (int)$this->record->id])
                 ->get(),
             'sales' => OrderItem::query()
                 ->with('order:id,order_date,invoiceno', 'product:id,product_name')
-                ->whereJsonContains('purchase_ids', ['purchase_id' => $this->record->id])
+                 ->whereJsonContains('purchase_ids', ['purchase_id' => strval($this->record->id)])
+                ->orWhereJsonContains('purchase_ids', ['purchase_id' => (int)$this->record->id])
                 ->get(),
 
         ];
