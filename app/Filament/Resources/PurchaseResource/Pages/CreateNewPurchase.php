@@ -278,7 +278,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
 
     public function paymentAction()
     {
-        $accounts = Account::query()->pluck('name', 'id');
+        $accounts = Account::query()->where('is_active',true)->pluck('name', 'id');
 
         return Action::make('Payment')
             ->form([
@@ -319,6 +319,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
                             ->rules([
                                 Rule::exists('accounts', 'id')->where('tenant_id', auth()->user()->tenant_id),
                             ])
+                            ->native(false)
                             ->required(),
 
                         TextInput::make('pay_amount')

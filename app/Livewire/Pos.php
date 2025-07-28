@@ -399,13 +399,13 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                 Split::make([
                     Stack::make([
                         ImageColumn::make('product_image')->defaultImageUrl('/images/notfound.jpg')->alignCenter(),
-                        TextColumn::make('product_name')->getStateUsing(fn($record) => $record->product_name . ' - ' . $record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
+                        TextColumn::make('product_name')->getStateUsing(fn ($record) => $record->product_name.' - '.$record->product_code)->searchable(['product_name', 'product_code'])->alignCenter(),
                         TextColumn::make('sale_price')->getStateUsing(function ($record) {
-                            return new HtmlString('<span class="font-bold">' . number_format($record->sale_price, 2, '.', '') . '</span>' . ' TK');
+                            return new HtmlString('<span class="font-bold">'.number_format($record->sale_price, 2, '.', '').'</span>'.' TK');
                         })->alignCenter(),
                         TextColumn::make('productdetails.available_stock_in_text')
                             ->getStateUsing(function ($record) {
-                                return new HtmlString('<span >Stock: </span>' . $record->productdetails?->available_stock_in_text);
+                                return new HtmlString('<span >Stock: </span>'.$record->productdetails?->available_stock_in_text);
                             })
                             ->alignCenter(),
                     ]),
@@ -475,7 +475,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
     public function paymentAction()
     {
-        $accounts = Account::query()->pluck('name', 'id');
+        $accounts = Account::query()->where('is_active', true)->pluck('name', 'id');
 
         return LivewireAction::make('Payment')
             ->form([
@@ -547,6 +547,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                     ->schema([
                         Select::make('account_id')
                             ->label('Transaction Account')
+                            ->native(false)
                             ->options($accounts->toArray())
                             ->default(array_key_first($accounts->toArray()))
                             ->rules([
@@ -722,7 +723,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                             $purchaseIds = ExpensePurchase::addPurchaseExpense($product['id'], $totalQty);
 
                             $over_sale_qty = (int) $totalQty - (int) collect($purchaseIds)->sum('qty');
-                            $overSalePurcahsePrice =  ($over_sale_qty * $product['purchase_cost']);
+                            $overSalePurcahsePrice = ($over_sale_qty * $product['purchase_cost']);
 
                             $totalPurcahseCost = collect($purchaseIds)->sum('purchase_value') + $overSalePurcahsePrice;
 

@@ -237,7 +237,7 @@ class PurchaseResource extends Resource
                             Select::make('account')
                                 ->label('Transaction Account')
                                 ->searchable()
-                                ->options(Account::query()->pluck('name', 'id'))
+                                ->options(Account::query()->where('is_active', true)->pluck('name', 'id'))
                                 ->rules([
                                     'required',
                                     Rule::exists('accounts', 'id'),
@@ -308,13 +308,13 @@ class PurchaseResource extends Resource
                     DeleteAction::make()
                         ->before(function (Purchase $record, $action) {
                             $damage = Damage::query()
-                            ->whereJsonContains('purchase_ids', ['purchase_id' => strval($record->id)])
-                            ->orWhereJsonContains('purchase_ids', ['purchase_id' => (int)$record->id])
-                            ->exists();
+                                ->whereJsonContains('purchase_ids', ['purchase_id' => strval($record->id)])
+                                ->orWhereJsonContains('purchase_ids', ['purchase_id' => (int) $record->id])
+                                ->exists();
 
                             $sales = OrderItem::query()
                                 ->whereJsonContains('purchase_ids', ['purchase_id' => strval($record->id)])
-                                ->orWhereJsonContains('purchase_ids', ['purchase_id' => (int)$record->id])
+                                ->orWhereJsonContains('purchase_ids', ['purchase_id' => (int) $record->id])
                                 ->exists();
 
                             if ($damage || $sales) {

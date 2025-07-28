@@ -45,9 +45,7 @@ class PurchaseShow extends Page implements HasActions, HasForms
 
     protected function getViewData(): array
     {
-       
-     
-                
+
         return [
             'setting' => Setting::query()->first(),
             'purchase' => Purchase::query()
@@ -63,12 +61,12 @@ class PurchaseShow extends Page implements HasActions, HasForms
 
             'damages' => Damage::query()->with('product')
                 ->whereJsonContains('purchase_ids', ['purchase_id' => strval($this->record->id)])
-                ->orWhereJsonContains('purchase_ids', ['purchase_id' => (int)$this->record->id])
+                ->orWhereJsonContains('purchase_ids', ['purchase_id' => (int) $this->record->id])
                 ->get(),
             'sales' => OrderItem::query()
                 ->with('order:id,order_date,invoiceno', 'product:id,product_name')
                 ->whereJsonContains('purchase_ids', ['purchase_id' => strval($this->record->id)])
-                ->orWhereJsonContains('purchase_ids', ['purchase_id' => (int)$this->record->id])
+                ->orWhereJsonContains('purchase_ids', ['purchase_id' => (int) $this->record->id])
                 ->get(),
 
         ];
@@ -116,7 +114,7 @@ class PurchaseShow extends Page implements HasActions, HasForms
                 Select::make('account')
                     ->label('Transaction Account')
                     ->searchable()
-                    ->options(Account::query()->pluck('name', 'id'))
+                    ->options(Account::query()->where('is_active', true)->pluck('name', 'id'))
                     ->rules([
                         'required',
                         Rule::exists('accounts', 'id'),
