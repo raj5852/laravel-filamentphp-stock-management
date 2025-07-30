@@ -70,13 +70,13 @@
                         </div>
                         <div class="p-1"></div>
                     </div>
-                    {{-- <div class="grid grid-cols-2 border-b border-gray-200">
+                    <div class="grid grid-cols-2 border-b border-gray-200">
                         <div class="p-1 border-gray-200 !text-black">
                             <span class="font-semibold">Address:</span>
                             {{ $customer->is_default == 1 ? 'Walk-in Customer' : $customer->address }}
                         </div>
                         <div class="p-1"></div>
-                    </div> --}}
+                    </div>
                     <div class="grid grid-cols-2">
                         <div class="p-1 border-gray-200 !text-black">
                             <span class="font-semibold">Mobile:</span>
@@ -125,146 +125,146 @@
             </div>
 
 
-                <!-- Action buttons -->
-                <div class="hiddenButtons">
-                    <div class="mb-6">
-                        <button onclick="printInvoice()"
-                            class="w-full bg-gray-200 text-gray-800 py-2 flex items-center justify-center gap-2 hover:bg-gray-300 !text-black">
-                            <div style="display: flex">
-                                <x-fas-print class="w-4 h-4" />
-                                <div style="margin-left: 5px; margin-top: -4px">Print</div>
-                            </div>
-                        </button>
-                    </div>
+            <!-- Action buttons -->
+            <div class="hiddenButtons">
+                <div class="mb-6">
+                    <button onclick="printInvoice()"
+                        class="w-full bg-gray-200 text-gray-800 py-2 flex items-center justify-center gap-2 hover:bg-gray-300 !text-black">
+                        <div style="display: flex">
+                            <x-fas-print class="w-4 h-4" />
+                            <div style="margin-left: 5px; margin-top: -4px">Print</div>
+                        </div>
+                    </button>
+                </div>
 
-                    <div class="grid grid-cols-1 gap-4">
-                        {{-- <a href="{{ route('filament.admin.pages.pos') }}"
+                <div class="grid grid-cols-1 gap-4">
+                    {{-- <a href="{{ route('filament.admin.pages.pos') }}"
                             class="bg-teal-500 text-white py-2 flex items-center justify-center gap-2 hover:bg-teal-600 !text-black">
                             <div style="display: flex">
                                 <x-fas-reply class="w-5 h-5" />
                                 <div style="margin-left: 5px">New Sale</div>
                             </div>
                         </a> --}}
-                        <a href="{{ route('filament.admin.resources.sales.index') }}"
-                            class="bg-teal-500 text-white py-2 flex items-center justify-center gap-2 hover:bg-teal-600 !text-black">
-                            <div style="display: flex">
-                                <x-fas-reply class="w-5 h-5" />
-                                <div style="margin-left: 5px">Sale List</div>
-                            </div>
-                        </a>
-                    </div>
+                    <a href="{{ route('filament.admin.resources.sales.index') }}"
+                        class="bg-teal-500 text-white py-2 flex items-center justify-center gap-2 hover:bg-teal-600 !text-black">
+                        <div style="display: flex">
+                            <x-fas-reply class="w-5 h-5" />
+                            <div style="margin-left: 5px">Sale List</div>
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>
+    </div>
 
-        <style>
-            /* A4 size styling */
-            .a4-container {
-                width: 210mm;
-                min-height: 297mm;
+    <style>
+        /* A4 size styling */
+        .a4-container {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 0;
+            margin: 0 auto;
+        }
+
+        .a4-content {
+            /* padding: 15mm 10mm; */
+        }
+
+        /* Compact table styling */
+        table.border-collapse {
+            line-height: 1.4;
+        }
+
+        /* Button styling */
+        .hiddenButtons button,
+        .hiddenButtons a {
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .hiddenButtons button:hover,
+        .hiddenButtons a:hover {
+            transform: translateY(-1px);
+        }
+
+        @media print {
+            body {
+                margin: 0;
                 padding: 0;
-                margin: 0 auto;
+            }
+
+            .a4-container {
+                width: 100%;
+                height: auto;
+                box-shadow: none;
             }
 
             .a4-content {
-                /* padding: 15mm 10mm; */
+                padding: 0;
             }
 
-            /* Compact table styling */
-            table.border-collapse {
-                line-height: 1.4;
+            @page {
+                size: A4;
+                margin: 10mm;
             }
 
-            /* Button styling */
+            .hiddenButtons {
+                display: none !important;
+            }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .a4-container {
+                width: 100%;
+                min-height: auto;
+            }
+
+            .a4-content {
+                padding: 10mm 5mm;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th,
+            td {
+                padding: 0.25rem !important;
+            }
+
             .hiddenButtons button,
             .hiddenButtons a {
-                transition: all 0.2s ease;
-                font-weight: 500;
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            table {
+                font-size: 0.8rem;
             }
 
-            .hiddenButtons button:hover,
-            .hiddenButtons a:hover {
-                transform: translateY(-1px);
+            .a4-content {
+                padding: 5mm 2mm;
             }
 
-            @media print {
-                body {
-                    margin: 0;
-                    padding: 0;
-                }
-
-                .a4-container {
-                    width: 100%;
-                    height: auto;
-                    box-shadow: none;
-                }
-
-                .a4-content {
-                    padding: 0;
-                }
-
-                @page {
-                    size: A4;
-                    margin: 10mm;
-                }
-
-                .hiddenButtons {
-                    display: none !important;
-                }
+            .hiddenButtons .grid {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
             }
+        }
+    </style>
 
-            /* Mobile responsiveness */
-            @media (max-width: 768px) {
-                .a4-container {
-                    width: 100%;
-                    min-height: auto;
-                }
+    <script>
+        function printInvoice() {
+            const invoice = document.getElementById('invoice-container').innerHTML;
+            const originalContent = document.body.innerHTML;
 
-                .a4-content {
-                    padding: 10mm 5mm;
-                }
-
-                table {
-                    font-size: 0.9rem;
-                }
-
-                th,
-                td {
-                    padding: 0.25rem !important;
-                }
-
-                .hiddenButtons button,
-                .hiddenButtons a {
-                    padding: 0.5rem;
-                    font-size: 0.9rem;
-                }
-            }
-
-            @media (max-width: 480px) {
-                table {
-                    font-size: 0.8rem;
-                }
-
-                .a4-content {
-                    padding: 5mm 2mm;
-                }
-
-                .hiddenButtons .grid {
-                    grid-template-columns: 1fr;
-                    gap: 0.5rem;
-                }
-            }
-        </style>
-
-        <script>
-            function printInvoice() {
-                const invoice = document.getElementById('invoice-container').innerHTML;
-                const originalContent = document.body.innerHTML;
-
-                document.body.innerHTML = invoice;
-                window.print();
-                document.body.innerHTML = originalContent;
-                window.location.reload(); // Restore layout
-            }
-        </script>
+            document.body.innerHTML = invoice;
+            window.print();
+            document.body.innerHTML = originalContent;
+            window.location.reload(); // Restore layout
+        }
+    </script>
 </x-filament-panels::page>
