@@ -49,12 +49,12 @@
                         </div>
                         <div class="p-1"></div>
                     </div>
-                    <!-- <div class="grid grid-cols-2 border-b border-gray-200">
+                    <div class="grid grid-cols-2 border-b border-gray-200">
                         <div class="p-1 border-gray-200 !text-black">
                             <span class="font-semibold">Address:</span> {{ $purchase->supplier?->address }}
                         </div>
                         <div class="p-1"></div>
-                    </div> -->
+                    </div>
                     <div class="grid grid-cols-2">
                         <div class="p-1 border-gray-200 !text-black">
                             <span class="font-semibold">Mobile:</span> {{ $purchase->supplier?->phone }}
@@ -89,16 +89,15 @@
                                         <td class="border border-gray-200 py-0.5 px-2 !text-black">
                                             {{ $item->product?->product_name }}
                                             | {{ $item->product?->product_code }}
-                                            @if($item->product->has_varient == 1)
-                                            - V: 
-                                                @foreach($item->product->color_size ?? [] as $key => $colorsize)
-                                                    @if($colorsize["uniqid"] == $item->varient_uniqid)
+                                            @if ($item->product->has_varient == 1)
+                                                - V:
+                                                @foreach ($item->product->color_size ?? [] as $key => $colorsize)
+                                                    @if ($colorsize['uniqid'] == $item->varient_uniqid)
                                                         {{ $colorsize['color'] }} - {{ $colorsize['size'] }}
                                                     @endif
                                                 @endforeach
-
                                             @endif
-                                        
+
                                         </td>
                                         <td class="border border-gray-200 py-0.5 px-2 text-center !text-black">
                                             {{ $item->total_in_text }}</td>

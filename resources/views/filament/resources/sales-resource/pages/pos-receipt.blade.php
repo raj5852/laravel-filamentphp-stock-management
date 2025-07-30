@@ -70,13 +70,13 @@
                         </div>
                         <div class="p-1"></div>
                     </div>
-                    {{-- <div class="grid grid-cols-2 border-b border-gray-200">
+                    <div class="grid grid-cols-2 border-b border-gray-200">
                         <div class="p-1 border-gray-200 !text-black">
                             <span class="font-semibold">Address:</span>
                             {{ $customer->is_default == 1 ? 'Walk-in Customer' : $customer->address }}
                         </div>
                         <div class="p-1"></div>
-                    </div> --}}
+                    </div>
                     <div class="grid grid-cols-2">
                         <div class="p-1 border-gray-200 !text-black">
                             <span class="font-semibold">Mobile:</span>
@@ -113,15 +113,15 @@
                                         </td>
                                         <td class="border border-gray-200 py-0.5 px-2 !text-black">
                                             {{ $item->product->product_name }}
-                                            @if($item->product->has_varient == 1)
-                                            - V: 
-                                                @foreach($item->product->color_size ?? [] as $key => $colorsize)
-                                                    @if($colorsize["uniqid"] == $item->varient_uniqid)
+                                            @if ($item->product->has_varient == 1)
+                                                - V:
+                                                @foreach ($item->product->color_size ?? [] as $key => $colorsize)
+                                                    @if ($colorsize['uniqid'] == $item->varient_uniqid)
                                                         {{ $colorsize['color'] }} - {{ $colorsize['size'] }}
                                                     @endif
                                                 @endforeach
                                             @endif
-                                        
+
                                         </td>
                                         <td class="border border-gray-200 py-0.5 px-2 text-center !text-black">
                                             {{ $item->total_in_text }}</td>
@@ -129,12 +129,12 @@
                                             {{ number_format($item->rate, 2) }} Tk</td>
                                         <!-- <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
                                             @if ($item->discount_amount > 0)
-                                                {{ number_format($item->discount_amount, 1) }} Tk
-                                            @else
-                                                <center>
+{{ number_format($item->discount_amount, 1) }} Tk
+@else
+<center>
                                                     --
                                                 </center>
-                                            @endif
+@endif
 
                                         </td> -->
                                         <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">

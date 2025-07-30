@@ -508,7 +508,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
 
     public function paymentAction()
     {
-        $accounts = Account::query()->pluck('name', 'id');
+        $accounts = Account::query()->where('is_active', true)->pluck('name', 'id');
 
         return LivewireAction::make('Payment')
             ->form([
