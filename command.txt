@@ -1,6 +1,4 @@
 php artisan migrate
-php artisan app:add-new-role
-
 
 php artisan optimize:clear
 php artisan filament:optimize
@@ -11,6 +9,8 @@ php artisan optimize
 
 
 
+php artisan migrate
+php artisan app:add-new-role
 
 
 

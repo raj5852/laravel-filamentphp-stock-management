@@ -276,7 +276,7 @@ class CreateNewPurchase extends Page implements HasActions, HasForms
 
     public function paymentAction()
     {
-        $accounts = Account::query()->pluck('name', 'id');
+        $accounts = Account::query()->where('is_active',true)->pluck('name', 'id');
 
         return Action::make('Payment')
             ->form([

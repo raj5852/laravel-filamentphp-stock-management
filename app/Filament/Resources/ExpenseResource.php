@@ -77,7 +77,7 @@ class ExpenseResource extends Resource
                         ])
                         ->searchable(),
                     Select::make('account_id')
-                        ->options(Account::query()->pluck('name', 'id'))
+                        ->options(Account::query()->where('is_active', true)->pluck('name', 'id'))
                         ->required()
                         ->label('Transaction Account')
                         ->rules([

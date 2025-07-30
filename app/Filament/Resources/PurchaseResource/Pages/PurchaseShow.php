@@ -113,7 +113,7 @@ class PurchaseShow extends Page implements HasActions, HasForms
                 Select::make('account')
                     ->label('Transaction Account')
                     ->searchable()
-                    ->options(Account::query()->pluck('name', 'id'))
+                    ->options(Account::query()->where('is_active',true)->pluck('name', 'id'))
                     ->rules([
                         'required',
                         Rule::exists('accounts', 'id'),

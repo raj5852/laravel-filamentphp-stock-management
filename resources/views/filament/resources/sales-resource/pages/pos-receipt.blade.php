@@ -70,13 +70,13 @@
                         </div>
                         <div class="p-1"></div>
                     </div>
-                    {{-- <div class="grid grid-cols-2 border-b border-gray-200">
+                    <div class="grid grid-cols-2 border-b border-gray-200">
                         <div class="p-1 border-gray-200 !text-black">
                             <span class="font-semibold">Address:</span>
                             {{ $customer->is_default == 1 ? 'Walk-in Customer' : $customer->address }}
                         </div>
                         <div class="p-1"></div>
-                    </div> --}}
+                    </div>
                     <div class="grid grid-cols-2">
                         <div class="p-1 border-gray-200 !text-black">
                             <span class="font-semibold">Mobile:</span>

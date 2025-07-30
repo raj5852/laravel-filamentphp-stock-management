@@ -137,8 +137,8 @@ class AddPayment extends Page implements HasForms
                         ])
                         ->placeholder('Enter Amount'),
                     Select::make('transition_account')
-                        ->label('Transition Account')
-                        ->options(Account::query()->pluck('name', 'id'))
+                        ->label('Transaction Account')
+                        ->options(Account::query()->where('is_active', true)->pluck('name', 'id'))
                         ->required()
                         ->rules([
                             'required',
