@@ -122,6 +122,7 @@
                         </table>
                     </div>
                 </div>
+            </div>
 
 
                 <!-- Action buttons -->
