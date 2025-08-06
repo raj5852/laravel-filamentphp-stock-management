@@ -6,6 +6,7 @@ use App\HistoryTypeEnum;
 use App\Models\Account;
 use App\Models\Category;
 use App\Models\Customer;
+use App\Models\CustomerGroup;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
@@ -70,12 +71,15 @@ class Pos extends Component implements HasActions, HasForms, HasTable
     public $all_customers = [];
 
     public $oversale;
+    public $is_customer_group = false;
 
     public function mount()
     {
+        $setting = Setting::first();
         $this->customer_id = Customer::where('is_default', 1)->first()->id;
         $this->order_date = now();
-        $this->oversale = Setting::first()->oversale;
+        $this->oversale = $setting->oversale;
+        $this->is_customer_group = $setting->is_customer_group;
     }
 
     public function addProduct($productId)
@@ -367,6 +371,47 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                                 'max:256',
                             ])
                             ->placeholder('Phone Number'),
+                    Select::make('customer_group_id')
+                    ->label('Customer Group')
+                    ->visible($this->is_customer_group)
+                    ->options(CustomerGroup::query()->pluck('name', 'id'))
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->createOptionForm([
+                                TextInput::make('name')
+                                    ->label('Customer Group Name')
+                                    ->autocomplete(false)
+                                    ->rules([
+                                        'required',
+                                        'string',
+                                        'min:0',
+                                        'max:256',
+                                    ])
+                                    ->placeholder('Customer Group Name')
+                                    ->required(),
+                            ])
+                            ->createOptionAction(function (Action $action) {
+                                $action
+                                    ->button()
+                                    ->outlined()
+                                    ->color(Color::Green)
+                                    ->modalWidth('md')
+                                    ->modalCancelAction(false)
+                                    ->label('Add Customer Group');
+                            })
+                            ->createOptionUsing(function ($data) {
+                                $customerGroup = CustomerGroup::create([
+                                    'name' => $data['name'],
+                                ]);
+                                Notification::make()
+                                    ->title('Customer Group Created')
+                                    ->body('The Customer Group has been successfully added.')
+                                    ->success()
+                                    ->send();
+
+                                return $customerGroup->id;
+                            }),
 
                         TextInput::make('opening_receivable')
                             ->label('Opening Receivable')
@@ -378,6 +423,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                                 'max:9999999999',
                             ])
                             ->placeholder('Opening Receivable'),
+                            
 
                         TextInput::make('opening_payable')
                             ->label('Opening Payable')

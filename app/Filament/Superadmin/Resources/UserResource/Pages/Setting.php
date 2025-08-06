@@ -20,12 +20,14 @@ class Setting extends Page
     protected static string $view = 'filament.superadmin.resources.user-resource.pages.setting';
 
     public $oversale;
+    public $is_customer_group;
 
     public function mount(User $record): void
     {
         $this->record = $record;
         $settings = DB::table('settings')->where('tenant_id', $record->id)->first();
         $this->oversale = $settings->oversale ?? false;
+        $this->is_customer_group = $settings->is_customer_group ?? false;
     }
 
     public function getRecord(): User
@@ -43,6 +45,12 @@ class Setting extends Page
                         1 => 'Yes',
                     ]),
 
+                    Select::make('is_customer_group')
+                        ->options([
+                            0 => 'No',
+                            1 => 'Yes',
+                        ]),
+
             ]);
     }
 
@@ -50,6 +58,7 @@ class Setting extends Page
     {
         DB::table('settings')->where('tenant_id', $this->record->id)->update([
             'oversale' => $this->oversale,
+            'is_customer_group' => $this->is_customer_group,
         ]);
 
         Notification::make()

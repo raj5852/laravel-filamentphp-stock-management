@@ -18,12 +18,10 @@
 
     @endphp
 
-    <!-- A4 size container with proper margins -->
     <div class="a4-container mx-auto p-0">
         <div class="bg-white shadow-md rounded-sm p-4 md:p-6 a4-content">
             <div id="invoice-container">
 
-                <!-- Company info with improved layout -->
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6">
                     <div class="flex flex-col items-center md:items-start">
                         @if (
@@ -52,7 +50,6 @@
                     </div>
                 </div>
 
-                <!-- Invoice details with better spacing -->
                 <div class="border border-gray-200 mb-6">
                     <div class="grid grid-cols-2 border-b border-gray-200">
                         <div class="p-1 border-gray-200 !text-black">
@@ -86,7 +83,6 @@
                     </div>
                 </div>
 
-                <!-- Invoice table with optimized column widths and reduced row height -->
                 <div class="mb-6">
                     <div class="overflow-x-auto relative">
                         <table class="w-full border-collapse">
@@ -99,8 +95,7 @@
                                     </th>
                                     <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Price
                                     </th>
-                                    <!-- <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Discount
-                                    </th> -->
+
                                     <th class="border border-gray-200 py-1 px-2 text-right !text-black w-[15%]">Net.A
                                     </th>
                                 </tr>
@@ -127,16 +122,7 @@
                                             {{ $item->total_in_text }}</td>
                                         <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
                                             {{ number_format($item->rate, 2) }} Tk</td>
-                                        <!-- <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
-                                            @if ($item->discount_amount > 0)
-{{ number_format($item->discount_amount, 1) }} Tk
-@else
-<center>
-                                                    --
-                                                </center>
-@endif
 
-                                        </td> -->
                                         <td class="border border-gray-200 py-0.5 px-2 text-right !text-black">
                                             {{ number_format($item->total_rate, 2) }} Tk</td>
                                     </tr>

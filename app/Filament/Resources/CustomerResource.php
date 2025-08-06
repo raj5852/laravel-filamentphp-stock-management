@@ -5,12 +5,16 @@ namespace App\Filament\Resources;
 use App\Filament\Exports\CustomerExporter;
 use App\Filament\Resources\CustomerResource\Pages;
 use App\Models\Customer;
+use App\Models\CustomerGroup;
+use App\Models\Setting;
 use Filament\Actions\Action;
 use Filament\Forms;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Support\Colors\Color;
 use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\ExportAction;
@@ -85,6 +89,49 @@ class CustomerResource extends Resource
                         'max:9999999999',
                     ])
                     ->minValue(0),
+                Select::make('customer_group_id')
+                    ->visible(Setting::first()?->is_customer_group == true)
+                    ->label('Customer Group')
+                    ->options(CustomerGroup::query()->pluck('name', 'id'))
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->createOptionForm([
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Customer Group Name')
+                                    ->autocomplete(false)
+                                    ->rules([
+                                        'required',
+                                        'string',
+                                        'min:0',
+                                        'max:256',
+                                    ])
+                                    ->placeholder('Customer Group Name')
+                                    ->required(),
+                            ])
+                            ->createOptionAction(function (Forms\Components\Actions\Action $action) {
+                                $action
+                                    ->button()
+                                    ->outlined()
+                                    ->color(Color::Green)
+                                    ->modalWidth('md')
+                                    ->modalCancelAction(false)
+                                    ->label('Add Customer Group');
+                            })
+                            ->createOptionUsing(function ($data) {
+                                $customerGroup = CustomerGroup::create([
+                                    'name' => $data['name'],
+                                ]);
+                                Notification::make()
+                                    ->title('Customer Group Created')
+                                    ->body('The Customer Group has been successfully added.')
+                                    ->success()
+                                    ->send();
+
+                                return $customerGroup->id;
+                            })
+                    ->columnSpanFull()
+                    ,
 
                 Textarea::make('note')
                     ->rules([
