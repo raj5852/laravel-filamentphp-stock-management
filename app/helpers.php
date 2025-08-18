@@ -84,11 +84,12 @@ if (! function_exists('singleUnitSalePrice')) {
     {
         $product = Product::find($productId);
         $salePrice = $product->sale_price;
+        $unit = Unit::find($product->unit_id);
 
-        if ($product->sub_unit == '') {
+        if ($product->sub_unit == '' && $unit->related_to_unit == '') {
             return $salePrice;
         } else {
-            $unit = Unit::find($product->unit_id);
+            
             $singleUnitSalePrice = $salePrice / $unit->related_by_value;
 
             return $singleUnitSalePrice;
@@ -102,11 +103,12 @@ if (! function_exists('singleUnitPurchasePrice')) {
     {
         $product = Product::find($productId);
         $purchasePrice = $purchase_cost == null ? $product->purchase_cost : $purchase_cost;
+        $unit = Unit::find($product->unit_id);
 
-        if ($product->sub_unit == '') {
+        if ($product->sub_unit == '' && $unit->related_to_unit == '') {
             return $purchasePrice;
         } else {
-            $unit = Unit::find($product->unit_id);
+
             $singleUnitPurchasePrice = $purchasePrice / $unit->related_by_value;
 
             return $singleUnitPurchasePrice;
