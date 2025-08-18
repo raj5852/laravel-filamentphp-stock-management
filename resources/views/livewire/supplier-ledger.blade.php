@@ -1,4 +1,31 @@
 <div>
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .fi-ta, .fi-ta *, .print-title, .print-title * {
+                visibility: visible;
+            }
+            .print-title {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            .fi-ta {
+                position: absolute;
+                left: 0;
+                top: 50px;
+                width: 100%;
+            }
+            button, form, .print-hide {
+                display: none !important;
+            }
+            .print-title{
+                display: none !important;
+            }
+        }
+    </style>
     <form wire:submit.prevent="submit">
         {{ $this->form }}
 
@@ -15,7 +42,22 @@
     <br><br>
 
 
-    <div class="flex flex-col gap-y-6">
+    <div class="flex flex-col">
+        <div class="flex justify-between items-center">
+            <div class="print-title hidden">
+                <h2 class="text-2xl font-bold">Supplier Ledger</h2>
+                @if(isset($supplier) && $supplier)
+                <p class="text-lg">{{ $supplier->name }}</p>
+                @endif
+            </div>
+            <div></div>
+            <button onclick="window.print()" class="px-4 py-2 bg-primary-600 text-white rounded-lg shadow hover:bg-primary-700 transition-colors duration-200 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Print
+            </button>
+        </div>
         <div class="fi-ta">
             <div
                 class="fi-ta-ctn divide-y divide-gray-200 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:divide-white/10 dark:bg-gray-900 dark:ring-white/10">
@@ -27,8 +69,7 @@
                         <thead class="divide-y divide-gray-200 dark:divide-white/5">
 
                             <tr class="bg-gray-50 dark:bg-white/5">
-                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 "
-                                    style=";">
+                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6">
                                     <span
                                         class="group flex w-full items-center gap-x-1 whitespace-nowrap justify-start">
                                         <span
@@ -37,8 +78,7 @@
                                         </span>
                                     </span>
                                 </th>
-                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 "
-                                    style=";">
+                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6">
                                     <span
                                         class="group flex w-full items-center gap-x-1 whitespace-nowrap justify-start">
                                         <span
@@ -47,8 +87,7 @@
                                         </span>
                                     </span>
                                 </th>
-                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 "
-                                    style=";">
+                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6">
                                     <span
                                         class="group flex w-full items-center gap-x-1 whitespace-nowrap justify-start">
                                         <span
@@ -57,8 +96,7 @@
                                         </span>
                                     </span>
                                 </th>
-                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 "
-                                    style=";">
+                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6">
                                     <span
                                         class="group flex w-full items-center gap-x-1 whitespace-nowrap justify-start">
                                         <span
@@ -67,8 +105,7 @@
                                         </span>
                                     </span>
                                 </th>
-                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 "
-                                    style=";">
+                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6">
                                     <span
                                         class="group flex w-full items-center gap-x-1 whitespace-nowrap justify-start">
                                         <span

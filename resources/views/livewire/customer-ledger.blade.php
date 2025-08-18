@@ -1,4 +1,28 @@
 <div>
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .fi-ta, .fi-ta *, .print-title, .print-title * {
+                visibility: visible;
+            }
+            .print-title {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            .fi-ta {
+                position: absolute;
+                left: 0;
+                top: 100px;
+                width: 100%;
+            }
+            button, form, .print-hide {
+                display: none !important;
+            }
+        }
+    </style>
     <form wire:submit.prevent="submit">
         {{ $this->form }}
 
@@ -11,11 +35,23 @@
         </x-filament::button>
     </form>
 
+    <div class="print-title" style="display: none;">
+        <h1 style="font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 10px;">Customer Ledger</h1>
+        @if(isset($customer_name))
+        <h2 style="font-size: 18px; text-align: center; margin-bottom: 20px;">{{ $customer_name }}</h2>
+        @endif
+    </div>
+    
+    <div class="flex justify-end mb-2">
+        <button onclick="window.print()" class="inline-flex items-center justify-center py-2 px-4 text-sm font-medium tracking-tight rounded-lg text-white bg-primary-600 hover:bg-primary-500 focus:bg-primary-700 focus:outline-none focus:ring-offset-0 focus:ring-2 focus:ring-primary-600 print-hide">
+            <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Print
+        </button>
+    </div>
 
-    <br><br>
-
-
-    <div class="flex flex-col gap-y-6">
+    <div class="flex flex-col gap-y-2">
         <div class="fi-ta">
             <div
                 class="fi-ta-ctn divide-y divide-gray-200 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:divide-white/10 dark:bg-gray-900 dark:ring-white/10">
@@ -27,8 +63,7 @@
                         <thead class="divide-y divide-gray-200 dark:divide-white/5">
 
                             <tr class="bg-gray-50 dark:bg-white/5">
-                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 "
-                                    style=";">
+                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 ">
                                     <span
                                         class="group flex w-full items-center gap-x-1 whitespace-nowrap justify-start">
                                         <span
@@ -37,8 +72,7 @@
                                         </span>
                                     </span>
                                 </th>
-                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 "
-                                    style=";">
+                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 ">
                                     <span
                                         class="group flex w-full items-center gap-x-1 whitespace-nowrap justify-start">
                                         <span
@@ -47,8 +81,7 @@
                                         </span>
                                     </span>
                                 </th>
-                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 "
-                                    style=";">
+                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 ">
                                     <span
                                         class="group flex w-full items-center gap-x-1 whitespace-nowrap justify-start">
                                         <span
@@ -57,8 +90,7 @@
                                         </span>
                                     </span>
                                 </th>
-                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 "
-                                    style=";">
+                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 ">
                                     <span
                                         class="group flex w-full items-center gap-x-1 whitespace-nowrap justify-start">
                                         <span
@@ -67,8 +99,7 @@
                                         </span>
                                     </span>
                                 </th>
-                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 "
-                                    style=";">
+                                <th class="fi-ta-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 ">
                                     <span
                                         class="group flex w-full items-center gap-x-1 whitespace-nowrap justify-start">
                                         <span

@@ -183,3 +183,4 @@
 
         <x-filament-actions::modals />
     </div>
+</div>
