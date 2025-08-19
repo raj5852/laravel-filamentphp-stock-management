@@ -175,7 +175,9 @@ class Setting extends Page implements HasForms
                         ->content(new HtmlString('
                         <div class="">
                           <p><b>Customer Name: </b> {customer_name}</p>
-                          <p><b>Total Order Amount:</b> {amount} </p>
+                          <p><b>Order Amount:</b> {amount} </p>
+                          <p><b>Paid Amount:</b> {paid_amount} </p>
+                          <p><b>Total Due:</b> {total_due} </p>
                           <p><b>Bill No: </b> {bill_no}</p>
                           <p><b>Order Date:</b> {order_date}</p>
                           <p><b>Company Name:</b> {company_name}</p>
