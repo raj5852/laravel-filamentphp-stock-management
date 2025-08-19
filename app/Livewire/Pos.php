@@ -782,7 +782,6 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                             ]);
                         }
 
-                        $this->customer_id = null;
 
                         if ($data['send_sms'] && ($customer->is_default != 1)) {
                             // $smsCount = User::where('tenant_id', auth()->user()->tenant_id)->first()?->sms_count ?? 0;
@@ -798,13 +797,18 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                             $order_date = $order->order_date;
                             $bill_no = $order->invoiceno;
                             $company_name = $setting->company_name;
+                            $paid_amount = $data['pay_amount'] ?? 0;
+                            $total_due = getTotalDue($this->customer_id);
 
+                           
                             $replacements = [
                                 '{customer_name}' => $customer_name,
                                 '{amount}' => $amount,
                                 '{order_date}' => Carbon::parse($order_date)->format('Y-m-d'),
                                 '{bill_no}' => $bill_no,
                                 '{company_name}' => $company_name,
+                                '{paid_amount}' => $paid_amount,
+                                '{total_due}'=> $total_due,
                             ];
 
                             foreach ($replacements as $key => $value) {
@@ -828,6 +832,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                                     ->send();
                             }
                         }
+                        $this->customer_id = null;
 
                         DB::commit();
                     } catch (\Exception $e) {
