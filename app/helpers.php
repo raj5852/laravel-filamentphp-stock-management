@@ -170,3 +170,19 @@ if (! function_exists('updateProductVarient')) {
         return $product;
     }
 }
+if (! function_exists('getTotalDue')) {
+    function getTotalDue($customerId)
+    {
+        $record = Customer::withSum('orders', 'due')->findOrFail($customerId);
+
+        $balance = 0;
+
+        if ($record->wallet <= 0) {
+            $balance = abs($record->wallet);
+        } else {
+            $balance = 0;
+        }
+
+        return abs($balance) + ($record->orders_sum_due ?: 0);
+    }
+}
