@@ -853,7 +853,7 @@ class Pos extends Component implements HasActions, HasForms, HasTable
                         ->title('Order Created Successfully')
                         ->send();
 
-                    return to_route('filament.admin.resources.sales.pos-receipt', ['record' => $order->id]);
+                    return to_route('filament.admin.pages.pos', ['invoices' => $order->id]);
                 }
             });
     }
