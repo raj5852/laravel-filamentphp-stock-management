@@ -20,12 +20,15 @@ class Setting extends Page
     protected static string $view = 'filament.superadmin.resources.user-resource.pages.setting';
 
     public $oversale;
+    public $is_sales_delivered;
+    
 
     public function mount(User $record): void
     {
         $this->record = $record;
         $settings = DB::table('settings')->where('tenant_id', $record->id)->first();
         $this->oversale = $settings->oversale ?? false;
+        $this->is_sales_delivered = $settings->is_sales_delivered ?? false;
     }
 
     public function getRecord(): User
@@ -43,6 +46,13 @@ class Setting extends Page
                         1 => 'Yes',
                     ]),
 
+                Select::make('is_sales_delivered')
+                    ->options([
+                        0 => 'No',
+                        1 => 'Yes',
+                    ]),
+
+
             ]);
     }
 
@@ -50,6 +60,7 @@ class Setting extends Page
     {
         DB::table('settings')->where('tenant_id', $this->record->id)->update([
             'oversale' => $this->oversale,
+            'is_sales_delivered' => $this->is_sales_delivered,
         ]);
 
         Notification::make()

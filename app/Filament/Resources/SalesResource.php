@@ -14,6 +14,8 @@ use App\Models\Product;
 use App\Models\PurchaseItem;
 use App\Models\ReturnList;
 use App\Models\ReturnListProduct;
+use App\Models\Setting;
+use App\Models\User;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -24,6 +26,7 @@ use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\ExportAction;
+use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
@@ -58,6 +61,7 @@ class SalesResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $setting = Setting::first()->is_sales_delivered;
         return $table
             ->query(Order::query()
                 ->with([
@@ -117,6 +121,21 @@ class SalesResource extends Resource
                 TextColumn::make('Status')->default(function ($record) {
                     return ($record->due - $record->returnlist->paid) > 0 ? 'Unpaid' : 'Paid';
                 }),
+
+                SelectColumn::make('delivery_status')
+                ->options([
+                    1=>'Yes',
+                    0=>'No'
+                ])
+                ->visible($setting)
+                ->selectablePlaceholder(false)
+                ->afterStateUpdated(function ($state, $record) {
+                    Notification::make()
+                        ->success()
+                        ->title('Delivery status changed successfully')
+                        ->send();
+                }),
+
             ])
             ->headerActions([
                 ExportAction::make()
