@@ -31,13 +31,13 @@ class PosReceipt extends Page
         // Default view
         $setting = Setting::first();
 
-        return 'filament.resources.sales-resource.pages.pos-receipt';
-        // if ($setting->invoice_design == 'a4') {
-        //     return 'filament.resources.sales-resource.pages.pos-receipt';
-        // } else {
+        // return 'filament.resources.sales-resource.pages.pos-receipt';
+        if ($setting->invoice_design == 'a4') {
+            return 'filament.resources.sales-resource.pages.pos-receipt';
+        } else {
 
-        //     return 'filament.resources.sales-resource.pages.80mm';
-        // }
+            return 'filament.resources.sales-resource.pages.80mm';
+        }
     }
 
     protected function getViewData(): array

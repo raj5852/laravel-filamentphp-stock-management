@@ -169,7 +169,7 @@ class Setting extends Page implements HasForms
                                 Select::make('invoice_design')
                                     ->options([
                                         'a4' => 'A4',
-                                        // 'pos_80mm' => 'POS 80mm',
+                                        'pos_80mm' => 'POS 80mm',
                                     ])
                                     ->default('a4')
                                     ->rules([

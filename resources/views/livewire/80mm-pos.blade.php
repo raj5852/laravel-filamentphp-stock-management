@@ -1,4 +1,4 @@
-<x-filament-panels::page>
+<div>
    
 
     @php
@@ -334,4 +334,4 @@
         </script>
     @endif
 
-</x-filament-panels::page>
+        </div>

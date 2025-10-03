@@ -22,7 +22,12 @@ class PosInvoice extends Component
         $customer = Customer::query()->withSum('orders', 'due')->find($this->record->customer_id);
         $order = Order::query()->with('orderitems', 'returnlist')->find($this->record->id);
 
-        return view('livewire.pos-invoice', compact('setting', 'customer', 'order'));
+        // dd($setting);
+        if($setting->invoice_design == 'pos_80mm'){
+            return view('livewire.80mm-pos', compact('setting', 'customer', 'order'));
+        }else{
+            return view('livewire.pos-invoice', compact('setting', 'customer', 'order'));
+        }
 
     }
 }
