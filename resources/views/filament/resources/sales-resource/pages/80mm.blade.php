@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-   
+
 
     @php
         $balance = 0;
@@ -120,7 +120,8 @@
                                 </td>
                                 <td colspan="2"
                                     style="border-top: 1px dotted black; padding: 4px; text-align: right; background-color: #ffffff;">
-                                    <strong>{{ number_format($order->total_no_discount + $order->returnlist->total_no_discount, 2) }} </strong>
+                                    <strong>{{ number_format($order->total_no_discount + $order->returnlist->total_no_discount, 2) }}
+                                    </strong>
                                 </td>
                             </tr>
                             <tr>
@@ -189,7 +190,8 @@
                                 </td>
                                 <td colspan="2"
                                     style="border-top: 1px dotted black; padding: 4px; text-align: right; background-color: #ffffff;">
-                                    <strong> {{ number_format($order->due - $order->returnlist->paid + $previous_due, 2) }}</strong>
+                                    <strong>
+                                        {{ number_format($order->due - $order->returnlist->paid + $previous_due, 2) }}</strong>
                                 </td>
                             </tr>
 
@@ -203,6 +205,11 @@
                     style="margin-bottom: 10px; padding: 6px; border-radius: 6px; font-size: 11px; border: 1px dotted black; background-color: #ffffff;">
                     <p style="margin: 0;"><strong>In Words:</strong> {{ numberToBanglaWord($order->receivable) }} Taka
                         Only</p>
+                </div>
+
+                <div
+                    style="margin-bottom: 10px; padding: 6px; border-radius: 6px; font-size: 11px; border: 1px dotted black; background-color: #ffffff;">
+                    <p style="margin: 0;"><strong>Note :</strong> {{ $order->note }} </p>
                 </div>
 
 
